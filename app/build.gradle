@@ -1,0 +1,202 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
+android {
+    compileSdkVersion 34
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.taiwanlife.teamwalk"
+        minSdkVersion 26
+        targetSdkVersion 34
+        versionCode 54
+        versionName "2.0.32"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('./teamwalk-uat.jks')
+            storePassword 'Best2021'
+            keyAlias 'teamwalk'
+            keyPassword 'Best2021'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            signingConfig signingConfigs.debug
+            buildConfigField "boolean", "LOG_ENABLED", "false"
+
+            resValue("xml", "network_security_config", "@xml/network_security_config_release")
+            resValue("string", "csso_url", "https://csso.taiwanlife.com/csso/")
+            resValue("string", "csso_forget_mima_url", "https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
+            resValue("string", "csso_sign_up_url", "https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+            resValue("string", "tcav_url", "https://tcav.taiwanlife.com/")
+            resValue("string", "api_url", "https://teamwalk.taiwanlife.com/frontend/api/")
+            resValue("string", "web_url", "https://teamwalk.taiwanlife.com/frontend/")
+            resValue("string", "origin", "https://teamwalk.taiwanlife.com")
+            resValue("string", "taiwanlife_member_url", "https://www.taiwanlife.com/member?service=https%3A%2F%2Ftcav.taiwanlife.com%2Flogin")
+
+            resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
+            resValue("string", "connect_fitbit_client_id", "22BVVM")
+            resValue("string", "connect_fitbit_client_secret", "00403c68f5025d238d022963dfab43dd")
+            resValue("string", "connect_garmin_consumer_key", "4a08c804-fbd9-41f7-87f7-b7bcd44d430a")
+            resValue("string", "connect_garmin_comsumer_secret", "DJ1wEi3uNk0rbBDdalerp6ZYqmFJ2D4kf4t")
+
+            //FB SDK
+            resValue("string", "facebook_app_id", "707814117610778")
+            resValue("string", "fb_login_protocol_scheme", "fb707814117610778")
+            resValue("string", "facebook_client_token", "accb9d67a13fc31412f9694e3bfe2e87")
+        }
+
+        debug {
+            debuggable true
+            applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
+            buildConfigField "boolean", "LOG_ENABLED", "true"
+
+            resValue("xml", "network_security_config", "@xml/network_security_config_debug")
+            resValue("string", "csso_url", "https://cssouat.taiwanlife.com/csso/")
+            resValue("string", "csso_forget_mima_url", "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
+            resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+            resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
+            resValue("string", "api_url", "http://teamwork-frontend.bestamina.net:8080/frontend/api/")
+            resValue("string", "web_url", "http://teamwork-frontend.bestamina.net:8080/frontend/")
+            resValue("string", "origin", "http://teamwork-frontend.bestamina.net:8080")
+            resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
+
+            resValue("string", "connect_google_client_id", "773524163063-6je6tkpag1qgcapsn7kuv6s0h85tkct4.apps.googleusercontent.com")
+            resValue("string", "connect_fitbit_client_id", "22BZQG")
+            resValue("string", "connect_fitbit_client_secret", "565d1f1a0822d1fbf50cedae0041d3ee")
+            resValue("string", "connect_garmin_consumer_key", "fee4d993-db0d-4e55-855f-b7ed099ce358")
+            resValue("string", "connect_garmin_comsumer_secret", "4b3u2KpOwZdjymZSW9IqbfKXZ4g9MS4tmQb")
+
+            //FB SDK
+            resValue("string", "facebook_app_id", "1151503809061491")
+            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
+            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
+        }
+
+        sit {
+            debuggable true
+            applicationIdSuffix ".sit"
+//            versionNameSuffix "-60"
+            signingConfig signingConfigs.debug
+            buildConfigField "boolean", "LOG_ENABLED", "true"
+
+            resValue("xml", "network_security_config", "@xml/network_security_config_debug")
+            resValue("string", "csso_url", "https://cssouat.taiwanlife.com/csso/")
+            resValue("string", "csso_forget_mima_url", "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
+            resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+            resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
+            resValue("string", "api_url", "http://10.1.242.55:9080/frontend/api/")
+            resValue("string", "web_url", "http://10.1.242.55:9080/frontend/")
+            resValue("string", "origin", "http://10.1.242.55:9080")
+            resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
+
+            resValue("string", "connect_google_client_id", "773524163063-6je6tkpag1qgcapsn7kuv6s0h85tkct4.apps.googleusercontent.com")
+            resValue("string", "connect_fitbit_client_id", "23B3KR")
+            resValue("string", "connect_fitbit_client_secret", "c586771e4f9a4ae17ec0b1de15f38ef6")
+            resValue("string", "connect_garmin_consumer_key", "0b3e7e2c-328a-4bc6-b713-1dd7774ff3d8")
+            resValue("string", "connect_garmin_comsumer_secret", "l9FrmPYVSNgqTT5SOwPfOuT172Vrtmi2tV0")
+
+            //FB SDK
+            resValue("string", "facebook_app_id", "1151503809061491")
+            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
+            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
+        }
+
+        uat {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationIdSuffix ".uat"
+//            versionNameSuffix "-60"
+            signingConfig signingConfigs.debug
+            debuggable true
+            buildConfigField "boolean", "LOG_ENABLED", "true"
+
+            resValue("xml", "network_security_config", "@xml/network_security_config_release")
+            resValue("string", "csso_url", "https://cssouat.taiwanlife.com/csso/")
+            resValue("string", "csso_forget_mima_url", "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
+            resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+            resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
+            resValue("string", "api_url", "https://teamwalkuat.taiwanlife.com/frontend/api/")
+            resValue("string", "web_url", "https://teamwalkuat.taiwanlife.com/frontend/")
+            resValue("string", "origin", "https://teamwalkuat.taiwanlife.com")
+            resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
+
+            resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
+            resValue("string", "connect_fitbit_client_id", "23B3KR")
+            resValue("string", "connect_fitbit_client_secret", "c586771e4f9a4ae17ec0b1de15f38ef6")
+            resValue("string", "connect_garmin_consumer_key", "0b3e7e2c-328a-4bc6-b713-1dd7774ff3d8")
+            resValue("string", "connect_garmin_comsumer_secret", "l9FrmPYVSNgqTT5SOwPfOuT172Vrtmi2tV0")
+
+            //FB SDK
+            resValue("string", "facebook_app_id", "1151503809061491")
+            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
+            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
+        }
+    }
+
+//    compileOptions {
+//        coreLibraryDesugaringEnabled true
+//        sourceCompatibility JavaVersion.VERSION_1_8
+//        targetCompatibility JavaVersion.VERSION_1_8
+//    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar", '*.aar'])
+    implementation platform('com.google.firebase:firebase-bom:31.2.0')
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.android.gms:play-services-fitness:21.0.1'
+    implementation 'com.google.android.gms:play-services-auth:20.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation "androidx.recyclerview:recyclerview:1.1.0"
+    implementation 'androidx.webkit:webkit:1.4.0'
+    implementation "androidx.browser:browser:1.3.0"
+
+//    implementation 'com.github.warkiz.widget:indicatorseekbar:2.1.2'
+//    implementation 'rongi.rotate-layout:rotate-layout:3.0.0'
+//    implementation 'com.kevalpatel2106:ruler-picker:1.1'
+//    implementation 'com.chenlittleping:recyclercoverflow:1.1.0'
+//    implementation 'com.andrognito.patternlockview:patternlockview:1.0.0'
+    implementation 'com.github.RobertApikyan:SegmentedControl:1.2.0'
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.2'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'online.devliving:securedpreferencestore:0.5.0'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    implementation files('libs/CelebrusAndroidCSA.jar')
+
+    // This dependency is downloaded from the Google’s Maven repository.
+    // So, make sure you also include that repository in your project's build.gradle file.
+    implementation("com.google.android.play:review:2.0.0")
+    implementation("com.google.android.play:core-common:2.0.0")
+
+    implementation 'com.facebook.android:facebook-android-sdk:[4,5)'
+
+    implementation 'com.google.android.material:material:1.9.0'
+//
+//    // For Kotlin users also import the Kotlin extensions library for Play In-App Review:
+//    implementation("com.google.android.play:review-ktx:2.0.0")
+//    implementation "com.google.android.play:core:1.10.3"
+    // For Kotlin users also import the Kotlin extensions library for Play Core:(Kotlin可选，支持Kotlin协程)
+//    implementation "com.google.android.play:core-ktx:1.8.1"
+}

@@ -1,0 +1,46 @@
+# Android build folders
+.gradle/
+build/
+**/build/
+
+# Local configuration
+local.properties
+*.iml
+.idea/
+*.log
+
+# Keystore files
+*.jks
+*.apk
+
+# Google services
+google-services.json
+google-services.json.tw
+
+# Gradle Wrapper
+.gradle/
+gradle-app.setting
+gradlew
+gradlew.bat
+
+# Proguard
+*.pro.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kotlin/Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Log & cache
+*.log
+.cache/
+
+# IntelliJ
+*.ipr
+*.iws
+out/

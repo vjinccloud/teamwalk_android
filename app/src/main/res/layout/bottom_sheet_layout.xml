@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="選擇上傳方式"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingBottom="12dp"
+        android:gravity="center"/>
+
+    <Button
+        android:id="@+id/choose_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="選擇圖片"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/take_photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="拍照"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/choose_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="選擇檔案"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btn_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="取消"
+        android:textColor="#F44336"/>
+</LinearLayout>

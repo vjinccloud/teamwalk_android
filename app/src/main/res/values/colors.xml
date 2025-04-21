@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- CTBC specific -->
+    <color name="colorCTBCPrimary">#007c7c</color>
+
+    <color name="colorError">#ffcafa</color>
+    <color name="colorDim">#BF000000</color>
+    <color name="colorAlert">#e9ecec</color>
+
+    <color name="colorLinkText">#d17300</color>
+    <color name="colorLinkSecondaryText">#80908e</color>
+
+    <color name="colorPrimary">#ffbd00</color>
+    <color name="colorPrimaryBright">#fff4bc</color>
+    <color name="colorPrimaryDark">#d17300</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="white">#FFFFFF</color>
+</resources>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="login_methods">
+        <item>@string/login_method_password</item>
+        <item>@string/login_method_pattern</item>
+<!--        <item>@string/login_method_biometric</item>-->
+    </array>
+
+    <array name="activity_interval">
+        <item>沒有</item>
+        <item>1-2次</item>
+        <item>3-4次</item>
+        <item>每天</item>
+    </array>
+
+    <array name="avatar_color_options">
+        <item>@drawable/radio_red</item>
+        <item>@drawable/radio_orange</item>
+        <item>@drawable/radio_yellow</item>
+        <item>@drawable/radio_blue</item>
+        <item>@drawable/radio_purple</item>
+        <item>@drawable/radio_royalpurple</item>
+    </array>
+
+    <array name="avatar_red_options">
+        <item>@drawable/avatar_1_red</item>
+        <item>@drawable/avatar_2_red</item>
+        <item>@drawable/avatar_3_red</item>
+        <item>@drawable/avatar_4_red</item>
+        <item>@drawable/avatar_5_red</item>
+        <item>@drawable/avatar_6_red</item>
+    </array>
+
+    <array name="avatar_orange_options">
+        <item>@drawable/avatar_1_orange</item>
+        <item>@drawable/avatar_2_orange</item>
+        <item>@drawable/avatar_3_orange</item>
+        <item>@drawable/avatar_4_orange</item>
+        <item>@drawable/avatar_5_orange</item>
+        <item>@drawable/avatar_6_orange</item>
+    </array>
+
+    <array name="avatar_yellow_options">
+        <item>@drawable/avatar_1_yellow</item>
+        <item>@drawable/avatar_2_yellow</item>
+        <item>@drawable/avatar_3_yellow</item>
+        <item>@drawable/avatar_4_yellow</item>
+        <item>@drawable/avatar_5_yellow</item>
+        <item>@drawable/avatar_6_yellow</item>
+    </array>
+
+    <array name="avatar_blue_options">
+        <item>@drawable/avatar_1_blue</item>
+        <item>@drawable/avatar_2_blue</item>
+        <item>@drawable/avatar_3_blue</item>
+        <item>@drawable/avatar_4_blue</item>
+        <item>@drawable/avatar_5_blue</item>
+        <item>@drawable/avatar_6_blue</item>
+    </array>
+
+    <array name="avatar_purple_options">
+        <item>@drawable/avatar_1_purple</item>
+        <item>@drawable/avatar_2_purple</item>
+        <item>@drawable/avatar_3_purple</item>
+        <item>@drawable/avatar_4_purple</item>
+        <item>@drawable/avatar_5_purple</item>
+        <item>@drawable/avatar_6_purple</item>
+    </array>
+
+    <array name="avatar_royalpurple_options">
+        <item>@drawable/avatar_1_royalpurple</item>
+        <item>@drawable/avatar_2_royalpurple</item>
+        <item>@drawable/avatar_3_royalpurple</item>
+        <item>@drawable/avatar_4_royalpurple</item>
+        <item>@drawable/avatar_5_royalpurple</item>
+        <item>@drawable/avatar_6_royalpurple</item>
+    </array>
+</resources>
