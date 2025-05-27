@@ -72,6 +72,7 @@
     <string name="onboard_interval_text">This information help us to provide more accurate healthy assessments</string>
     <string name="onboard_connect">Choose data source</string>
     <string name="onboard_connect_text">Connect an application to upload data automatically</string>
+    <string name="onboard_connect_later_text">Temporarily do not bind, start your healthy life!</string>
     <string name="onboard_connect_info"><![CDATA[fitbit]]></string>
     <string name="onboard_connect_message">Msg</string>
     <string name="onboard_connect_change_title">Change device!</string>

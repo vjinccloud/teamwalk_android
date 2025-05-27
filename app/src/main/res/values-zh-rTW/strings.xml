@@ -47,6 +47,7 @@
     <string name="onboard_interval_text">這些資訊幫助我們提供更精準的健康評估</string>
     <string name="onboard_connect">選擇運動數據來源</string>
     <string name="onboard_connect_text">綁定任一裝置,將自動上傳運動數據!</string>
+    <string name="onboard_connect_later_text">暫時先不綁定,開始您的健康生活!</string>
     <string name="onboard_connect_info"><![CDATA[1.若使用Fitbit或Garmin開始紀錄時沒有選擇跑步類型，將不會傳至系統內喔！<br />換而言之，我們只收入「跑步類型」，若您是選擇「步行」、「騎車」這種，將不收錄於App內。<br />2.為公平起見，若單次紀錄之速度與距離有以下任一情況，則該次紀錄將不同步於App內，並於隔天推播告知。<br />- 配速限制3:00~10:59(不可快於3分速，以及低於10分速）<br />- 距離少於1公里 (里程數太少不予以計算)<br />- 用戶GPS裝置無法取得起跑位置資料<br />- 室內跑不算數，例如跑步機、室內操場，請一起跑出戶外吧！]]></string>
     <string name="onboard_connect_message">為了更準確紀錄步數，TeamWalk可串接Apple health、Google fit、Garmin、Fibit等四種健康數據來源，只要選擇其中一種來源，即刻上傳步數資訊，讓阿龍陪你一起走路更健康!</string>
     <string name="onboard_connect_change_title">切換綁定裝置</string>

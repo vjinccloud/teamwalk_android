@@ -430,16 +430,20 @@ public class ConnectActivity extends OnboardActivity implements AlertDialogFragm
     private void setSkip() {
         Button skipButton = findViewById(R.id.onboarding_skip_button);
         skipButton.setOnClickListener((View v) -> {
-            if (getMyUser() != null) {
-                getMyUser().setCompleteOnboarding(true);
-                updateUser(getMyUser(), true);
-            }
-
+            Log.e("GGG", "LoginDemo 綁定裝置頁面返回");
             Intent backToMainIntent = new Intent(this, MainActivity.class);
-            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            backToMainIntent.setAction(MainActivity.ON_BOARD_FINISH);
             startActivity(backToMainIntent);
             finish();
+//            if (getMyUser() != null) {
+//                getMyUser().setCompleteOnboarding(true);
+//                updateUser(getMyUser(), true);
+//            }
+//
+//            Intent backToMainIntent = new Intent(this, MainActivity.class);
+//            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//            backToMainIntent.setAction(MainActivity.ON_BOARD_FINISH);
+//            startActivity(backToMainIntent);
+//            finish();
         });
     }
 
@@ -957,12 +961,17 @@ public class ConnectActivity extends OnboardActivity implements AlertDialogFragm
     private void setNext() {
         Button nextButton = findViewById(R.id.onboarding_next_button);
         nextButton.setOnClickListener((View view) -> {
-            if (getMyUser() != null) {
-                updateUser(getMyUser(), true);
-            }
-
-            Intent intent = new Intent(this, PromoteActivity.class);
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("BindLater", true);
             startActivity(intent);
+            Log.e("GGG", "LoginDemo 綁定裝置頁面");
+
+//            if (getMyUser() != null) {
+//                updateUser(getMyUser(), true);
+//            }
+//
+//            Intent intent = new Intent(this, PromoteActivity.class);
+//            startActivity(intent);
         });
     }
 

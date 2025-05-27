@@ -97,6 +97,7 @@ import com.taiwanlife.teamwalk.model.FitCalories;
 import com.taiwanlife.teamwalk.model.FitStep;
 import com.taiwanlife.teamwalk.model.FitbitToken;
 import com.taiwanlife.teamwalk.onboard.AvatarActivity;
+import com.taiwanlife.teamwalk.onboard.ConnectActivity;
 import com.taiwanlife.teamwalk.service.FitbitTokenService;
 import com.taiwanlife.teamwalk.service.GarminTokenService;
 import com.taiwanlife.teamwalk.service.UserService;
@@ -578,7 +579,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     }
 
     private void checkAuthenticated() {
-
         boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
 
         if (isAuthenticated) {
@@ -989,7 +989,13 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             AlertDialog dialog = builder.create();
             dialog.show();
         } else {
-            doBusiness();
+            boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
+            if (bindLater) {
+                webView.loadUrl("https://teamwalk.taiwanlife.com");
+                Log.e("GGG", "LoginDemo 首頁頁面");
+            } else {
+                doBusiness();
+            }
         }
     }
 
@@ -1057,6 +1063,10 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             googleSignInClient.signOut();
         }
         startActivityForResult(googleSignInClient.getSignInIntent(), GOOGLE_SIGN_IN);
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 
     private void setMainWebView() {
