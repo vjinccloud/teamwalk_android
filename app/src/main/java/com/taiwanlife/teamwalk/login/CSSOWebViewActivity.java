@@ -69,10 +69,8 @@ public class CSSOWebViewActivity extends AppCompatActivity {
         // Enable pinch to zoom without the zoom buttons
         webSettings.setBuiltInZoomControls(false);
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            // Hide the zoom controls for HONEYCOMB+
-            webSettings.setDisplayZoomControls(false);
-        }
+        // Hide the zoom controls for HONEYCOMB+
+        webSettings.setDisplayZoomControls(false);
 
         webView.setWebViewClient(new CSSOWebViewClient(this));
         webView.setWebChromeClient(new WebChromeClient() {

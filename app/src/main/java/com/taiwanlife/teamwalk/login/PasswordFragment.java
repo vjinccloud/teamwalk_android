@@ -80,31 +80,18 @@ public class PasswordFragment extends Fragment implements LoginMethod {
     TextView captchaExistWarning;
     private Button captchaButton;
     private Activity activity;
-    /**
-     *
-     * @param savedInstanceState
-     */
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        sharedPref = getActivity().getSharedPreferences(getString(R.string.pref_login), LoginActivity.MODE_PRIVATE);
         sharedPref = SecuredPreferenceStore.getSharedInstance();
         isRememberMe = sharedPref.getBoolean(getString(R.string.pref_login_remember_me), false);
         pid = isRememberMe ? sharedPref.getString(getString(R.string.pref_login_pid), "") : "";
     }
 
-    /**
-     *
-     * @param inflater
-     * @param container
-     * @param savedInstanceState
-     * @return
-     */
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login_password, container, false);
         setForgetPassword(view);
         setSignup(view);
@@ -150,7 +137,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
      */
     @Override
     public void queryUser(String pid, Intent intent) {
-        Log.i("LOG TIME CSSO queryUser start: " , Utilities.getDateNow());
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(getString(R.string.csso_url))
                 .addConverterFactory(GsonConverterFactory.create())
@@ -203,7 +189,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
                         }
                         editor.apply();
 
-//                        if (fn != null) fn.apply(null);
                         if (intent != null) {
                             activity.setResult(Activity.RESULT_OK, intent);
                             activity.finish();
@@ -483,25 +468,43 @@ public class PasswordFragment extends Fragment implements LoginMethod {
     private void setLogin(View v) {
         Button loginButton = v.findViewById(R.id.login_button);
         loginButton.setOnClickListener((View view) -> {
-            login();
+//            login();
+            loginDemo();
         });
+    }
+
+    private void loginDemo() {
+        String loginURL = getActivity().getString(R.string.csso_url) + "login";
+        String loginParams = "SYS_ID=teamwalk" + "&" +
+                "appl_id=" + pid + "&" +
+                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
+                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
+
+
+        Intent signInIntent = new Intent();
+        signInIntent.putExtra("pid", pid);
+        signInIntent.putExtra("url", loginURL);
+        signInIntent.putExtra("params", loginParams);
+
+        activity.setResult(Activity.RESULT_OK, signInIntent);
+        activity.finish();
     }
 
     private void login() {
         if (TextUtils.isEmpty(pidEditText.getText().toString()) || pidEditText.getText().toString().length() != 10) {
-            pidLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
+            pidLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
             pidExistWarning.setVisibility(View.VISIBLE);
             return;
         }
 
         if (TextUtils.isEmpty(passwordEditText.getText().toString())) {
-            passwordLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
+            passwordLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
             passwordExistWarning.setVisibility(View.VISIBLE);
             return;
         }
 
         if (TextUtils.isEmpty(captchaEditText.getText().toString()) || !genText.equals(captchaEditText.getText().toString().toUpperCase(Locale.ENGLISH))) {
-            captchaLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
+            captchaLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
             captchaExistWarning.setVisibility(View.VISIBLE);
 
             genText = genRandomNumbers();

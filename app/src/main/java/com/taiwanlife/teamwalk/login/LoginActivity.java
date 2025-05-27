@@ -63,10 +63,6 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
 
     private String appV;
 
-    /**
-     *
-     * @param savedInstanceState
-     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,10 +71,8 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
 
         getWindow().setStatusBarColor(this.getColor(R.color.white));
 
-//        sharedPref = getSecuredPreferenceStore(getString(R.string.pref_login), LoginActivity.MODE_PRIVATE);
         sharedPref = SecuredPreferenceStore.getSharedInstance();
 
-        // build version
         try {
             PackageInfo pInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
             appV = pInfo.versionName;
@@ -88,8 +82,10 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
         } catch (PackageManager.NameNotFoundException e) {
             Log.d(TAG, "Fail to get package version");
         }
+
         String uUid = sharedPref.getString(getString(R.string.pref_login_uuid), "");
-        if (uUid == null || uUid.equals("")) {
+
+        if (uUid.isEmpty()) {
             uUid = sharedPref.getString(getString(R.string.pref_login_fid), "");
             SecuredPreferenceStore.Editor edit = sharedPref.edit();
             edit.putString(getString(R.string.pref_login_uuid), uUid);
@@ -97,12 +93,6 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
             AlertDialogFragment dialogFragment = createDialog("", getString(R.string.security_msg), R.drawable.alert_1, getString(R.string.ok));
             dialogFragment.show(getSupportFragmentManager(), TAG);
         }
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                PermissionUtil.checkPermission(LoginActivity.this);
-//            }
-//        },10);
     }
 
     @Override
@@ -169,7 +159,6 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
         SegmentedControl segmentedControl = findViewById(R.id.login_segment_control);
 
         segmentedControl.addOnSegmentClickListener((SegmentViewHolder segmentViewHolder) -> {
-            Log.d(TAG, String.valueOf(segmentViewHolder.getAbsolutePosition()));
             segmentControlPosition = segmentViewHolder.getAbsolutePosition();
 
             SecuredPreferenceStore.Editor editor = sharedPref.edit();
@@ -179,16 +168,10 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-            switch (segmentControlPosition) {
-                case 0:
-                    fragmentTransaction.replace(R.id.login_fragment, new PasswordFragment());
-                    break;
-                case 1:
-                    fragmentTransaction.replace(R.id.login_fragment, new PatternFragment());
-                    break;
-                default:
-                    fragmentTransaction.replace(R.id.login_fragment, new PasswordFragment());
-                    break;
+            if (segmentControlPosition == 1) {
+                fragmentTransaction.replace(R.id.login_fragment, new PatternFragment());
+            } else {
+                fragmentTransaction.replace(R.id.login_fragment, new PasswordFragment());
             }
 
             fragmentTransaction.commit();
