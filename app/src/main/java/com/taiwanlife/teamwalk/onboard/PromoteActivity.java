@@ -53,7 +53,7 @@ public class PromoteActivity extends OnboardActivity {
     private void setSkip() {
         Button skipButton = findViewById(R.id.onboarding_skip_button);
         skipButton.setOnClickListener((View v) -> {
-            Log.e("GGG", "LoginDemo 優惠頁面");
+            Log.e("GGG", "LoginDemo 優惠頁面返回");
 //            if (getMyUser() != null) {
 //                getMyUser().setCompleteOnboarding(true);
 //                updateUser(getMyUser(), true);
@@ -76,10 +76,10 @@ public class PromoteActivity extends OnboardActivity {
         Dialog dialog = new Dialog(this, android.R.style.Theme_DeviceDefault_NoActionBar_Fullscreen);
         dialog.setContentView(dialogView);
 
-        ImageButton infoButton = findViewById(R.id.onboarding_imageView_info);
-        infoButton.setOnClickListener((View v) -> {
-            dialog.show();
-        });
+//        ImageButton infoButton = findViewById(R.id.onboarding_imageView_info);
+//        infoButton.setOnClickListener((View v) -> {
+//            dialog.show();
+//        });
 
         Button closeButton = dialogView.findViewById(R.id.onboarding_dialog_close);
         closeButton.setOnClickListener((View v) -> {
@@ -111,21 +111,24 @@ public class PromoteActivity extends OnboardActivity {
     private void setNext() {
         Button nextButton = findViewById(R.id.onboarding_next_button);
         nextButton.setOnClickListener((View view) -> {
-            Editable text = promoteCodeEdit.getText();
-            String promote = text.toString();
-            if (promote.length() > 0 && promote.length() < 8) {
-                Toast.makeText(PromoteActivity.this, getString(R.string.onboard_promote_msg), Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (getMyUser() != null) {
-                getMyUser().setCompleteOnboarding(true);
-                updateUser(getMyUser(), true);
-            }
-
-            Intent intent = new Intent(PromoteActivity.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.setAction(MainActivity.ON_BOARD_FINISH);
+            Intent intent = new Intent(PromoteActivity.this, AvatarActivity.class);
             startActivity(intent);
+            Log.e("GGG", "LoginDemo 優惠頁面");
+//            Editable text = promoteCodeEdit.getText();
+//            String promote = text.toString();
+//            if (promote.length() > 0 && promote.length() < 8) {
+//                Toast.makeText(PromoteActivity.this, getString(R.string.onboard_promote_msg), Toast.LENGTH_SHORT).show();
+//                return;
+//            }
+//            if (getMyUser() != null) {
+//                getMyUser().setCompleteOnboarding(true);
+//                updateUser(getMyUser(), true);
+//            }
+//
+//            Intent intent = new Intent(PromoteActivity.this, MainActivity.class);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//            intent.setAction(MainActivity.ON_BOARD_FINISH);
+//            startActivity(intent);
         });
     }
 }

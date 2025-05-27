@@ -810,7 +810,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 byte[] postData = data.getStringExtra("params").getBytes();
                 if(URLUtil.isNetworkUrl(url)){
                     webView.postUrl(url, postData);
-                    Log.e("GGG", "LoginDemo 登入");
                 }
             }
 

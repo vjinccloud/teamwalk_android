@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.taiwanlife.teamwalk.MainActivity;
 import com.taiwanlife.teamwalk.R;
 import com.taiwanlife.teamwalk.model.UserAvatar;
 import com.taiwanlife.teamwalk.util.AbstractTextValidator;
@@ -61,7 +63,7 @@ public class AvatarActivity extends OnboardActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_avatar);
 
-//        setSkip();
+        setSkip();
         setAvatars();
         setColorPicker();
         setNickname();
@@ -96,9 +98,13 @@ public class AvatarActivity extends OnboardActivity {
     public void onBackPressed() {
     }
 
-    //    private void setSkip() {
-//        Button skipButton = findViewById(R.id.onboarding_skip_button);
-//        skipButton.setOnClickListener((View v) -> {
+    private void setSkip() {
+        Button skipButton = findViewById(R.id.onboarding_skip_button);
+        skipButton.setOnClickListener((View v) -> {
+            Log.e("GGG", "LoginDemo 頭像頁面返回");
+            Intent backToMainIntent = new Intent(this, MainActivity.class);
+            startActivity(backToMainIntent);
+            finish();
 //            if (user != null) {
 //                user.setCompleteOnboarding(true);
 //                updateUser(user, true);
@@ -108,8 +114,8 @@ public class AvatarActivity extends OnboardActivity {
 //            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 //            startActivity(backToMainIntent);
 //            finish();
-//        });
-//    }
+        });
+    }
 
     private void setAvatars() {
         recyclerCoverFlow = findViewById(R.id.onboarding_recyclerCoverFlow_avatar);
@@ -299,24 +305,27 @@ public class AvatarActivity extends OnboardActivity {
     private void setNext() {
         Button nextButton = findViewById(R.id.onboarding_next_button);
         nextButton.setOnClickListener((View view) -> {
-            String  text = editText.getText().toString().trim();
-            if (!TextUtils.isEmpty(text)) {
-                char[] chars = text.toCharArray();
-                for (char aChar : chars) {
-                    int type = Character.getType(aChar);
-                    if (type == Character.SURROGATE || type == Character.OTHER_SYMBOL) {
-                        Toast.makeText(AvatarActivity.this, getString(R.string.onboard_edit_nickname_emoji), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            }
-            if (getMyUser() != null) {
-                getMyUser().setAvatar(userAvatar);
-                updateUser(getMyUser(), false);
-            }
-
-            Intent intent = new Intent(this, HeightActivity.class);
+            Intent intent = new Intent(this, ConnectActivity.class);
             startActivity(intent);
+            Log.e("GGG", "LoginDemo 頭像頁面");
+//            String  text = editText.getText().toString().trim();
+//            if (!TextUtils.isEmpty(text)) {
+//                char[] chars = text.toCharArray();
+//                for (char aChar : chars) {
+//                    int type = Character.getType(aChar);
+//                    if (type == Character.SURROGATE || type == Character.OTHER_SYMBOL) {
+//                        Toast.makeText(AvatarActivity.this, getString(R.string.onboard_edit_nickname_emoji), Toast.LENGTH_SHORT).show();
+//                        return;
+//                    }
+//                }
+//            }
+//            if (getMyUser() != null) {
+//                getMyUser().setAvatar(userAvatar);
+//                updateUser(getMyUser(), false);
+//            }
+//
+//            Intent intent = new Intent(this, HeightActivity.class);
+//            startActivity(intent);
         });
     }
 }

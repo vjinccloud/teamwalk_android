@@ -35,7 +35,7 @@
     <string name="forget_pass">忘記密碼</string>
 
     <string name="onboard_avatar_nickname">編輯你的頭像和暱稱, 暱稱上限中文最多4個字, 或英文最多8個字母</string>
-    <string name="onboard_edit_nickname">編輯暱稱</string>
+    <string name="onboard_edit_nickname">輸入暱稱</string>
     <string name="onboard_edit_nickname_emoji">暱稱不能含有Emoji符號</string>
     <string name="onboard_height">你的身高?</string>
     <string name="onboard_height_text">這些資訊幫助我們提供更精準的健康評估</string>

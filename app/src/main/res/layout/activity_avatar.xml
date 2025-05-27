@@ -6,18 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".onboard.AvatarActivity">
 
-<!--    <Button-->
-<!--        android:id="@+id/onboarding_skip_button"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginTop="32dp"-->
-<!--        android:layout_marginEnd="32dp"-->
-<!--        android:layout_marginBottom="8dp"-->
-<!--        android:background="@android:color/transparent"-->
-<!--        android:drawableEnd="@drawable/close"-->
-<!--        app:layout_constraintBottom_toTopOf="@+id/progressBar"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
+    <Button
+        android:id="@+id/onboarding_skip_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16pt"
+        android:layout_marginBottom="8dp"
+        android:background="@android:color/transparent"
+        android:drawableEnd="@drawable/close"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -25,13 +25,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16pt"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16pt"
-        android:progress="18"
+        android:progress="66"
         android:progressTint="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/onboarding_skip_button" />
 
     <TextView
         android:id="@+id/textView"
@@ -43,7 +43,7 @@
         android:layout_marginBottom="16dp"
         android:text="@string/onboard_avatar_nickname"
         android:textAlignment="center"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/onboarding_recyclerCoverFlow_avatar"
         app:layout_constraintEnd_toEndOf="parent"
