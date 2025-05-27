@@ -139,7 +139,7 @@ public class LoginActivity extends AppCompatActivity implements Login, AlertDial
         setSegmentControl();
 
         // check app version
-        checkAppVersion();
+//        checkAppVersion();
 
         // get annoucement
         getAnnoucement();

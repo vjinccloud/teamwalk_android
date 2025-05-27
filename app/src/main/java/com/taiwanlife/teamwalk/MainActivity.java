@@ -318,8 +318,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
 
             SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
 
-//            CelebrusCSAUtil.sessionSharing(this);
-
             String scheme_action = uri.getHost();
             switch (scheme_action) {
                 case "login":

@@ -61,12 +61,12 @@ android {
             buildConfigField "boolean", "LOG_ENABLED", "true"
 
             resValue("xml", "network_security_config", "@xml/network_security_config_debug")
-            resValue("string", "csso_url", "https://cssouat.taiwanlife.com/csso/")
+            resValue("string", "csso_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
             resValue("string", "csso_forget_mima_url", "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
             resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
-            resValue("string", "api_url", "http://teamwork-frontend.bestamina.net:8080/frontend/api/")
-            resValue("string", "web_url", "http://teamwork-frontend.bestamina.net:8080/frontend/")
+            resValue("string", "api_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
+            resValue("string", "web_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
             resValue("string", "origin", "http://teamwork-frontend.bestamina.net:8080")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
 
