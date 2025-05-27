@@ -29,6 +29,7 @@ import com.taiwanlife.teamwalk.R;
 import com.taiwanlife.teamwalk.model.CSSOQueryUserBody;
 import com.taiwanlife.teamwalk.model.CSSOUser;
 import com.taiwanlife.teamwalk.model.PatternDisableBody;
+import com.taiwanlife.teamwalk.onboard.PromoteActivity;
 import com.taiwanlife.teamwalk.service.CSSOQueryUserService;
 import com.taiwanlife.teamwalk.service.PatternService;
 import com.taiwanlife.teamwalk.util.AbstractTextValidator;
@@ -81,8 +82,6 @@ public class PatternFragment extends Fragment implements LoginMethod {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-//        sharedPref = getActivity().getSecuredPreferenceStore(getString(R.string.pref_login), LoginActivity.MODE_PRIVATE);
         sharedPref = SecuredPreferenceStore.getSharedInstance();
         isRememberMe = sharedPref.getBoolean(getString(R.string.pref_login_remember_me), false);
         pid = isRememberMe ? sharedPref.getString(getString(R.string.pref_login_pid), "") : "";
@@ -375,7 +374,7 @@ public class PatternFragment extends Fragment implements LoginMethod {
     private void setPatternLock(View v) {
         patternLockView = v.findViewById(R.id.login_pattern_lock_view);
         patternLockView.setInStealthMode(inStealthMode);
-        patternLockView.setInputEnabled(false);
+        patternLockView.setInputEnabled(true);
         Log.d(TAG, "pattern enable: false");
         patternLockView.addPatternLockListener(new PatternLockViewListener() {
             @Override
@@ -388,46 +387,49 @@ public class PatternFragment extends Fragment implements LoginMethod {
 
             @Override
             public void onComplete(List<PatternLockView.Dot> pattern) {
-                String fid = sharedPref.getString(getString(R.string.pref_login_fid), "");
-
-//                Log.d(TAG, "Pattern complete: " +
-//                        Utilities.patternToSha256(patternLockView, pattern, fid));
-
-                if (TextUtils.isEmpty(pidEditText.getText().toString()) || pidEditText.getText().toString().length() != 10) {
-                    pidLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
-                    pidExistWarning.setVisibility(View.VISIBLE);
-                    return;
-                }
-
-                if (pattern.size() < 6) {
-                    Toast.makeText(getActivity(), R.string.login_pattern_lt_six_dots, Toast.LENGTH_LONG).show();
-                } else if (pattern.size() > 16) {
-                    Toast.makeText(getActivity(), R.string.login_pattern_bt_dots, Toast.LENGTH_LONG).show();
-                } else {
-                    Set<Integer> dotList = new HashSet<Integer>();
-                    for (PatternLockView.Dot dot : pattern) {
-                        dotList.add(dot.getId());
-                    }
-
-                    if (dotList.size() < 6) {
-                        Toast.makeText(getActivity(), R.string.login_pattern_lt_six_dots, Toast.LENGTH_LONG).show();
-                    } else {
-
-                        String loginURL = getActivity().getString(R.string.csso_url) + "patternLogin";
-                        String loginParams = "SYS_ID=teamwalk" + "&" +
-                                "userId=" + pid + "&" +
-                                "pattern_path=" + Utilities.patternToSha256(patternLockView, pattern, fid) + "&" +
-                                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
-                        Intent signInIntent = new Intent();
-                        signInIntent.putExtra("pid", pid);
-                        signInIntent.putExtra("url", loginURL);
-                        signInIntent.putExtra("params", loginParams);
-//                        signInIntent.putExtra("pattern_path", Utilities.patternToSha256(patternLockView, pattern, fid));
-//                        signInIntent.putExtra("isPattern", true);
-
-                        queryUser(pid, signInIntent);
-                    }
-                }
+                Intent intent = new Intent(requireActivity(), PromoteActivity.class);
+                startActivity(intent);
+                Log.e("GGG", "LoginDemo 密碼頁面");
+//                String fid = sharedPref.getString(getString(R.string.pref_login_fid), "");
+//
+////                Log.d(TAG, "Pattern complete: " +
+////                        Utilities.patternToSha256(patternLockView, pattern, fid));
+//
+//                if (TextUtils.isEmpty(pidEditText.getText().toString()) || pidEditText.getText().toString().length() != 10) {
+//                    pidLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
+//                    pidExistWarning.setVisibility(View.VISIBLE);
+//                    return;
+//                }
+//
+//                if (pattern.size() < 6) {
+//                    Toast.makeText(getActivity(), R.string.login_pattern_lt_six_dots, Toast.LENGTH_LONG).show();
+//                } else if (pattern.size() > 16) {
+//                    Toast.makeText(getActivity(), R.string.login_pattern_bt_dots, Toast.LENGTH_LONG).show();
+//                } else {
+//                    Set<Integer> dotList = new HashSet<Integer>();
+//                    for (PatternLockView.Dot dot : pattern) {
+//                        dotList.add(dot.getId());
+//                    }
+//
+//                    if (dotList.size() < 6) {
+//                        Toast.makeText(getActivity(), R.string.login_pattern_lt_six_dots, Toast.LENGTH_LONG).show();
+//                    } else {
+//
+//                        String loginURL = getActivity().getString(R.string.csso_url) + "patternLogin";
+//                        String loginParams = "SYS_ID=teamwalk" + "&" +
+//                                "userId=" + pid + "&" +
+//                                "pattern_path=" + Utilities.patternToSha256(patternLockView, pattern, fid) + "&" +
+//                                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
+//                        Intent signInIntent = new Intent();
+//                        signInIntent.putExtra("pid", pid);
+//                        signInIntent.putExtra("url", loginURL);
+//                        signInIntent.putExtra("params", loginParams);
+////                        signInIntent.putExtra("pattern_path", Utilities.patternToSha256(patternLockView, pattern, fid));
+////                        signInIntent.putExtra("isPattern", true);
+//
+//                        queryUser(pid, signInIntent);
+//                    }
+//                }
             }
 
             @Override

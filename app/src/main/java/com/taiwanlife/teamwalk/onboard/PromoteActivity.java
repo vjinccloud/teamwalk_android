@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,10 +33,6 @@ public class PromoteActivity extends OnboardActivity {
 
     private EditText promoteCodeEdit;
 
-    /**
-     *
-     * @param savedInstanceState
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,15 +53,16 @@ public class PromoteActivity extends OnboardActivity {
     private void setSkip() {
         Button skipButton = findViewById(R.id.onboarding_skip_button);
         skipButton.setOnClickListener((View v) -> {
-            if (getMyUser() != null) {
-                getMyUser().setCompleteOnboarding(true);
-                updateUser(getMyUser(), true);
-            }
-
-            Intent backToMainIntent = new Intent(this, MainActivity.class);
-            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            backToMainIntent.setAction(MainActivity.ON_BOARD_FINISH);
-            startActivity(backToMainIntent);
+            Log.e("GGG", "LoginDemo 優惠頁面");
+//            if (getMyUser() != null) {
+//                getMyUser().setCompleteOnboarding(true);
+//                updateUser(getMyUser(), true);
+//            }
+//
+//            Intent backToMainIntent = new Intent(this, MainActivity.class);
+//            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//            backToMainIntent.setAction(MainActivity.ON_BOARD_FINISH);
+//            startActivity(backToMainIntent);
             finish();
         });
     }

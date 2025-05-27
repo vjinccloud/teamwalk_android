@@ -33,6 +33,7 @@ import androidx.fragment.app.Fragment;
 import com.taiwanlife.teamwalk.R;
 import com.taiwanlife.teamwalk.model.CSSOQueryUserBody;
 import com.taiwanlife.teamwalk.model.CSSOUser;
+import com.taiwanlife.teamwalk.onboard.PromoteActivity;
 import com.taiwanlife.teamwalk.service.CSSOQueryUserService;
 import com.taiwanlife.teamwalk.util.AbstractTextValidator;
 import com.taiwanlife.teamwalk.util.Utilities;
@@ -192,7 +193,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
                         if (intent != null) {
                             activity.setResult(Activity.RESULT_OK, intent);
                             activity.finish();
-                            Log.i("LOG TIME to main: " , Utilities.getDateNow());
                         }
                     }
 
@@ -474,20 +474,23 @@ public class PasswordFragment extends Fragment implements LoginMethod {
     }
 
     private void loginDemo() {
-        String loginURL = getActivity().getString(R.string.csso_url) + "login";
-        String loginParams = "SYS_ID=teamwalk" + "&" +
-                "appl_id=" + pid + "&" +
-                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
-                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
-
-
-        Intent signInIntent = new Intent();
-        signInIntent.putExtra("pid", pid);
-        signInIntent.putExtra("url", loginURL);
-        signInIntent.putExtra("params", loginParams);
-
-        activity.setResult(Activity.RESULT_OK, signInIntent);
-        activity.finish();
+//        String loginURL = getActivity().getString(R.string.csso_url) + "login";
+//        String loginParams = "SYS_ID=teamwalk" + "&" +
+//                "appl_id=" + pid + "&" +
+//                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
+//                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
+//
+//
+//        Intent signInIntent = new Intent();
+//        signInIntent.putExtra("pid", pid);
+//        signInIntent.putExtra("url", loginURL);
+//        signInIntent.putExtra("params", loginParams);
+//
+//        activity.setResult(Activity.RESULT_OK);
+//        activity.finish();
+        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
+        startActivity(intent);
+        Log.e("GGG", "LoginDemo 密碼頁面");
     }
 
     private void login() {
