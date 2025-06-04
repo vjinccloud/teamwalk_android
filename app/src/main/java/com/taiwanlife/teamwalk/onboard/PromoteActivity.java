@@ -39,7 +39,7 @@ public class PromoteActivity extends OnboardActivity {
         setContentView(R.layout.activity_promote);
 
         setSkip();
-        setDialog();
+//        setDialog();
         setPromoteCodeEdit();
         setNext();
     }

@@ -474,23 +474,49 @@ public class PasswordFragment extends Fragment implements LoginMethod {
     }
 
     private void loginDemo() {
-//        String loginURL = getActivity().getString(R.string.csso_url) + "login";
-//        String loginParams = "SYS_ID=teamwalk" + "&" +
-//                "appl_id=" + pid + "&" +
-//                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
-//                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
-//
-//
-//        Intent signInIntent = new Intent();
-//        signInIntent.putExtra("pid", pid);
-//        signInIntent.putExtra("url", loginURL);
-//        signInIntent.putExtra("params", loginParams);
-//
-//        activity.setResult(Activity.RESULT_OK);
-//        activity.finish();
-        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
-        startActivity(intent);
+        if (TextUtils.isEmpty(pidEditText.getText().toString()) || pidEditText.getText().toString().length() != 10) {
+            pidLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
+            pidExistWarning.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        if (TextUtils.isEmpty(passwordEditText.getText().toString())) {
+            passwordLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
+            passwordExistWarning.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        if (TextUtils.isEmpty(captchaEditText.getText().toString()) || !genText.equals(captchaEditText.getText().toString().toUpperCase(Locale.ENGLISH))) {
+            captchaLayout.setBackgroundColor(requireActivity().getColor(R.color.colorError));
+            captchaExistWarning.setVisibility(View.VISIBLE);
+
+            genText = genRandomNumbers();
+            captchaButton.setText(genText);
+            return;
+        }
+        if (pidExistWarning.getVisibility() == View.VISIBLE) {
+            return;
+        }
+
+        String loginURL = getActivity().getString(R.string.csso_url) + "mock/csso";
+        String loginParams = "SYS_ID=teamwalk" + "&" +
+                "appl_id=" + pid + "&" +
+                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
+                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
+
+
+        Intent signInIntent = new Intent();
+        signInIntent.putExtra("pid", pid);
+        signInIntent.putExtra("url", loginURL);
+        signInIntent.putExtra("params", loginParams);
+
+        activity.setResult(Activity.RESULT_OK, signInIntent);
+        activity.finish();
+//        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
+//        startActivity(intent);
         Log.e("GGG", "LoginDemo 密碼頁面");
+        Log.e("GGG", loginURL);
+        Log.e("GGG", loginParams);
     }
 
     private void login() {

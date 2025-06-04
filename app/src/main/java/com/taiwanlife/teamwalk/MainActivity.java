@@ -98,6 +98,7 @@ import com.taiwanlife.teamwalk.model.FitStep;
 import com.taiwanlife.teamwalk.model.FitbitToken;
 import com.taiwanlife.teamwalk.onboard.AvatarActivity;
 import com.taiwanlife.teamwalk.onboard.ConnectActivity;
+import com.taiwanlife.teamwalk.onboard.PromoteActivity;
 import com.taiwanlife.teamwalk.service.FitbitTokenService;
 import com.taiwanlife.teamwalk.service.GarminTokenService;
 import com.taiwanlife.teamwalk.service.UserService;
@@ -804,13 +805,24 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     filePathCallback = null;
                 }
             }
+
             if (requestCode == LOGIN_REQUEST) {
-                pid = data.getStringExtra("pid");
-                String url = data.getStringExtra("url");
-                byte[] postData = data.getStringExtra("params").getBytes();
-                if(URLUtil.isNetworkUrl(url)){
-                    webView.postUrl(url, postData);
+                boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
+                if (bindLater) {
+                    webView.loadUrl("https://demo.mutron.com.tw/teamwalk/main");
+                    Log.e("GGG", "LoginDemo 首頁頁面");
+                } else {
+                    Intent intent = new Intent(this, PromoteActivity.class);
+                    startActivity(intent);
                 }
+
+                // 暫時註解 因為它deeplink有問題
+//                pid = data.getStringExtra("pid");
+//                String url = data.getStringExtra("url");
+//                byte[] postData = data.getStringExtra("params").getBytes();
+//                if(URLUtil.isNetworkUrl(url)){
+//                    webView.postUrl(url, postData);
+//                }
             }
 
             if (requestCode == GOOGLE_SIGN_IN) {
@@ -991,10 +1003,10 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         } else {
             boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
             if (bindLater) {
-                webView.loadUrl("https://teamwalk.taiwanlife.com");
+                webView.loadUrl("https://demo.mutron.com.tw/teamwalk/main");
                 Log.e("GGG", "LoginDemo 首頁頁面");
             } else {
-                doBusiness();
+//                doBusiness();
             }
         }
     }
@@ -1289,7 +1301,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             String csso_url = buildInfo[0];     // getString(R.string.csso_url);
             String web_url = buildInfo[1];     //getString(R.string.web_url);
 
-            if (csso_url.length() > 0 && web_url.length() > 0) {
+            if (!csso_url.isEmpty() && !web_url.isEmpty()) {
                 String cookies = CookieManager.getInstance().getCookie(csso_url + "login");
                 if (!TextUtils.isEmpty(cookies)) {
                     String[] cookieStringArray = cookies.split(";");
