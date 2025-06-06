@@ -296,6 +296,94 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         restoreSensitiveData();
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 驗證App是否遭到破壞，只針對UAT
+//        if (!validateSign()) {
+//            illegalApp();
+//            return;
+//        }
+        boolean knowsRoot = loginSharedPref.getBoolean(getString(R.string.knows_root), false);
+        if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("提醒您，若在非一般環境(Root/Jailbreak/刷機)使用Teamwalk APP可能會有資訊外流的風險");
+            builder.setIcon(R.mipmap.ic_launcher);
+            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+
+            //设置正面按钮
+            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    doBusiness();
+                    dialog.dismiss();
+                    SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
+                    prefEditor.putBoolean(getString(R.string.knows_root), true);
+                    prefEditor.apply();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+//        else if(!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure){
+//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//            builder.setMessage("手機未設定密碼，有資安疑慮請設定密碼，謝謝");
+//            builder.setIcon(R.mipmap.ic_launcher);
+//            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+//
+//            //设置正面按钮
+//            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    doBusiness();
+//                    dialog.dismiss();
+//                    isKnowsDeviceSecure = true;
+//                }
+//            });
+//            AlertDialog dialog = builder.create();
+//            dialog.show();
+//        }
+        else if(DeviceUtil.isReverseToolRunning(this) && !isKnowsReverseToolRunning){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("提醒您，有逆向工具運行，APP可能會有資訊外流的風險");
+            builder.setIcon(R.mipmap.ic_launcher);
+            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+
+            //设置正面按钮
+            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    doBusiness();
+                    dialog.dismiss();
+                    isKnowsReverseToolRunning = true;
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+        else if(DeviceUtil.isCovered(this)){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("提醒您，屏幕被覆蓋，APP可能會有資訊外流的風險");
+            builder.setIcon(R.mipmap.ic_launcher);
+            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+
+            //设置正面按钮
+            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    doBusiness();
+                    dialog.dismiss();
+                    isKnowsCovered = true;
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else {
+            doBusiness();
+        }
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -315,10 +403,9 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
 
         Uri uri = intent.getData();
         if (uri != null) {
-
             SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
-
             String scheme_action = uri.getHost();
+
             switch (scheme_action) {
                 case "login":
                     toLogin();
@@ -332,8 +419,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         Toast.makeText(this, "未取得登入許可", Toast.LENGTH_LONG).show();
                         toLogin();
                     } else {
-                        pid = getIntent().getStringExtra("pid");
-
                         prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
 
                         prefEditor.putString(getString(R.string.pref_login_username), pid);
@@ -341,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         prefEditor.apply();
 
                         if(getPwPageFlag())
-                            webView.loadUrl(getString(R.string.tcav_url)+"other/user/teamwalk");    //https://tcav.taiwanlife.com/other/user/teamwalk
+                            webView.loadUrl(getString(R.string.tcav_url)+"other/user/teamwalk");
                         else
                             webView.loadUrl(getString(MAIN_URL_RES));
                     }
@@ -577,30 +662,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         }
     }
 
-    private void checkAuthenticated() {
-
-        boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
-
-        if (isAuthenticated) {
-            webView.loadUrl(getString(MAIN_URL_RES));
-        } else {
-            toLogin();
-        }
-    }
-
-    private void toLogin() {
-        CookieManager cookieManager = CookieManager.getInstance();
-        cookieManager.removeAllCookies(null);
-        cookieManager.flush();
-        webView.clearCache(true);
-//        WebStorage.getInstance().deleteAllData();
-
-        webView.loadUrl("about:blank");
-
-        Intent loginIntent = new Intent(this, LoginActivity.class);
-        startActivityForResult(loginIntent, LOGIN_REQUEST);
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -686,31 +747,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
 //
 //    }
 
-    private void backupSensitiveData(){
-        SecuredPreferenceStore pref = SecuredPreferenceStore.getSharedInstance();
-        SecuredPreferenceStore.Editor editor = pref.edit();
-        editor.putString(getString((R.string.pref_login_pid)), pid);
-        editor.putString(getString(R.string.pref_login_ticket), ticket);
-    }
-    private void restoreSensitiveData(){
-        SecuredPreferenceStore pref = SecuredPreferenceStore.getSharedInstance();
-        pid = pref.getString(getString(R.string.pref_login_pid), "");
-        ticket = pref.getString(getString(R.string.pref_login_ticket), "");
-    }
-    private void clearSensitiveData(boolean isDestroy) {
-        if(isDestroy) {
-            webView.loadUrl("about:blank");
-            SensitiveDataUtil.clearWebViewSensitiveData(this, webView, isDestroy);
-        }
-        if (pid != null) {
-            Arrays.fill(pid.toCharArray(), '\0');
-            pid = null;
-        }
-        if (ticket != null) {
-            Arrays.fill(ticket.toCharArray(), '\0');
-            ticket = null;
-        }
-    }
     @Override
     protected void onDestroy() {
 //        if(shareUri!=null)
@@ -809,6 +845,8 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 String url = data.getStringExtra("url");
                 byte[] postData = data.getStringExtra("params").getBytes();
                 if(URLUtil.isNetworkUrl(url)){
+                    Log.e("GGG", url);
+                    Log.e("GGG", data.getStringExtra("params"));
                     webView.postUrl(url, postData);
                 }
             }
@@ -906,92 +944,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             }
         }
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // 驗證App是否遭到破壞，只針對UAT
-//        if (!validateSign()) {
-//            illegalApp();
-//            return;
-//        }
-        boolean knowsRoot = loginSharedPref.getBoolean(getString(R.string.knows_root), false);
-        if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("提醒您，若在非一般環境(Root/Jailbreak/刷機)使用Teamwalk APP可能會有資訊外流的風險");
-            builder.setIcon(R.mipmap.ic_launcher);
-            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
-
-            //设置正面按钮
-            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    doBusiness();
-                    dialog.dismiss();
-                    SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
-                    prefEditor.putBoolean(getString(R.string.knows_root), true);
-                    prefEditor.apply();
-                }
-            });
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
-        else if(!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure){
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("手機未設定密碼，有資安疑慮請設定密碼，謝謝");
-            builder.setIcon(R.mipmap.ic_launcher);
-            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
-
-            //设置正面按钮
-            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    doBusiness();
-                    dialog.dismiss();
-                    isKnowsDeviceSecure = true;
-                }
-            });
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
-        else if(DeviceUtil.isReverseToolRunning(this) && !isKnowsReverseToolRunning){
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("提醒您，有逆向工具運行，APP可能會有資訊外流的風險");
-            builder.setIcon(R.mipmap.ic_launcher);
-            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
-
-            //设置正面按钮
-            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    doBusiness();
-                    dialog.dismiss();
-                    isKnowsReverseToolRunning = true;
-                }
-            });
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
-        else if(DeviceUtil.isCovered(this)){
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("提醒您，屏幕被覆蓋，APP可能會有資訊外流的風險");
-            builder.setIcon(R.mipmap.ic_launcher);
-            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
-
-            //设置正面按钮
-            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    doBusiness();
-                    dialog.dismiss();
-                    isKnowsCovered = true;
-                }
-            });
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        } else {
-            doBusiness();
-        }
-    }
 
     private void doBusiness() {
         Uri uri = getIntent().getData();
@@ -1023,7 +975,13 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
                 }
             } else {
-                checkAuthenticated();
+                boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
+
+                if (isAuthenticated) {
+                    webView.loadUrl(getString(MAIN_URL_RES));
+                } else {
+                    toLogin();
+                }
             }
         }
 
@@ -1031,6 +989,45 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             Toast.makeText(MainActivity.this, getString(R.string.main_is_not_online), Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    private void toLogin() {
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookies(null);
+        cookieManager.flush();
+        webView.clearCache(true);
+        webView.loadUrl("about:blank");
+
+        Intent loginIntent = new Intent(this, LoginActivity.class);
+        startActivityForResult(loginIntent, LOGIN_REQUEST);
+    }
+
+    private void backupSensitiveData(){
+        SecuredPreferenceStore pref = SecuredPreferenceStore.getSharedInstance();
+        SecuredPreferenceStore.Editor editor = pref.edit();
+        editor.putString(getString((R.string.pref_login_pid)), pid);
+        editor.putString(getString(R.string.pref_login_ticket), ticket);
+    }
+
+    private void restoreSensitiveData(){
+        SecuredPreferenceStore pref = SecuredPreferenceStore.getSharedInstance();
+        pid = pref.getString(getString(R.string.pref_login_pid), "");
+        ticket = pref.getString(getString(R.string.pref_login_ticket), "");
+    }
+
+    private void clearSensitiveData(boolean isDestroy) {
+        if(isDestroy) {
+            webView.loadUrl("about:blank");
+            SensitiveDataUtil.clearWebViewSensitiveData(this, webView, isDestroy);
+        }
+        if (pid != null) {
+            Arrays.fill(pid.toCharArray(), '\0');
+            pid = null;
+        }
+        if (ticket != null) {
+            Arrays.fill(ticket.toCharArray(), '\0');
+            ticket = null;
+        }
     }
 
     private boolean isOnline() {
@@ -1153,15 +1150,8 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             this.context = context;
         }
 
-        /**
-         *
-         * @param view
-         * @param request
-         * @return
-         */
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            //Log.d(TAG, "shouldOverrideUrlLoading:"+request.getUrl().toString());
             if (request.getUrl().equals(getString(R.string.web_url)) && !view.getTitle().equals("Teamwalk")) {
                 webView.clearCache(true);
             }
@@ -1252,6 +1242,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         actionUrl = suffic + "://webconnect";
                         break;
                 }
+
                 if (!actionUrl.equals("")) {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(actionUrl));
                     intent.putExtra("pid", pid);
