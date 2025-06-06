@@ -1006,7 +1006,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 webView.loadUrl("https://demo.mutron.com.tw/teamwalk/main");
                 Log.e("GGG", "LoginDemo 首頁頁面");
             } else {
-//                doBusiness();
+                doBusiness();
             }
         }
     }

@@ -498,25 +498,23 @@ public class PasswordFragment extends Fragment implements LoginMethod {
             return;
         }
 
-        String loginURL = getActivity().getString(R.string.csso_url) + "mock/csso";
-        String loginParams = "SYS_ID=teamwalk" + "&" +
-                "appl_id=" + pid + "&" +
-                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
-                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
-
-
-        Intent signInIntent = new Intent();
-        signInIntent.putExtra("pid", pid);
-        signInIntent.putExtra("url", loginURL);
-        signInIntent.putExtra("params", loginParams);
-
-        activity.setResult(Activity.RESULT_OK, signInIntent);
-        activity.finish();
-//        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
-//        startActivity(intent);
+//        String loginURL = getActivity().getString(R.string.csso_url) + "mock/csso";
+//        String loginParams = "SYS_ID=teamwalk" + "&" +
+//                "appl_id=" + pid + "&" +
+//                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
+//                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
+//
+//
+//        Intent signInIntent = new Intent();
+//        signInIntent.putExtra("pid", pid);
+//        signInIntent.putExtra("url", loginURL);
+//        signInIntent.putExtra("params", loginParams);
+//
+//        activity.setResult(Activity.RESULT_OK, signInIntent);
+//        activity.finish();
+        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
+        startActivity(intent);
         Log.e("GGG", "LoginDemo 密碼頁面");
-        Log.e("GGG", loginURL);
-        Log.e("GGG", loginParams);
     }
 
     private void login() {
