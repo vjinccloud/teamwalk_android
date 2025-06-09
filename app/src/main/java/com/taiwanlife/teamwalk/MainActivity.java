@@ -100,7 +100,9 @@ import com.taiwanlife.teamwalk.model.FitStep;
 import com.taiwanlife.teamwalk.model.FitbitToken;
 import com.taiwanlife.teamwalk.model.request.LoginRequest;
 import com.taiwanlife.teamwalk.model.response.LoginResponse;
+import com.taiwanlife.teamwalk.model.response.UserInfoResponse;
 import com.taiwanlife.teamwalk.onboard.AvatarActivity;
+import com.taiwanlife.teamwalk.onboard.PromoteActivity;
 import com.taiwanlife.teamwalk.service.FitbitTokenService;
 import com.taiwanlife.teamwalk.service.GarminTokenService;
 import com.taiwanlife.teamwalk.service.LoginService;
@@ -131,7 +133,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import devliving.online.securedpreferencestore.SecuredPreferenceStore;
@@ -147,24 +148,19 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity implements ProviderInstaller.ProviderInstallListener {
 
     private static final String TAG = "MainActivity";
-    private static final String APP = "Teamwalk";
-
     private static final int MAIN_URL_RES = R.string.web_url;
     public static final int LOGIN_REQUEST = 1;
     public static final int GOOGLE_SIGN_IN = 2;
     public static final int PERMISSIONS_REQUEST_ACTIVITY_RECOGNITION = 3;
     public static final int GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 4;
     public static final int NICKNAME_REQUEST_SELECT_IMAGE = 5;
-    public static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 6;
     public static final int CREATE_TEAM_REQUEST_SELECT_IMAGE = 7;
     public static final int GOOGLE_SIGN_IN_FOR_DISABLE_FIT = 8;
     public static final String ON_BOARD_FINISH = "ON_BOARD_FINISH";
 
-    private Intent uploadIntent;
     private GoogleSignInClient googleSignInClient;
     private String authCode;
-    private String fitbit_base_url = "https://api.fitbit.com/oauth2/";
-    private String garmin_base_url = "https://connectapi.garmin.com/oauth-service/oauth/";
+    private final String garmin_base_url = "https://connectapi.garmin.com/oauth-service/oauth/";
 
     private String fcmToken;
     private String fid;
@@ -179,14 +175,10 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     private ProgressBar loadingIndicator;
     private TextView loadingText;
 
-    // step和calories可能手动输入数据，因此按照小时获取，并手动合并
-//    private List<Map<String, Object>> stepDataList = new ArrayList<>();
-//    private List<Map<String, Object>> caloriesDataList = new ArrayList<>();
     private List<Map<String, Long>> sleepDataList = new ArrayList<>();
     private Map<String, FitStep> stepDataMap = new HashMap<>();
     private Map<String, FitCalories> caloriesDataMap = new HashMap<>();
 
-    // webconnect garmin can not have parameter， local
     private String tsGarmin = "";
     private boolean clearCache = false;
 
@@ -194,19 +186,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     boolean isKnowsReverseToolRunning = false;
     boolean isKnowsCovered = false;
 
-    /**
-     * This function assumes logger is an instance of AppEventsLogger and has been
-     * created using AppEventsLogger.newLogger() call.
-     */
-    public void logSentFriendRequestEvent () {
-        Log.i(TAG, "fb: logSentFriendRequestEvent");
-        AppEventsLogger.newLogger(this).logEvent("sentFriendRequest");
-    }
-
-    /**
-     *
-     * @param savedInstanceState
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme);
@@ -215,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         setContentView(R.layout.activity_main);
 
         getWindow().setStatusBarColor(this.getColor(android.R.color.transparent));
+
         // create notification channel
         int importance = NotificationManager.IMPORTANCE_HIGH;
         NotificationChannel channel = new NotificationChannel(getString(R.string.noti_channel_id), "default", importance);
@@ -236,15 +216,11 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 });
 
         // shared preferences
-//        loginSharedPref = getSharedPreferences(getString(R.string.pref_login), MainActivity.MODE_PRIVATE);
         loginSharedPref = SecuredPreferenceStore.getSharedInstance();
         pid = loginSharedPref.getString(getString(R.string.pref_login_pid), "");
         ticket = loginSharedPref.getString(getString(R.string.pref_login_ticket), "");
-
         SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
-//        prefEditor.clear();
 
-        // get fid
         try{
             FirebaseInstallations.getInstance().getId()
                     .addOnCompleteListener(new OnCompleteListener<String>() {
@@ -300,11 +276,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     @Override
     protected void onResume() {
         super.onResume();
-        // 驗證App是否遭到破壞，只針對UAT
-//        if (!validateSign()) {
-//            illegalApp();
-//            return;
-//        }
+
         boolean knowsRoot = loginSharedPref.getBoolean(getString(R.string.knows_root), false);
         if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -412,21 +384,11 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     break;
                 case "loginsuccess":
                     // 1.傳輸手機資訊來獲取 JWT
-                    // 取得 Ticket
+                    // 取得 Ticket && UUID && DeviceId && FCMToken
                     ticket = uri.getQueryParameter("ticket");
-                    // 取得 UUID
                     String uuid = loginSharedPref.getString(getString(R.string.pref_login_uuid), "");
-                    // 取得 DeviceId
                     String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-
-                    LoginRequest request = new LoginRequest(
-                            ticket,
-                            "",
-                            uuid,
-                            deviceId,
-                            fcmToken
-                    );
-                    Log.e("GGG", request.toString());
+                    LoginRequest request = new LoginRequest(ticket, "teamwalk" + getString(R.string.env) + "://loginsuccess", uuid, deviceId, fcmToken);
 
                     Retrofit retrofit = new Retrofit.Builder()
                             .baseUrl("https://demo.mutron.com.tw/")
@@ -439,19 +401,36 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         public void onResponse(@NonNull Call<LoginResponse> call, @NonNull Response<LoginResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 String jwt = response.body().getData().getToken();
-                                Log.e("GGG", jwt);
 
                                 // 儲存到 SharedPreferences
-                                // prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
+                                 prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
                                 prefEditor.putString(getString(R.string.pref_login_username), pid);
                                 prefEditor.putString(getString(R.string.pref_login_ticket), ticket);
                                 prefEditor.putString(getString(R.string.pref_login_jwt_token), jwt);
                                 prefEditor.apply();
 
-                                // String token = prefs.getString("jwt_token", null);
+                                // 2.取得用戶資料
+                                loginService.getUserInfo(jwt).enqueue(new Callback<UserInfoResponse>() {
+                                    @Override
+                                    public void onResponse(@NonNull Call<UserInfoResponse> call, @NonNull Response<UserInfoResponse> response) {
+                                        if (response.isSuccessful() && response.body() != null) {
+                                            UserInfoResponse.Data data = response.body().getData();
+                                            if (!data.isComplete_onboarding()) {
+                                                Intent intent = new Intent(MainActivity.this, PromoteActivity.class);
+                                                startActivity(intent);
+                                            } else {
+                                                webView.loadUrl(getString(MAIN_URL_RES));
+                                            }
+                                        }
+                                    }
 
+                                    @Override
+                                    public void onFailure(@NonNull Call<UserInfoResponse> call, @NonNull Throwable t) {
+                                        Log.e("UserInfo", "呼叫失敗：" + t.getMessage());
+                                    }
+                                });
                             } else {
-                                Log.e("GGG", "登入失敗");
+                                Toast.makeText(MainActivity.this, "登入失敗", Toast.LENGTH_LONG).show();
                             }
                         }
 
@@ -460,8 +439,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                             Toast.makeText(MainActivity.this, "處理失敗", Toast.LENGTH_LONG).show();
                         }
                     });
-
-                    webView.loadUrl(getString(MAIN_URL_RES));
                     break;
                 case "home":
                     webView.loadUrl(getString(MAIN_URL_RES));
@@ -504,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                                 .create();
 
+                        String fitbit_base_url = "https://api.fitbit.com/oauth2/";
                         Retrofit retrofitFitbit = new Retrofit.Builder()
                                 .baseUrl(fitbit_base_url)
                                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -966,21 +944,21 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         if (uri != null) {
             String scheme_action = uri.getHost();
 
-            getIntent().setData(null);
-//            if (webView.getUrl().endsWith("my/preferences")) {
-//                webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
-//            }
         } else {
             if (webView.getUrl() != null) {
-                String url = webView.getUrl();
-
                 if (webView.getUrl().endsWith("logout")) {
                     toLogin();
                 }
 
                 if (webView.getUrl().endsWith("blank")) {
-                    Log.i(TAG, "logout by blank");
-                    toLogin();
+                    boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
+                    boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
+
+                    if (!bindLater && !isAuthenticated) {
+                        toLogin();
+                    } else {
+                        webView.loadUrl(getString(MAIN_URL_RES));
+                    }
                 }
 
                 if (getIntent().getAction() != null && getIntent().getAction().equals(ON_BOARD_FINISH)) {
