@@ -3,6 +3,8 @@
  */
 package com.taiwanlife.teamwalk.login;
 
+import static com.taiwanlife.teamwalk.login.CSSOWebViewActivity.CSSO_SIGN_UP;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -33,10 +35,12 @@ import androidx.fragment.app.Fragment;
 import com.taiwanlife.teamwalk.R;
 import com.taiwanlife.teamwalk.model.CSSOQueryUserBody;
 import com.taiwanlife.teamwalk.model.CSSOUser;
-import com.taiwanlife.teamwalk.onboard.PromoteActivity;
 import com.taiwanlife.teamwalk.service.CSSOQueryUserService;
 import com.taiwanlife.teamwalk.util.AbstractTextValidator;
 import com.taiwanlife.teamwalk.util.Utilities;
+
+import java.security.SecureRandom;
+import java.util.Locale;
 
 import devliving.online.securedpreferencestore.SecuredPreferenceStore;
 import retrofit2.Call;
@@ -45,42 +49,27 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import static com.taiwanlife.teamwalk.login.CSSOWebViewActivity.CSSO_SIGN_UP;
-
-import java.security.SecureRandom;
-import java.util.Locale;
-
-/**
- * @author Vincent.Chen
- * @version 1
- *
- * @date 2020/10/20
- */
 public class PasswordFragment extends Fragment implements LoginMethod {
 
-    private static final String TAG = "PasswordFragment";
-    private static final String APP = "Teamwalk";
 
     private Login loginContext;
-
     private SecuredPreferenceStore sharedPref;
-
     private boolean isRememberMe;
     private String pid;
     private EditText pidEditText;
+    private EditText passwordEditText;
+    private EditText captchaEditText;
+    private String genText;
+    private Button captchaButton;
+    private Activity activity;
+
     View pidLayout;
     TextView pidExistWarning;
-
-    private EditText passwordEditText;
     View passwordLayout;
     TextView passwordExistWarning;
 
-    private EditText captchaEditText;
-    private String genText;
     View captchaLayout;
     TextView captchaExistWarning;
-    private Button captchaButton;
-    private Activity activity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,9 +83,9 @@ public class PasswordFragment extends Fragment implements LoginMethod {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login_password, container, false);
+
         setForgetPassword(view);
         setSignup(view);
-
         setPID(view);
         setRememberMe(view);
         setPassword(view);
@@ -122,128 +111,23 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         }
     }
 
-    /**
-     *
-     * @param loginContext
-     */
     @Override
     public void setOnFragmentAttachedListener(Login loginContext) {
         this.loginContext = loginContext;
     }
 
-    /**
-     *
-     * @param pid
-     * @param intent
-     */
     @Override
     public void queryUser(String pid, Intent intent) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(getString(R.string.csso_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        CSSOQueryUserService queryUserService = retrofit.create(CSSOQueryUserService.class);
-        Call<CSSOUser> queryUserCall = queryUserService.queryUser(new CSSOQueryUserBody(pid));
-
-        String prefPatternStatus = getString(R.string.pref_login_pattern_status);
-
-        String unAuthTitle = getActivity().getString(R.string.login_alert_user_unauthorized_title);
-        String unAuthBody = getActivity().getString(R.string.login_alert_user_unauthorized_body);
-        String notFoundTitle = getActivity().getString(R.string.login_alert_user_not_found_title);
-        String notFoundBody = getActivity().getString(R.string.login_alert_user_not_found_body);
-        String cancelBtnText = getActivity().getString(R.string.cancel);
-        String registerBtnText = getActivity().getString(R.string.register_now);
-        String registerNext = getActivity().getString(R.string.register_next);
-
         SecuredPreferenceStore.Editor prefEditor = sharedPref.edit();
         prefEditor.putString("csso", CSSO_SIGN_UP);
         prefEditor.apply();
 
-        Intent signupIntent = new Intent(getActivity(), CSSOWebViewActivity.class);
-
-        Toast connFailToast = Toast.makeText(getActivity(), getActivity().getString(R.string.access_connect_fail), Toast.LENGTH_LONG);
-
-        queryUserCall.enqueue(new Callback<CSSOUser>() {
-            @Override
-            public void onResponse(Call<CSSOUser> call, Response<CSSOUser> response) {
-                Log.i("LOG TIME CSSO queryUser end: " , Utilities.getDateNow());
-                CSSOUser cssoUser = response.body();
-
-                if (cssoUser == null) {
-                    Log.w(TAG, "Fail to csso query user");
-                    connFailToast.show();
-                } else {
-                    String rspCode = cssoUser.getRspCode();
-
-                    if (!TextUtils.isEmpty(rspCode) && rspCode.equals(CSSOQueryUserService.QUERY_USER_RSP_CODE_SUCCESS)) {
-                        Log.i(TAG, "query user found");
-
-                        SecuredPreferenceStore.Editor editor = sharedPref.edit();
-
-                        String patternLockStatus = cssoUser.getPatternLockStatus();
-                        if (TextUtils.equals(patternLockStatus, "Y") || TextUtils.equals(patternLockStatus, "O")) {
-                            editor.putBoolean(prefPatternStatus, true);
-                        }
-                        if (TextUtils.equals(patternLockStatus, "N") || TextUtils.equals(patternLockStatus, "E")) {
-                            editor.putBoolean(prefPatternStatus, false);
-                        }
-                        editor.apply();
-
-                        if (intent != null) {
-                            activity.setResult(Activity.RESULT_OK, intent);
-                            activity.finish();
-                        }
-                    }
-
-                    if (!TextUtils.isEmpty(rspCode) && rspCode.equals(CSSOQueryUserService.QUERY_USER_RSP_CODE_UNAUTHORIZED)) {
-                        Log.i(TAG, "query user unauthorized");
-
-                        passwordEditText.setEnabled(false);
-                        passwordEditText.setInputType(InputType.TYPE_NULL);
-
-                        captchaEditText.setEnabled(false);
-                        captchaEditText.setInputType(InputType.TYPE_NULL);
-
-                        DialogFragment dialogFragment = loginContext.buildAlert(
-                                unAuthTitle,
-                                unAuthBody,
-                                R.drawable.alert_1,
-                                cancelBtnText,
-                                null,
-                                null,
-                                false,
-                                0);
-                        loginContext.showAlert(dialogFragment);
-                    }
-
-                    if (!TextUtils.isEmpty(rspCode) && rspCode.equals(CSSOQueryUserService.QUERY_USER_RSP_CODE_USER_NOT_FOUND)) {
-                        Log.i(TAG, "query user not found");
-                        DialogFragment dialogFragment = loginContext.buildAlert(
-                                notFoundTitle,
-                                notFoundBody,
-                                R.drawable.alert_1,
-                                registerNext,
-                                registerBtnText,
-                                signupIntent,
-                                false,
-                                0);
-                        loginContext.showAlert(dialogFragment);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<CSSOUser> call, Throwable t) {
-                connFailToast.show();
-            }
-        });
+        if (intent != null) {
+            activity.setResult(Activity.RESULT_OK, intent);
+            activity.finish();
+        }
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setForgetPassword(View v) {
         TextView forgetPass = v.findViewById(R.id.login_forget_pass_textView);
         String forgetPassString = getString(R.string.forget_pass);
@@ -276,10 +160,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         }
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setSignup(View v) {
         TextView signUp = v.findViewById(R.id.login_signup_textView);
         String signUpString = getString(R.string.sign_up);
@@ -312,10 +192,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         }
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setRememberMe(View v) {
         CheckBox checkBox = v.findViewById(R.id.login_checkBox_remember_me);
         checkBox.setOnCheckedChangeListener((CompoundButton buttonView, boolean isChecked) -> {
@@ -335,19 +211,13 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         checkBox.setChecked(isRememberMe);
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setPID(View v) {
         pidLayout = v.findViewById(R.id.login_layout_password_pid);
         pidExistWarning = v.findViewById(R.id.login_textView_warning_pid);
         pidEditText = v.findViewById(R.id.login_editText_password_pid);
-//        pidEditText.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         pidEditText.addTextChangedListener(new AbstractTextValidator(pidEditText) {
             @Override
             public void validate(TextView textView, String text) {
-//                Log.d(TAG, text);
                 if (pidExistWarning.getVisibility() == View.VISIBLE) {
                     pidLayout.setBackground(null);
                     pidExistWarning.setVisibility(View.GONE);
@@ -359,16 +229,7 @@ public class PasswordFragment extends Fragment implements LoginMethod {
                     text = pid;
                 }
 
-//                boolean wrongPID = !chkPIDFormat(text);
-//
-//                if (wrongPID) {
-//                    pidLayout.setBackgroundColor(getActivity().getColor(R.color.colorError));
-//                    pidExistWarning.setVisibility(View.VISIBLE);
-//                } else {
-//                }
                 pid = text.toUpperCase();
-
-                queryUser(pid, null);
 
                 if (isRememberMe) {
                     SecuredPreferenceStore.Editor editor = sharedPref.edit();
@@ -379,10 +240,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         });
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setPassword(View v) {
         passwordLayout = v.findViewById(R.id.login_layout_password_password);
         passwordExistWarning = v.findViewById(R.id.login_textView_warning_password);
@@ -399,10 +256,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         });
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setRandomNumbers(View v) {
         captchaLayout = v.findViewById(R.id.login_layout_password_captcha);
         captchaExistWarning = v.findViewById(R.id.login_textView_warning_captcha);
@@ -430,10 +283,6 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         });
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setRandomNumbersGen(View v) {
         captchaButton = v.findViewById(R.id.login_button_captcha);
         captchaButton.setOnClickListener((View view) -> {
@@ -445,52 +294,22 @@ public class PasswordFragment extends Fragment implements LoginMethod {
         captchaButton.setText(genText);
     }
 
-    /**
-     *
-     * @return
-     */
     private String genRandomNumbers() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 4; i++) {
             SecureRandom secureRandom = new SecureRandom();
-            int randomInt = secureRandom.nextInt((int)'Z' - (int)'A' + 1);
-            char random = (char)((int)'A' + randomInt);
-//            char random = (char)((int)'A' + Math.random() * ((int)'Z' - (int)'A' + 1));
+            int randomInt = secureRandom.nextInt((int) 'Z' - (int) 'A' + 1);
+            char random = (char) ((int) 'A' + randomInt);
             sb.append(random);
         }
         return sb.toString();
     }
 
-    /**
-     *
-     * @param v
-     */
     private void setLogin(View v) {
         Button loginButton = v.findViewById(R.id.login_button);
         loginButton.setOnClickListener((View view) -> {
-//            login();
-            loginDemo();
+            login();
         });
-    }
-
-    private void loginDemo() {
-        String loginURL = getActivity().getString(R.string.csso_url) + "mock/csso";
-        String loginParams = "SYS_ID=teamwalk" + "&" +
-                "appl_id=" + pid + "&" +
-                "appl_pwd=" + passwordEditText.getText().toString() + "&" +
-                "service=teamwalk" + getActivity().getString(R.string.env) + "://loginsuccess";
-
-
-        Intent signInIntent = new Intent();
-        signInIntent.putExtra("pid", pid);
-        signInIntent.putExtra("url", loginURL);
-        signInIntent.putExtra("params", loginParams);
-
-        activity.setResult(Activity.RESULT_OK, signInIntent);
-        activity.finish();
-//        Intent intent = new Intent(requireActivity(), PromoteActivity.class);
-//        startActivity(intent);
-//        Log.e("GGG", "LoginDemo 密碼頁面");
     }
 
     private void login() {
@@ -518,7 +337,7 @@ public class PasswordFragment extends Fragment implements LoginMethod {
             return;
         }
 
-        String loginURL = getActivity().getString(R.string.csso_url) + "login";
+        String loginURL = getActivity().getString(R.string.csso_url) + "mock/csso";
         String loginParams = "SYS_ID=teamwalk" + "&" +
                 "appl_id=" + pid + "&" +
                 "appl_pwd=" + passwordEditText.getText().toString() + "&" +
