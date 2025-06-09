@@ -9,6 +9,7 @@ import static com.taiwanlife.teamwalk.util.Utilities.randomString;
 import static com.taiwanlife.teamwalk.util.Utilities.sha1;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,6 +33,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
@@ -96,9 +98,12 @@ import com.taiwanlife.teamwalk.login.LoginActivity;
 import com.taiwanlife.teamwalk.model.FitCalories;
 import com.taiwanlife.teamwalk.model.FitStep;
 import com.taiwanlife.teamwalk.model.FitbitToken;
+import com.taiwanlife.teamwalk.model.request.LoginRequest;
+import com.taiwanlife.teamwalk.model.response.LoginResponse;
 import com.taiwanlife.teamwalk.onboard.AvatarActivity;
 import com.taiwanlife.teamwalk.service.FitbitTokenService;
 import com.taiwanlife.teamwalk.service.GarminTokenService;
+import com.taiwanlife.teamwalk.service.LoginService;
 import com.taiwanlife.teamwalk.service.UserService;
 import com.taiwanlife.teamwalk.share.ShareUtil;
 import com.taiwanlife.teamwalk.util.CelebrusCSAUtil;
@@ -126,6 +131,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import devliving.online.securedpreferencestore.SecuredPreferenceStore;
@@ -137,12 +143,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-/**
- * @author Vincent.Chen
- * @version 1
- *
- * @date 2020/10/21
- */
+@SuppressLint("HardwareIds")
 public class MainActivity extends AppCompatActivity implements ProviderInstaller.ProviderInstallListener {
 
     private static final String TAG = "MainActivity";
@@ -223,18 +224,17 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         notificationManager.createNotificationChannel(channel);
 
         // register fcm
-        try{
-            FirebaseMessaging.getInstance().getToken()
-                    .addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "Fail to register FCM token",  task.getException());
-                            return;
-                        }
+        FirebaseMessaging.getInstance()
+                .getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fail to register FCM token",  task.getException());
+                        return;
+                    }
 
-                        fcmToken = task.getResult();
-//                    Log.d(TAG, "fcm: " + fcmToken);
-                    });
-        }catch (Exception e){}
+                    fcmToken = task.getResult();
+                });
+
         // shared preferences
 //        loginSharedPref = getSharedPreferences(getString(R.string.pref_login), MainActivity.MODE_PRIVATE);
         loginSharedPref = SecuredPreferenceStore.getSharedInstance();
@@ -410,49 +410,69 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 case "login":
                     toLogin();
                     break;
-
                 case "loginsuccess":
-                    Log.i(TAG, "login success");
-                    Log.i("LOG TIME CSSO loginsuccess: " , Utilities.getDateNow());
+                    // 1.傳輸手機資訊來獲取 JWT
+                    // 取得 Ticket
                     ticket = uri.getQueryParameter("ticket");
-                    if (TextUtils.isEmpty(ticket)) {
-                        Toast.makeText(this, "未取得登入許可", Toast.LENGTH_LONG).show();
-                        toLogin();
-                    } else {
-                        prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
+                    // 取得 UUID
+                    String uuid = loginSharedPref.getString(getString(R.string.pref_login_uuid), "");
+                    // 取得 DeviceId
+                    String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
-                        prefEditor.putString(getString(R.string.pref_login_username), pid);
-                        prefEditor.putString(getString(R.string.pref_login_ticket), ticket);
-                        prefEditor.apply();
+                    LoginRequest request = new LoginRequest(
+                            ticket,
+                            "",
+                            uuid,
+                            deviceId,
+                            fcmToken
+                    );
+                    Log.e("GGG", request.toString());
 
-                        if(getPwPageFlag())
-                            webView.loadUrl(getString(R.string.tcav_url)+"other/user/teamwalk");
-                        else
-                            webView.loadUrl(getString(MAIN_URL_RES));
-                    }
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl("https://demo.mutron.com.tw/")
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+
+                    LoginService loginService = retrofit.create(LoginService.class);
+                    loginService.login(request).enqueue(new Callback<LoginResponse>() {
+                        @Override
+                        public void onResponse(@NonNull Call<LoginResponse> call, @NonNull Response<LoginResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                String jwt = response.body().getData().getToken();
+                                Log.e("GGG", jwt);
+
+                                // 儲存到 SharedPreferences
+                                // prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
+                                prefEditor.putString(getString(R.string.pref_login_username), pid);
+                                prefEditor.putString(getString(R.string.pref_login_ticket), ticket);
+                                prefEditor.putString(getString(R.string.pref_login_jwt_token), jwt);
+                                prefEditor.apply();
+
+                                // String token = prefs.getString("jwt_token", null);
+
+                            } else {
+                                Log.e("GGG", "登入失敗");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<LoginResponse> call, @NonNull Throwable t) {
+                            Toast.makeText(MainActivity.this, "處理失敗", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                    webView.loadUrl(getString(MAIN_URL_RES));
                     break;
-
-                case "loginfailure":
-                    Log.i(TAG, "login failure");
-
-                    ticket = "";
-                    prefEditor.putString(getString(R.string.pref_login_ticket), ticket);
-                    prefEditor.putBoolean(getString(R.string.pref_login_auth), false);
-                    prefEditor.apply();
-
-                    toLogin();
-                    break;
-
                 case "home":
                     webView.loadUrl(getString(MAIN_URL_RES));
                     break;
 
                 case "userinfo":
-                    if(getPwPageFlag())
-                        webView.loadUrl(getString(MAIN_URL_RES));
-                    else
-                        webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
-                    setPwPageFlag(false);
+//                    if(getPwPageFlag())
+//                        webView.loadUrl(getString(MAIN_URL_RES));
+//                    else
+//                        webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
+//                    setPwPageFlag(false);
                     break;
                 case "onboarding":
                     Intent onboardingIntent = new Intent(this, AvatarActivity.class);
@@ -465,9 +485,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     String device = deviceRaw.indexOf("@") > 0 ? deviceRaw.substring(0, deviceRaw.indexOf("@")) : deviceRaw;
 
                     if (TextUtils.equals(device, "fitbit")) {
-                        Log.i(TAG, "connect fitbit");
-//                        Log.d(TAG, uri.getQueryParameter("code"));
-
                         Toast connFailToast = Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_LONG);
 
                         String encodeAuthString = getString(R.string.connect_fitbit_client_id) + ":" + getString(R.string.connect_fitbit_client_secret);
@@ -845,8 +862,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 String url = data.getStringExtra("url");
                 byte[] postData = data.getStringExtra("params").getBytes();
                 if(URLUtil.isNetworkUrl(url)){
-                    Log.e("GGG", url);
-                    Log.e("GGG", data.getStringExtra("params"));
                     webView.postUrl(url, postData);
                 }
             }
@@ -1847,9 +1862,6 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
         SecuredPreferenceStore.Editor prefEditor = loginSharedPref.edit();
         prefEditor.putBoolean("Teamwalk_PwPageFlag", pwPageFlag);
         prefEditor.apply();
-    }
-    private boolean getPwPageFlag(){
-        return loginSharedPref.getBoolean("Teamwalk_PwPageFlag", false);
     }
 
     private void showPwErrorDialog(){
