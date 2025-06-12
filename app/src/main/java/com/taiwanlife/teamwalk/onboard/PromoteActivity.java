@@ -59,11 +59,11 @@ public class PromoteActivity extends OnboardActivity {
 //                updateUser(getMyUser(), true);
 //            }
 //
+            finish();
 //            Intent backToMainIntent = new Intent(this, MainActivity.class);
 //            backToMainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 //            backToMainIntent.setAction(MainActivity.ON_BOARD_FINISH);
 //            startActivity(backToMainIntent);
-            finish();
         });
     }
 

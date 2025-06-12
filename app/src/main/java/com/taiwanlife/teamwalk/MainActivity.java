@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     public static final int CREATE_TEAM_REQUEST_SELECT_IMAGE = 7;
     public static final int GOOGLE_SIGN_IN_FOR_DISABLE_FIT = 8;
     public static final String ON_BOARD_FINISH = "ON_BOARD_FINISH";
+    public static final int ON_BOARD_START = 9;
+    public boolean finishBoard = false;
 
     private GoogleSignInClient googleSignInClient;
     private String authCode;
@@ -298,24 +300,24 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             AlertDialog dialog = builder.create();
             dialog.show();
         }
-//        else if(!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure){
-//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//            builder.setMessage("手機未設定密碼，有資安疑慮請設定密碼，謝謝");
-//            builder.setIcon(R.mipmap.ic_launcher);
-//            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
-//
-//            //设置正面按钮
-//            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    doBusiness();
-//                    dialog.dismiss();
-//                    isKnowsDeviceSecure = true;
-//                }
-//            });
-//            AlertDialog dialog = builder.create();
-//            dialog.show();
-//        }
+        else if(!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("手機未設定密碼，有資安疑慮請設定密碼，謝謝");
+            builder.setIcon(R.mipmap.ic_launcher);
+            builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+
+            //设置正面按钮
+            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    doBusiness();
+                    dialog.dismiss();
+                    isKnowsDeviceSecure = true;
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
         else if(DeviceUtil.isReverseToolRunning(this) && !isKnowsReverseToolRunning){
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setMessage("提醒您，有逆向工具運行，APP可能會有資訊外流的風險");
@@ -341,13 +343,10 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
 
             //设置正面按钮
-            builder.setPositiveButton("我知道了並繼續使用", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    doBusiness();
-                    dialog.dismiss();
-                    isKnowsCovered = true;
-                }
+            builder.setPositiveButton("我知道了並繼續使用", (dialog, which) -> {
+                doBusiness();
+                dialog.dismiss();
+                isKnowsCovered = true;
             });
             AlertDialog dialog = builder.create();
             dialog.show();
@@ -403,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                                 String jwt = response.body().getData().getToken();
 
                                 // 儲存到 SharedPreferences
-                                 prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
+                                prefEditor.putBoolean(getString(R.string.pref_login_auth), true);
                                 prefEditor.putString(getString(R.string.pref_login_username), pid);
                                 prefEditor.putString(getString(R.string.pref_login_ticket), ticket);
                                 prefEditor.putString(getString(R.string.pref_login_jwt_token), jwt);
@@ -416,8 +415,10 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                                         if (response.isSuccessful() && response.body() != null) {
                                             UserInfoResponse.Data data = response.body().getData();
                                             if (!data.isComplete_onboarding()) {
+                                                Bundle bundle = new Bundle();
+                                                bundle.putString("REFERRER_CODE", data.getReferrer_code());
                                                 Intent intent = new Intent(MainActivity.this, PromoteActivity.class);
-                                                startActivity(intent);
+                                                startActivity(intent, bundle);
                                             } else {
                                                 webView.loadUrl(getString(MAIN_URL_RES));
                                             }
@@ -530,13 +531,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     }
                     break;
                 case "webconnectgarmin":
-//                    String deviceGarminRaw = uri.getQueryParameter("device");
-                    Log.d(TAG, "connect garmin");
-//                        Log.d(TAG, uri.getQueryParameter("oauth_token"));
-//                        Log.d(TAG, uri.getQueryParameter("oauth_verifier"));
-//                    String oats = deviceGarminRaw.substring(deviceGarminRaw.indexOf("@") + 1, deviceGarminRaw.length());
                     String oats = tsGarmin;
-//                        Log.d(TAG, oats);
 
                     Toast connFailToast = Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_LONG);
 
@@ -579,11 +574,8 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                     String oauthSignature = "";
                     try {
                         oauthSignature =  URLEncoder.encode(sha1(signatureBaseString, keyString), "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-//                            Log.e(TAG, "Fail to encode oauth signature string", e);
-                    } catch ( NoSuchAlgorithmException  e) {
-//                            Log.e(TAG, "Fail to encode oauth signature string", e);
-                    } catch ( InvalidKeyException e) {
+                    } catch (UnsupportedEncodingException | NoSuchAlgorithmException |
+                             InvalidKeyException e) {
 //                            Log.e(TAG, "Fail to encode oauth signature string", e);
                     }
 
@@ -632,7 +624,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                                         connFailToast.show();
                                     else {
                                         String oauthToken = responseString.substring(responseString.indexOf("=") + 1, responseString.indexOf("&"));
-                                        String oauthTokenSecret = responseString.substring(responseString.lastIndexOf("=") + 1, responseString.length());
+                                        String oauthTokenSecret = responseString.substring(responseString.lastIndexOf("=") + 1);
 
                                         webView.loadUrl(getString(MAIN_URL_RES) + "health/connect?device=garmin&t=" + oauthToken + "&s=" + oauthTokenSecret);
                                         Toast.makeText(MainActivity.this, getString(R.string.onboard_connect_success), Toast.LENGTH_LONG).show();
@@ -645,7 +637,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         }
 
                         @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                             connFailToast.show();
                         }
                     });
@@ -665,27 +657,8 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
             case PERMISSIONS_REQUEST_ACTIVITY_RECOGNITION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     accessGoogleFit();
-                } else {
-                    Log.d(TAG, "permission not Granted");
-                    // TODO implement dialog of the result of permission not granted
                 }
                 return;
-
-//            case PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE:
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    startActivityForResult(uploadIntent, MainActivity.NICKNAME_REQUEST_SELECT_IMAGE);
-//                } else {
-//                    Log.d(TAG, "permission not Granted");
-//                    // TODO implement dialog of the result of permission not granted
-//                }
-//                return;
-//            case PERMISSIONS_EXTERNAL_STORAGE_RECOGNITION:
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    Toast.makeText(MainActivity.this, "儲存權限申請成功!", Toast.LENGTH_LONG).show();
-//                } else {
-//                    Toast.makeText(MainActivity.this, "儲存權限申請失敗!", Toast.LENGTH_LONG).show();
-//                }
-//                break;
             case PermissionUtil.permissionRequestCode:
                 PermissionUtil.onCheckPermission(permissions, grantResults, this);
                 break;
@@ -707,47 +680,9 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                 return;
         }
     }
-    // 4. 选择内容回调到Html页面
-//    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-//    private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
-//        if (requestCode != FILE_CHOOSER_RESULT_CODE || uploadMessageAboveL == null) {
-//            return;
-//        }
-//        Uri[] results = null;
-//        if (resultCode == Activity.RESULT_OK) {
-//            if (intent != null) {
-//                String dataString = intent.getDataString();
-//                ClipData clipData = intent.getClipData();
-//                if (clipData != null) {
-//                    results = new Uri[clipData.getItemCount()];
-//                    for (int i = 0; i < clipData.getItemCount(); i++) {
-//                        ClipData.Item item = clipData.getItemAt(i);
-//                        results[i] = item.getUri();
-//                    }
-//                }
-//                if (dataString != null) {
-//                    results = new Uri[]{Uri.parse(dataString)};
-//                }
-//            }
-//        }
-//        uploadMessageAboveL.onReceiveValue(results);
-//        uploadMessageAboveL = null;
-//    }
-//    private Uri shareUri;
-//    public void setShareContentUri(Uri uri){
-//        if(shareUri!=null)
-//            ShareUtil.deleteUri(MainActivity.this, shareUri);
-//        shareUri=null;
-//        shareUri = uri;
-//
-//    }
 
     @Override
     protected void onDestroy() {
-//        if(shareUri!=null)
-//            ShareUtil.deleteUri(MainActivity.this, shareUri);
-//        shareUri=null;
-//        ShareUtil.delShareImage(MainActivity.this);
         clearSensitiveData(true);
         super.onDestroy();
     }
@@ -755,6 +690,9 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ON_BOARD_START) {
+            finishBoard = true;
+        }
         if (requestCode== ShareUtil.SHARECONTENT_REQUEST){
 //            Log.i(TAG,"Share Content return:" + data);
 //            if(shareUri!=null)
@@ -939,49 +877,79 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     }
 
     private void doBusiness() {
-        Uri uri = getIntent().getData();
+        if (webView.getUrl() != null) {
+            if (webView.getUrl().endsWith("logout")) {
+                toLogin();
+            }
 
-        if (uri != null) {
-            String scheme_action = uri.getHost();
-
-        } else {
-            if (webView.getUrl() != null) {
-                if (webView.getUrl().endsWith("logout")) {
-                    toLogin();
-                }
-
-                if (webView.getUrl().endsWith("blank")) {
-                    boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
-                    boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
-
-                    if (!bindLater && !isAuthenticated) {
-                        toLogin();
-                    } else {
-                        webView.loadUrl(getString(MAIN_URL_RES));
-                    }
-                }
-
-                if (getIntent().getAction() != null && getIntent().getAction().equals(ON_BOARD_FINISH)) {
-                    webView.loadUrl(getString(MAIN_URL_RES) + "main");
-                }
-                if (webView.getUrl().endsWith("my/preferences")) {
-                    webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
-                }
-            } else {
+            if (webView.getUrl().endsWith("blank")) {
+                boolean bindLater = getIntent().getBooleanExtra("BindLater", false);
                 boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
 
-                if (isAuthenticated) {
-                    webView.loadUrl(getString(MAIN_URL_RES));
-                } else {
+                if (!bindLater && !isAuthenticated) {
                     toLogin();
+                } else {
+                    webView.loadUrl(getString(MAIN_URL_RES));
                 }
             }
+
+            if (getIntent().getAction() != null && getIntent().getAction().equals(ON_BOARD_FINISH)) {
+                webView.loadUrl(getString(MAIN_URL_RES) + "main");
+            }
+
+            if (webView.getUrl().endsWith("my/preferences")) {
+                webView.loadUrl(getString(MAIN_URL_RES) + "my/preferences");
+            }
+        } else {
+            // 2.取得用戶資料
+            String jwt = loginSharedPref.getString(getString(R.string.pref_login_jwt_token), "");
+            if (jwt.isEmpty()) {
+                toLogin();
+            } else {
+                if (finishBoard) {
+                    webView.loadUrl(getString(MAIN_URL_RES));
+                } else {
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl("https://demo.mutron.com.tw/")
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+
+                    LoginService loginService = retrofit.create(LoginService.class);
+                    loginService.getUserInfo(jwt).enqueue(new Callback<UserInfoResponse>() {
+                        @Override
+                        public void onResponse(@NonNull Call<UserInfoResponse> call, @NonNull Response<UserInfoResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                UserInfoResponse.Data data = response.body().getData();
+                                if (!data.isComplete_onboarding()) {
+                                    Intent intent = new Intent(MainActivity.this, PromoteActivity.class);
+                                    startActivityForResult(intent, ON_BOARD_START);
+                                } else {
+                                    webView.loadUrl(getString(MAIN_URL_RES));
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<UserInfoResponse> call, @NonNull Throwable t) {
+                            Log.e("UserInfo", "呼叫失敗：" + t.getMessage());
+                        }
+                    });
+                }
+            }
+
+
+//            boolean isAuthenticated = loginSharedPref.getBoolean(getString(R.string.pref_login_auth), false);
+//
+//            if (isAuthenticated) {
+//                webView.loadUrl(getString(MAIN_URL_RES));
+//            } else {
+//                toLogin();
+//            }
         }
 
         if (!isOnline()) {
             Toast.makeText(MainActivity.this, getString(R.string.main_is_not_online), Toast.LENGTH_LONG).show();
         }
-
     }
 
     private void toLogin() {
@@ -1024,8 +992,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
     }
 
     private boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
@@ -1236,7 +1203,7 @@ public class MainActivity extends AppCompatActivity implements ProviderInstaller
                         break;
                 }
 
-                if (!actionUrl.equals("")) {
+                if (!actionUrl.isEmpty()) {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(actionUrl));
                     intent.putExtra("pid", pid);
                     view.stopLoading();
