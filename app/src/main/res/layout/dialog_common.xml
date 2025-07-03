@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:orientation="vertical"
+    android:paddingHorizontal="40dp"
+    tools:context=".ui.common.CommonDialog">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent">
+
+        <View
+            android:id="@+id/top_space"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="60dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            app:layout_constraintTop_toBottomOf="@+id/top_space"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAlert"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="125dp"
+                android:paddingBottom="12dp">
+
+                <TextView
+                    android:id="@+id/alert_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="title"
+                    android:textAlignment="center"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/alert_body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="body"
+                        android:textAlignment="center" />
+                </ScrollView>
+
+
+                <LinearLayout
+                    android:id="@+id/alert_button_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="32dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/alert_button_negative"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_light_style"
+                        android:elevation="3dp"
+                        android:text="Button"
+                        android:textColor="@color/colorLinkText"
+                        android:textSize="14sp" />
+
+                    <View
+                        android:id="@+id/divider"
+                        android:layout_width="8dp"
+                        android:layout_height="match_parent"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/alert_button_positive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_style"
+                        android:elevation="3dp"
+                        android:text="Button"
+                        android:textColor="@color/colorLinkText"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <ImageView
+            android:id="@+id/alert_image"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_gravity="center|top"
+            android:src="@drawable/alert_1"
+            android:translationZ="2dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>
+
+
+

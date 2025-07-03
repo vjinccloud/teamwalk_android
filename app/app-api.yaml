@@ -1,0 +1,747 @@
+swagger: '2.0'
+info:
+  title: '台灣人壽-Teamwalk APP API'
+  version: '1.0'
+host: teamwalk.mutron.com.tw
+basePath: /fe-api
+schemes:
+  - https
+paths:
+  /mock/csso:
+    post:
+      produces:
+        - application/x-www-form-urlencoded
+      summary: "模擬CSSO"
+      tags:
+        - APP
+      operationId: cssoLogin
+      parameters:
+        - name: SYS_ID
+          type: string
+          in: query
+          required: true
+        - name: appl_id
+          type: string
+          in: query
+          required: true
+        - name: appl_pwd
+          type: string
+          in: query
+          required: true
+        - name: service
+          type: string
+          in: query
+          required: true
+          
+      responses:
+        '302':
+          description: Success(會帶入ticket參數在網址後)
+          schema:
+            type: string
+            example: 'teamwalk://loginsuccess?ticket=xxxxx'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /login:
+    post:
+      produces:
+        - application/json
+      summary: "使用者登入"
+      tags:
+        - APP
+      operationId: login
+      parameters:
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LoginPostRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/LoginPostResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /landing:
+    post:
+      produces:
+        - application/json
+      summary: "Landing頁面儲存個人資料"
+      tags:
+        - APP
+      operationId: saveLandingInfo
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LandingPostRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  
+  /user-info:
+    get:
+      produces:
+        - application/json
+      summary: "取得使用者資訊"
+      tags:
+        - Common
+      operationId: getUserInfo
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GetUserInfoResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+
+  /index:
+    get:
+      produces:
+        - application/json
+      summary: "取得首頁資料"
+      tags:
+        - 首頁
+      operationId: getMain
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GetMainResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred  
+  
+  /personal-pk:
+    get:
+      produces:
+        - application/json
+      summary: "取得個人對戰資料"
+      tags:
+        - 挑戰
+      operationId: listPersonalPK
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListPersonalPkResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+          
+  /personal-team:
+    get:
+      produces:
+        - application/json
+      summary: "取得團隊對戰資料"
+      tags:
+        - 挑戰
+      operationId: listTeamPK
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListTeamPkResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+definitions:
+
+  ListPersonalPkResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/PersonalPkInfo'
+    required:
+      - header
+      - data
+    
+  PersonalPkInfo:
+    type: object
+    properties: 
+      pk_id: 
+        type: string
+        example: 'xxx'
+        description: 個人PK賽ID
+      period: 
+        type: number
+        example: 7
+        description: 對戰天數
+      steps: 
+        type: number
+        example: 15000
+        description: 對戰步數
+      coins: 
+        type: number
+        example: 50
+        description: 押注龍珠數
+      remaining_days: 
+        type: number
+        example: 6
+        description: 剩餘天數
+      my_steps: 
+        type: number
+        example: 1500
+        description: 自己當前步數
+      target_steps: 
+        type: number
+        example: 150
+        description: 對手當前步數
+      target_nickname: 
+        type: string
+        example: '鄧x文'
+        description: 對手暱稱
+      target_avatar: 
+        type: string
+        example: 'assets/images/avatar.png'
+        description: 對手頭像路徑
+      status:
+        type: string
+        example: 'P'
+        description: 狀態(P:進行中,C:待確認,E:已結束,X:已過期,R:已拒絕,N:已取消)
+      invite_expire_day: 
+        type: number
+        example: '20'
+        description: 邀請挑戰幾天後失效(當status為C才會有值)
+      confirm_flag:
+        type: string
+        example: 'I'
+        description: 邀請方向(當status為C才會有值，I：主動、P：被動)
+      pk_end_time: 
+        type: string
+        example: '2025/10/10'
+        description: PK結束時間(當status為E才會有值)
+    required:
+      - pk_id
+      - period
+      - steps
+      - coins
+      - my_steps
+      - target_steps
+      - target_nickname
+      - target_avatar
+      - status
+
+  ListTeamPkResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/TeamPkInfo'
+    required:
+      - header
+      - data
+
+  TeamPkInfo:
+    type: object
+    properties: 
+      pk_id: 
+        type: string
+        example: 'xxx'
+        description: 團體PK賽ID
+      name: 
+        type: string
+        example: '1月健康企業正式賽'
+        description: 活動名稱
+      banner: 
+        type: string
+        example: 'assets/images/banner_1.png'
+        description: 活動Banner
+      
+      activity_deadline: 
+        type: string
+        example: '2026/01/01'
+        description: 活動報名截止日期
+      game_start_date: 
+        type: string
+        example: '2026/01/01'
+        description: 比賽開始日期
+      game_end_date: 
+        type: string
+        example: '2026/01/01'
+        description: 比賽結束日期
+      participent_limit: 
+        type: number
+        example: 100
+        description: 參與人數
+      total_coins: 
+        type: number
+        example: 1000
+        description: 總獎勵龍珠數
+      
+      status: 
+        type: string
+        example: 'all'
+        description: 挑戰狀態('all':全部挑戰 / 'my':我的挑戰)
+      recent_join: 
+        type: array
+        items: 
+          example: 'assets/images/avatar.png'
+    required:
+      - team_act_id
+      - team_act_name
+      - team_start_date
+      - team_end_date
+
+  GetMainResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        $ref: '#/definitions/GetMainInfo'
+    required:
+      - header
+
+  GetMainInfo:
+    type: object
+    properties:
+      activities:
+        type: array
+        description: 熱門活動
+        items:
+          $ref: '#/definitions/ActivityInfo'
+      announcement:
+        type: array
+        description: 公告訊息
+        items:
+          $ref: '#/definitions/AnnouncementInfo'
+      lead_rate:
+        type: number
+        example: 43
+        description: 超越其他用戶的比率
+      steps:
+        $ref: '#/definitions/IndexStepInfo'
+      sleep:
+        $ref: '#/definitions/IndexSleepInfo'
+        
+  ActivityInfo:
+    type: object
+    properties:
+      activity_id:
+        type: string
+        example: 'U000'
+        description: 活動ID
+      name:
+        type: string
+        example: '一起健走'
+        description: 主標題
+      sub_name:
+        type: string
+        example: '龍珠活動'
+        description: 副標題
+      content:
+        type: string
+        example: '<p>2022/3/1~2022/3/31活動期間內，組隊隊伍每人每日平均步數達7,500步，抽 AirPods Pro</p><p>(抽出1組隊伍，中獎隊伍每人1個，共3個)</p>'
+        description: 活動詳細說明(HTML)
+      home_img:
+        type: string
+        example: 'assets/images/banner_blue.png'
+        description: 首頁圖檔
+      banner_img:
+        type: string
+        example: 'assets/images/banner_blue.png'
+        description: 詳情Banner圖檔
+      url_type:
+        type: string
+        example: 'E'
+        description: URL跳轉類型(E:外部 / I:內部)
+      url:
+        type: string
+        example: '/challenge/team_pk/02364b08-cf68-474c-9178-53ec53467381/detail'
+        description: URL跳轉
+    required:
+      - activity_id
+      - name
+      - sub_name
+      - home_img
+      - url_type
+      - url
+      
+  AnnouncementInfo:
+    type: object
+    properties:
+      announcement_id:
+        type: string
+        example: '2a07571b-4ab3-4d2b-b85e-263a96de4fbc'
+        description: 公告ID
+      subject:
+        type: string
+        example: '系統更新公告'
+        description: 主旨
+      content:
+        type: string
+        example: '於2025/01/01將更新系統'
+        description: 內容
+    required:
+      - announcement_id
+      - subject
+      - content
+  
+  IndexStepInfo:
+    type: object
+    properties:
+      steps_goal: 
+        type: number
+        example: 15000
+        description: 目標步數 
+      steps_today: 
+        type: number
+        example: 15000
+        description: 今日步數 
+      steps_distance: 
+        type: number
+        example: 10
+        description: 步行距離(公里) 
+      calories: 
+        type: number
+        example: 300
+        description: 消耗的卡路里
+    required:
+      - steps_goal
+      - steps_today
+      - steps_distance
+      - calories
+  
+  IndexSleepInfo:
+    type: object
+    properties:
+      sleep_goal: 
+        type: number
+        example: 8
+        description: 每日目標睡眠小時
+      sleep_today: 
+        type: number
+        example: 420
+        description: 今日睡眠時間(分鐘) 
+      sleep_deep_today: 
+        type: number
+        example: 420
+        description: 今日深眠時間(分鐘)
+      sleep_shallow_today: 
+        type: number
+        example: 420
+        description: 今日淺眠時間(分鐘)
+    required:
+      - sleep_goal
+      - sleep_today
+      - sleep_deep_today
+      - sleep_shallow_today
+  
+  
+  LoginPostRequest:
+    type: object
+    properties:
+      ticket:
+        type: string
+        description: CSSO Ticket資訊
+        example: 'xxxxx'
+      service:
+        type: string
+        description: CSSO service
+        example: 'xxxx'
+      app_uuid:
+        type: string
+        description: app安裝後產生唯一識別碼
+        example: 'xxxx'
+      device_id:
+        type: string
+        description: 裝置識別碼
+        example: 'xxxx'
+      push_id:
+        type: string
+        description: FCM推播Token
+        example: 'xxxx'
+      
+    required:
+      - ticket
+      - service
+      - app_uuid
+      - device_id
+      - push_id
+
+  LandingPostRequest:
+    type: object
+    properties:
+      referrer_code:
+        type: string
+        description: 他人的推薦碼
+        example: 'XXXXX'
+      nickname:
+        type: string
+        description: 暱稱
+        example: '哈哈哈'
+      binding_apple:
+        type: boolean
+        description: 綁定Apple
+        example: 'true'
+      binding_android:
+        type: boolean
+        description: 綁定Google
+        example: 'true'
+      binding_fibit:
+        type: boolean
+        description: 綁定Fibit
+        example: 'true'
+      binding_fibit_token:
+        type: string
+        description: 綁定Fibit Token
+        example: 'XXXXXXX'
+      binding_garmin_token:
+        type: boolean
+        description: 綁定Garmin Token
+        example: 'XXXXXXX'
+      
+
+  LoginPostResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        $ref: '#/definitions/LoginInfo'
+    required:
+      - header
+
+  LoginInfo:
+    type: object
+    properties:
+      token:
+        type: string
+        example: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        description: 登入者token
+
+    required:
+      - token
+
+  GetUserInfoResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        $ref: '#/definitions/UserInfo'
+    required:
+      - header
+  
+  UserInfo:
+    type: object
+    properties:
+      id:
+        type: string
+        example: 'U0001234'
+        description: 使用者唯一ID
+      level:
+        type: integer
+        example: 1
+        description: 會員等級
+      coins:
+        type: integer
+        example: 100
+        description: 龍珠數
+      exp:
+        type: integer
+        example: 1500
+        description: 經驗值
+      badge_amt:
+        type: integer
+        example: 8
+        description: 已獲得徽章數
+      nickname:
+        type: string
+        example: '鄧x文'
+        description: 暱稱
+      gender:
+        type: string
+        example: 'F'
+        description: 性別 (M/F/O)
+      custom_image:
+        type: string
+        example: '/uploads/images/avatar/1618649493123018104.jpeg'
+        description: 會員自行上傳頭像(路徑)
+      filter:
+        type: string
+        example: '1'
+        description: 會員內建濾鏡
+      height:
+        type: number
+        format: float
+        example: 170.0
+        description: 身高 (公分)
+      weight:
+        type: number
+        format: float
+        example: 60.0
+        description: 體重 (公斤)
+      mobile:
+        type: string
+        example: '0912345678'
+        description: 手機號碼
+      email:
+        type: string
+        example: 'user@example.com'
+        description: 電子郵件
+      city:
+        type: string
+        example: '臺北市'
+        description: 所在城市
+      district:
+        type: string
+        example: '信義區'
+        description: 區／鄉／鎮
+      referrer_code:
+        type: string
+        example: 'ABC123'
+        description: 推薦碼
+      complete_onboarding:
+        type: boolean
+        example: false
+        description: 是否已完成導覽流程
+      device_OS:
+        type: string
+        example: 'iOS'
+        description: 裝置系統 (iOS/Android)
+      binding_apple:
+        type: boolean
+        example: 'true'
+        description: 是否綁定Apple
+      binding_android:
+        type: boolean
+        example: 'true'
+        description: 是否綁定Android
+      binding_fibit:
+        type: boolean
+        example: 'true'
+        description: 是否綁定Fibit
+      binding_garmin:
+        type: boolean
+        example: 'true'
+        description: 是否綁定Garmin
+      binding_captcha:
+        type: boolean
+        example: 'true'
+        description: 是否綁定圖形登入
+      enable_notification:
+        type: boolean
+        example: false
+        description: 是否開啟推播
+      
+    
+    required:
+      - id
+      - pid
+      - nickName
+      - level
+      - coins
+      - exp
+
+  PageInfo:
+    type: object
+    properties:
+      total_rec:
+        type: number
+        example: 123
+        description: 總筆數
+      total_page:
+        type: number
+        example: 13
+        description: 總頁數
+      current_page:
+        type: number
+        example: 1
+        description: 目前第幾頁
+    required:
+      - total_rec
+      - total_page
+      - current_page
+
+  GeneralResponse:
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+    required:
+      - header
+
+  Header:
+    properties:
+      code:
+        type: string
+        example: '0000'
+        description: 回應代碼(0000代表成功，其餘失敗)
+      message:
+        type: string
+        example: '系統錯誤訊息'
+        description: 系統錯誤訊息
+
+    required:
+      - code
+      - message
+
+
+

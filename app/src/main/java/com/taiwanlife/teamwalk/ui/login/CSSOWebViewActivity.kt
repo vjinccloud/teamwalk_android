@@ -1,0 +1,229 @@
+package com.taiwanlife.teamwalk.ui.login
+
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.text.TextUtils
+import android.view.KeyEvent
+import android.view.View
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import com.speed_trap.android.WebAppInterface
+import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
+import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.base.BaseActivity
+import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
+import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
+import com.taiwanlife.teamwalk.utils.AlertDialogManager
+
+class CSSOWebViewActivity :
+    BaseActivity<ActivityCssoWebviewBinding>({ ActivityCssoWebviewBinding.inflate(it) }) {
+
+    companion object {
+        private const val KEY_PURPOSE: String = "KEY_PURPOSE"
+        private const val PURPOSE_REGISTER: String = "REGISTER"
+        private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
+
+        // 進來是為了註冊
+        fun register(context: Context?): Intent {
+            val intent = Intent(context, CSSOWebViewActivity::class.java)
+            intent.putExtra(KEY_PURPOSE, PURPOSE_REGISTER)
+            return intent
+        }
+
+        // 進來是忘了密碼
+        fun forgetPassword(context: Context?): Intent {
+            val intent = Intent(context, CSSOWebViewActivity::class.java)
+            intent.putExtra(KEY_PURPOSE, PURPOSE_FORGET_PASSWORD)
+            return intent
+        }
+    }
+
+    override val statusBarColor: Int = R.color.colorCTBCPrimary
+
+    private lateinit var webView: WebView
+
+    @SuppressLint("SetJavaScriptEnabled")
+    override fun onLastCreateBaseActivity(
+        view: View,
+        savedInstanceState: Bundle?
+    ) {
+
+        webView = viewBinding.webview
+
+        val webSettings = webView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+
+
+        // Use WideViewport and Zoom out if there is no viewport defined
+        webSettings.useWideViewPort = true
+        webSettings.loadWithOverviewMode = true
+
+
+        // Enable pinch to zoom without the zoom buttons
+        webSettings.builtInZoomControls = false
+
+        // Hide the zoom controls for HONEYCOMB+
+        webSettings.displayZoomControls = false
+
+
+        webView.webViewClient = CSSOWebViewClient(this)
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onJsAlert(
+                view: WebView?,
+                url: String?,
+                message: String,
+                result: JsResult
+            ): Boolean {
+                AlertDialogManager.getAlertDialog(
+                    this@CSSOWebViewActivity,
+                    message,
+                    false,
+                    true,
+                    getString(R.string.ok), {
+                        result.confirm()
+                    })
+                return true
+            }
+
+            override fun onJsConfirm(
+                view: WebView?,
+                url: String?,
+                message: String,
+                result: JsResult
+            ): Boolean {
+                AlertDialogManager.getAlertDialog(
+                    this@CSSOWebViewActivity,
+                    message,
+                    false,
+                    true,
+                    getString(R.string.ok), {
+                        result.confirm()
+                    },
+                    getString(R.string.cancel), {
+                        result.cancel()
+                    })
+                return true
+            }
+        }
+
+        var cssoURL = ""
+        val purpose = getIntent().getStringExtra(CSSOWebViewActivity.KEY_PURPOSE)
+        if (TextUtils.isEmpty(purpose)) {
+            finish()
+        } else if (TextUtils.equals(purpose, CSSOWebViewActivity.PURPOSE_REGISTER)) {
+            cssoURL = getEnvironmentConfig().cssoSignUpUrl
+        } else if (TextUtils.equals(purpose, CSSOWebViewActivity.PURPOSE_FORGET_PASSWORD)) {
+            cssoURL = getEnvironmentConfig().cssoForgetMimaUrl
+        } else {
+            finish()
+        }
+        //        SharedPreferences loginSharedPref = getSharedPreferences(getString(R.string.pref_login), CSSOWebViewActivity.MODE_PRIVATE);
+//        SecuredPreferenceStore loginSharedPref = SecuredPreferenceStore.getSharedInstance();
+//        String csso = loginSharedPref.getString("csso", CSSO_SIGN_UP);
+//
+//        String cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoSignUpUrl();
+//        if (TextUtils.equals(CSSO_SIGN_UP, csso)) {
+//            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoSignUpUrl();
+//        }
+//
+//        if (TextUtils.equals(getString(R.string.csso_forget_pwd_key), csso)) {
+//            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoForgetMimaUrl();
+//        }
+        webView.addJavascriptInterface(
+            WebAppInterface(webView),
+            WebAppInterface(webView).appBridgeJsName
+        )
+
+
+//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+        webView.loadUrl(cssoURL)
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        clearSensitiveData(true)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        restoreSensitiveData()
+//        CelebrusCSAUtil.start(this);
+    }
+
+    override fun onStop() {
+        super.onStop()
+        backupSensitiveData()
+        clearSensitiveData(false)
+    }
+
+    /**
+     * @param keyCode
+     * @param event
+     * @return
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView!!.canGoBack()) {
+            webView!!.goBack()
+            return true
+        }
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun backupSensitiveData() {
+    }
+
+    private fun restoreSensitiveData() {
+    }
+
+    private fun clearSensitiveData(isDestroy: Boolean) {
+        if (isDestroy) {
+            webView!!.loadUrl("about:blank")
+            SensitiveDataUtil.clearWebViewSensitiveData(this, webView, isDestroy)
+        }
+    }
+
+    private class CSSOWebViewClient(private val context: Context) : WebViewClient() {
+        /**
+         * @param view
+         * @param request
+         * @return
+         */
+        override fun shouldOverrideUrlLoading(
+            view: WebView?,
+            request: WebResourceRequest
+        ): Boolean {
+//            Log.d(TAG, request.getUrl().toString());
+
+            val cssoURL = Uri.parse(getEnvironmentConfig().cssoUrl)
+            if (TextUtils.equals(cssoURL.getHost(), request.getUrl().getHost())) {
+                if (TextUtils.equals("/csso/mobileIndex", request.getUrl().getPath())) {
+                    if (context is Activity) {
+                        context.finish()
+                    }
+                    return true
+                }
+
+                return false
+            }
+
+            if (request.getUrl().getHost()!!.contains("bid.g.doubleclick.net")) {
+                return false
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW, request.getUrl())
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            return true
+        }
+    }
+}

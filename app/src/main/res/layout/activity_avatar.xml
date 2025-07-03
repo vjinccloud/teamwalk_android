@@ -4,14 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".onboard.AvatarActivity">
+    tools:context=".ui.onboarding.AvatarActivity">
 
     <Button
         android:id="@+id/onboarding_skip_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="16pt"
+        android:layout_marginEnd="32dp"
         android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
         android:drawableEnd="@drawable/close"
@@ -25,7 +24,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16pt"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="16pt"
         android:progress="66"
         android:progressTint="@color/colorPrimary"
@@ -43,7 +41,7 @@
         android:layout_marginBottom="16dp"
         android:text="@string/onboard_avatar_nickname"
         android:textAlignment="center"
-        android:textSize="20sp"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/onboarding_recyclerCoverFlow_avatar"
         app:layout_constraintEnd_toEndOf="parent"
@@ -56,7 +54,6 @@
         android:layout_height="148dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
@@ -77,67 +74,67 @@
             android:id="@+id/onboarding_imageButton_red"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_red"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_red" />
 
         <ImageButton
             android:id="@+id/onboarding_imageButton_orange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_orange"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_orange" />
 
         <ImageButton
             android:id="@+id/onboarding_imageButton_yellow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_yellow"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_yellow" />
 
         <ImageButton
             android:id="@+id/onboarding_imageButton_blue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_blue"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_blue" />
 
         <ImageButton
             android:id="@+id/onboarding_imageButton_purple"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_purple"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_purple" />
 
         <ImageButton
             android:id="@+id/onboarding_imageButton_royalpurple"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/dot_royalpurple"
-            android:background="@android:color/transparent"
             android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="9dp"
             android:paddingVertical="3dp"
-            android:paddingHorizontal="9dp"/>
+            app:srcCompat="@drawable/dot_royalpurple" />
 
     </LinearLayout>
 
@@ -146,11 +143,13 @@
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"
+        android:background="@null"
         android:ems="10"
         android:hint="@string/onboard_edit_nickname"
         android:inputType="textPersonName"
         android:textAlignment="center"
-        android:textSize="36sp"
+        android:imeOptions="actionDone"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout" />

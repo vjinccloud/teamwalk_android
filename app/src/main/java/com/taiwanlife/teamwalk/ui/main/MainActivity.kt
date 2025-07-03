@@ -1,0 +1,877 @@
+package com.taiwanlife.teamwalk.ui.main
+
+import android.Manifest
+import android.app.ComponentCaller
+import android.content.Context.CONNECTIVITY_SERVICE
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.text.TextUtils
+import android.view.View
+import android.webkit.CookieManager
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.health.connect.client.HealthConnectClient
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.security.ProviderInstaller
+import com.google.firebase.installations.FirebaseInstallations
+import com.google.firebase.messaging.FirebaseMessaging
+import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.base.BaseActivity
+import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
+import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
+import com.taiwanlife.teamwalk.java_utils.DeviceUtil
+import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
+import com.taiwanlife.teamwalk.remote.HealthConnectRepository
+import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
+import com.taiwanlife.teamwalk.ui.common.GarminViewModel
+import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
+import com.taiwanlife.teamwalk.ui.common.model.FitbitData
+import com.taiwanlife.teamwalk.ui.common.model.GarminData
+import com.taiwanlife.teamwalk.ui.login.LoginActivity
+import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
+import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
+import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_FAILURE
+import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_SUCCESS
+import com.taiwanlife.teamwalk.ui.main.HostTypes.ONBOARDING
+import com.taiwanlife.teamwalk.ui.main.HostTypes.USER_INFO
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
+import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
+import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
+import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
+import com.taiwanlife.teamwalk.utils.BindingManager
+import com.taiwanlife.teamwalk.utils.DeviceType
+import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
+import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
+import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
+import com.taiwanlife.teamwalk.utils.DeviceType.NONE
+import com.taiwanlife.teamwalk.utils.GoogleHealthManager
+import com.taiwanlife.teamwalk.utils.HealthConnectHelper
+import com.taiwanlife.teamwalk.utils.PermissionManager
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
+import com.taiwanlife.teamwalk.utils.ShareUtil
+import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.enableToBoolean
+import com.taiwanlife.teamwalk.utils.getGson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import timber.log.Timber
+import java.util.Locale
+
+class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }), ProviderInstaller.ProviderInstallListener,
+    MyWebAppInterface.AsyncCallbacks {
+
+    companion object {
+        const val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 4
+        const val GOOGLE_ERROR_DIALOG_REQUEST_CODE = 4
+
+        private const val QUERY_PARAM_TICKET = "ticket"
+        private const val KEY_PID = "pid"
+    }
+
+    private val permissionManager = PermissionManager(this)
+    private val mainViewModel: MainViewModel by viewModel()
+    private val fitbitViewModel: FitbitViewModel by viewModel()
+    private val garminViewModel: GarminViewModel by viewModel()
+    private var healthConnectViewModel: HealthConnectViewModel? = null
+    private val healthConnectHelper = HealthConnectHelper(this, this)
+    private lateinit var bindingManager: BindingManager
+
+    // 檢查Play商店功能參數
+    private var retryProviderInstall: Boolean = false
+
+    // Google GSO 拿到的登入狀態 以前叫做authCode
+    private var googleAuthCode: String? = null
+
+    // 跟資安有關的參數
+    private var isKnowsDeviceSecure = false
+    private var isKnowsReverseToolRunning = false
+    private var isKnowsCovered = false
+
+    private var clearCache: Boolean? = null
+
+    // 提供登入的LoginActivity之資料回傳
+    private val loginLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                Toast.makeText(this, getString(R.string.login_success), Toast.LENGTH_SHORT).show()
+
+                // 登入完畢 取得使用者資訊
+                mainViewModel.getUserInfo()
+
+
+                // 現在都是打API 這邊不用處理了
+//                // 取得回傳資料處理
+//                result.data?.let { data ->
+//                    pid = data.getStringExtra(KEY_PID)
+//                    val url = data.getStringExtra(KEY_URL)
+//                    val postData = data.getStringExtra(KEY_PARAMS)?.toByteArray()
+//                    if (url != null && URLUtil.isNetworkUrl(url) && postData != null) {
+//                        viewBinding.webView.postUrl(url, postData)
+//                    }
+//                }
+                // 以前最後webview會走到 下面的 loginSuccess
+//                loginSuccess()
+            }
+        }
+
+    // 提供變更圖形密碼 PatternSetupActivity之成果回傳
+    private val patternLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            Toast.makeText(this, getString(R.string.change_success), Toast.LENGTH_SHORT).show()
+        }
+
+    override fun onLastCreateBaseActivity(
+        view: View,
+        savedInstanceState: Bundle?
+    ) {
+        // 設置安全Utils
+        DeviceUtil.setFlagSecure(this)
+
+        if (healthConnectHelper.availableStatusFlow()) {
+            val healthConnectClient = HealthConnectClient.getOrCreate(this)
+            val healthConnectRepository = HealthConnectRepository(healthConnectClient)
+            healthConnectViewModel = HealthConnectViewModel(healthConnectRepository)
+        }
+        bindingManager = BindingManager(
+            this,
+            garminViewModel,
+            fitbitViewModel,
+            healthConnectHelper, {
+                Toast.makeText(
+                    this,
+                    String.format(
+                        Locale.getDefault(),
+                        getString(R.string.main_binding_same_device),
+                        it.displayName
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            ::bindingRemoved,
+            ::bindNewDeviceSuccess
+        )
+
+        // 原本在這裡建立 Notification Channel 移至MyApplication
+
+        // 檢查我們的權限是不是都拿到了 delay的原因我推測是因為可能會去到其他頁面 導致這頁被關閉會出錯 現在改為權限分開請求
+//        Handler().postDelayed({
+//            checkPermissions()
+//        }, 100)
+
+        // FCM Firebase Token
+        try {
+            FirebaseMessaging.getInstance().token
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful && !task.result.isNullOrEmpty()) {
+                        SecuredPreferenceStoreManager.simpleEditAndApply(
+                            Config.SP_FCM_TOKEN,
+                            task.result
+                        )
+                    } else {
+                        Timber.d("Fetching FCM registration token failed")
+                    }
+                }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 初始化參數 這裡不再需要
+//        pid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_PID, "")
+//        ticket = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_TICKET, "")
+
+        // Fid Firebase Installations Unique Id
+        try {
+            FirebaseInstallations.getInstance().id
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful && !task.result.isNullOrEmpty()) {
+                        SecuredPreferenceStoreManager.simpleEditAndApply(
+                            Config.PREF_LOGIN_FID,
+                            task.result
+                        )
+                    } else {
+                        Timber.d("Fetching FirebaseInstallations token failed")
+                    }
+                }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // CelebrusCSA 初始化
+        CelebrusCSAUtil.start(this)
+        viewBinding.webView.setUp(this)
+        CelebrusCSAUtil.sessionSharing(this)
+
+        // 如果以前分享的圖片還在 刪除
+        ShareUtil.delShareImage(this)
+
+        // 以前會在這裡初始化 GooglePlayCore類別 已經直接取代掉 詳見scoreGooglePlay
+        // 檢查Google Play
+        ProviderInstaller.installIfNeededAsync(this, this)
+
+        observeApiResultSetUp()
+
+        // 測試用
+        forTest()
+
+        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.PREF_LOGIN_AUTH, false)
+        if (isLogin) {
+            // 取得使用者資料
+            mainViewModel.getUserInfo()
+        }
+    }
+
+    private fun forTest() {
+
+        viewBinding.dummyData.setOnClickListener {
+            if (healthConnectViewModel == null) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.main_health_connect_not_available),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+            healthConnectViewModel?.let { healthConnectViewModel ->
+                healthConnectViewModel.writeAndCleanDummyHealthDataForPast30Days {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.main_health_connect_dummy_insert_finished),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
+        viewBinding.logout.setOnClickListener {
+            toLogin()
+            return@setOnClickListener
+        }
+    }
+
+    private fun checkPermissions() {
+        val permissionList = mutableListOf(
+            Manifest.permission.CAMERA,
+//            Manifest.permission.INTERNET,
+//            Manifest.permission.ACCESS_NETWORK_STATE,
+            // 上面兩個不需要運行時請求
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionList.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+
+        val requestPermissionFunction = {
+            permissionManager.requestPermissions(permissionList.toTypedArray()) { granted, denied ->
+                if (granted) {
+                    Timber.d("所有權限都已獲得")
+                } else {
+                    denied.forEach {
+                        val deniedText = permissionManager.getPermissionDeniedText(it, this)
+                        if (!TextUtils.isEmpty(deniedText)) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                deniedText,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+        if (!permissionManager.hasPermissions(this, permissionList.toTypedArray())) {
+            val atLeastOneRationale =
+                permissionManager.shouldShowRationale(permissionList.toTypedArray()) { permission ->
+                    val rationale = permissionManager.getPermissionRationaleText(permission, this)
+                    if (!TextUtils.isEmpty(rationale)) {
+                        Toast.makeText(this, rationale, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            if (atLeastOneRationale) {
+                getAlertDialog(
+                    this,
+                    getString(R.string.main_permission_rationale),
+                    false,
+                    true,
+                    getString(R.string.confirm),
+                    {
+                        requestPermissionFunction()
+                    })
+            } else {
+                requestPermissionFunction()
+            }
+        }
+    }
+
+    private fun observeApiResultSetUp() {
+        // 使用者資訊
+        observeOnLifeCycle(mainViewModel.userInfoFlow.sharedFlow) { userInfoResponse ->
+            userInfoResponse?.let { userInfoResponse ->
+                // 取得使用者資訊 將現在綁定的設備儲存
+                var deviceType = NONE
+                if (userInfoResponse.bindingAndroid) {
+                    // 綁定 Health Connect
+                    deviceType = HEALTH_CONNECT
+                } else if (userInfoResponse.bindingFibit) {
+                    // 綁定FITBIT
+                    deviceType = FITBIT
+                } else if (userInfoResponse.bindingGarmin) {
+                    // 綁定Garmin
+                    deviceType = GARMIN
+                }
+
+                SecuredPreferenceStoreManager.simpleEditAndApply(
+                    Config.SP_BIND_CURRENT_DEVICE,
+                    deviceType.value
+                )
+
+                if (!userInfoResponse.completeOnboarding) {
+                    toOnBoarding(userInfoResponse)
+                }
+            }
+        }
+    }
+
+    override fun onReceivedEvent(eventName: String?, result: String) {
+//        super.onReceivedEvent(eventName, result)
+        if (eventName == Config.EVENT_NO_TOKEN_TO_LOGIN) {
+            toLogin()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        val uri = intent.data
+        if (uri == null) return
+        if (TextUtils.isEmpty(uri.host)) return
+        val hostTypes = HostTypes.getFromValue(uri.host!!)
+        if (hostTypes == null) return
+
+        when (hostTypes) {
+            HOME -> {
+//                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+            }
+
+            LOGIN -> {
+                toLogin()
+            }
+
+            LOGIN_SUCCESS -> {
+                // 新版照理來說不會透過url告知登入成功 有API了 預防萬一留著
+                loginSuccess(uri)
+            }
+
+            LOGIN_FAILURE -> {
+                loginFailure()
+            }
+
+            USER_INFO -> {
+                // 新版會透過API取得使用者資料 照理來說不會靠url
+                val pwPageFlag =
+                    SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
+                if (pwPageFlag) {
+                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+                } else {
+                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
+                }
+            }
+
+            ONBOARDING -> {
+                // 新版不會透過webview走到Onboard 如果真的走到了 取得使用者資訊 看是不是真的有需要走初次流程
+                mainViewModel.getUserInfo()
+            }
+        }
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+        caller: ComponentCaller
+    ) {
+        super.onActivityResult(requestCode, resultCode, data, caller)
+        // 最新的鼓勵使用Launcher 會到這裡表示不得已 否則請勿使用
+        if (resultCode == RESULT_OK && requestCode == GOOGLE_FIT_PERMISSIONS_REQUEST_CODE) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            googleAuthCode = null
+            try {
+                val account = task.getResult<ApiException?>(ApiException::class.java)
+                googleAuthCode = account.serverAuthCode
+            } catch (e: ApiException) {
+                Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
+            // 流程結束 看看最後的authCode狀況
+            gsoAuthCodeProcessFinish()
+        }
+        if (requestCode == GOOGLE_ERROR_DIALOG_REQUEST_CODE) {
+            // Adding a fragment via GoogleApiAvailability.showErrorDialogFragment
+            // before the instance state is restored throws an error. So instead,
+            // set a flag here, which causes the fragment to delay until
+            // onPostResume.
+            retryProviderInstall = true
+        }
+    }
+
+    private fun bindingRemoved(deviceType: DeviceType) {
+        Toast.makeText(this, "Removed $deviceType", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
+
+        lifecycleScope.launch(Dispatchers.Main.immediate) {
+            viewBinding.dummyData.visibility = View.GONE
+        }
+        when (deviceType) {
+            HEALTH_CONNECT -> {
+                Toast.makeText(
+                    this,
+                    getString(R.string.onboard_connect_success),
+                    Toast.LENGTH_SHORT
+                ).show()
+                lifecycleScope.launch(Dispatchers.Main.immediate) {
+                    viewBinding.dummyData.visibility = View.VISIBLE
+                }
+            }
+
+            GARMIN -> {
+                val garminData = getGson().fromJson(data, GarminData::class.java)
+
+                if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
+                    Toast.makeText(
+                        this,
+                        "t = ${garminData.oauthToken}\ns = ${garminData.oauthTokenSecret}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            FITBIT -> {
+                val fitbitData = getGson().fromJson(data, FitbitData::class.java)
+
+                if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
+                    Toast.makeText(
+                        this,
+                        "t = ${fitbitData.accessToken}\nr = ${fitbitData.refreshToken}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            NONE -> {}
+        }
+    }
+
+    private fun gsoAuthCodeProcessFinish() {
+        if (TextUtils.isEmpty(googleAuthCode)) {
+            Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+            Timber.d("Fail to connect google fit, no auth code")
+        } else {
+            viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "health/connect?device=google&a=" + googleAuthCode)
+            Toast.makeText(this, getString(R.string.onboard_connect_success), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun loginSuccess(uri: Uri) {
+        Timber.d("CSSO Login Success: ${Utils.formatDate()}")
+        val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+
+        if (TextUtils.isEmpty(ticket)) {
+            Toast.makeText(this, getString(R.string.login_no_ticket), Toast.LENGTH_SHORT).show()
+            toLogin()
+        } else {
+            val pid = intent.getStringExtra(KEY_PID)
+            SecuredPreferenceStoreManager.editAndApply { prefEditor ->
+                prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, true)
+                if (!TextUtils.isEmpty(pid)) {
+                    prefEditor.putString(Config.PREF_LOGIN_USERNAME, pid)
+                }
+                prefEditor.putString(Config.PREF_LOGIN_TICKET, ticket)
+            }
+            val pwPageFlag = SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
+
+            if (pwPageFlag) {
+                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().tcavUrl + "other/user/teamwalk")
+            } else {
+                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+            }
+        }
+    }
+
+    private fun loginFailure() {
+        Timber.d("Login Failed - ${Utils.formatDate()}")
+
+        toLogin()
+    }
+
+    private fun toOnBoarding(userInfoResponse: UserInfoResponse) {
+        val onboardingIntent = PromoteActivity.startPromoteActivity(this, userInfoResponse)
+        startActivity(onboardingIntent)
+    }
+
+    private fun securityCheck() {
+        val knowsRoot = SecuredPreferenceStoreManager.getBoolean(Config.KNOWS_ROOT, false)
+        if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
+            getAlertDialog(
+                context = this,
+                message = getString(R.string.alert_root_message),
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {
+                    doBusiness()
+                    SecuredPreferenceStoreManager.editAndApply { editor ->
+                        editor.putBoolean(Config.KNOWS_ROOT, true)
+                    }
+                }
+            )
+        } else if (!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure) {
+            getAlertDialog(
+                context = this,
+                message = getString(R.string.alert_no_password_message),
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {
+                    doBusiness()
+                    isKnowsDeviceSecure = true
+                }
+            )
+        } else if (DeviceUtil.isReverseToolRunning(this) && !isKnowsReverseToolRunning) {
+            getAlertDialog(
+                context = this,
+                message = getString(R.string.alert_reverse_tool_message),
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {
+                    doBusiness()
+                    isKnowsReverseToolRunning = true
+                }
+            )
+        } else if (DeviceUtil.isCovered(this) && !isKnowsCovered) {
+            // 舊版沒加 !isKnowsCovered 應該是忘記了 加上
+            getAlertDialog(
+                context = this,
+                message = getString(R.string.alert_covered_message),
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {
+                    doBusiness()
+                    isKnowsCovered = true
+                }
+            )
+        } else {
+            doBusiness()
+        }
+    }
+
+    private fun doBusiness() {
+        // 這邊檢查是否登入
+        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.PREF_LOGIN_AUTH, false)
+        if (!isLogin) {
+            toLogin()
+            viewBinding.logout.text = getString(R.string.main_not_logged_in)
+        } else {
+            viewBinding.logout.text = getString(R.string.main_simulate_logout)
+
+//            // 舊有邏輯
+//            val uri = intent.data
+//            if (uri != null) {
+//                intent.data = null
+//            } else {
+//                val url = viewBinding.webView.url
+//                if (url != null) {
+//                    if (url.endsWith(URL_END_LOGOUT)) {
+//                        toLogin()
+//                    }
+//                    if (url.endsWith(URL_END_BLANK)) {
+//                        Timber.d("Logout by blank")
+//                        toLogin()
+//                    }
+//                    if (intent.action != null && intent.action.equals(ON_BOARD_FINISH)) {
+//                        viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "main")
+//                    }
+//
+//                    if (url.endsWith(URL_END_MY_PREFERENCES)) {
+//                        viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
+//                    }
+//                    Timber.d("Current url - $url")
+//                } else {
+//                    checkAuthenticated()
+//                }
+//            }
+
+            if (!isOnline()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.main_is_not_online),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun isOnline(): Boolean {
+        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val networkCapabilities =
+            connectivityManager.getNetworkCapabilities(network) ?: return false
+        return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    private fun clearSensitiveData(isDestroy: Boolean) {
+        if (isDestroy) {
+            viewBinding.webView.loadUrl("about:blank")
+            SensitiveDataUtil.clearWebViewSensitiveData(this, viewBinding.webView, isDestroy)
+        }
+    }
+
+    private fun toLogin() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+
+        SecuredPreferenceStoreManager.editAndApply { prefEditor ->
+            prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, false)
+            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
+            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
+            prefEditor.putString(Config.SP_LOGIN_JWT_TOKEN, "")
+        }
+
+        val loginIntent = Intent(this, LoginActivity::class.java)
+        loginLauncher.launch(loginIntent)
+    }
+
+    private fun onProviderInstallerNotAvailable() {
+        // This is reached if the provider can't be updated for some reason.
+        // App should consider all HTTP communication to be vulnerable and take
+        // appropriate action.
+        Toast.makeText(
+            this@MainActivity,
+            getString(R.string.main_provider_installer_error),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        securityCheck()
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+        if (retryProviderInstall) {
+            // It's safe to retry installation.
+            ProviderInstaller.installIfNeededAsync(this, this)
+        }
+        retryProviderInstall = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (clearCache != null && clearCache!!) {
+            viewBinding.webView.clearCache(true)
+        }
+        clearSensitiveData(false)
+    }
+
+    override fun onDestroy() {
+        clearSensitiveData(true)
+        super.onDestroy()
+    }
+
+    override fun setGraphicalLogin(enable: String, finished: () -> Unit) {
+        val patternIntent = Intent(this, PatternSetupActivity::class.java)
+        patternLauncher.launch(patternIntent)
+    }
+
+    override fun bindingGoogleHealth(enable: String, finished: () -> Unit) {
+        bindingManager.bindNewDevice(HEALTH_CONNECT)
+    }
+
+    fun getHealthConnectData() {
+        if (healthConnectViewModel == null) {
+            Toast.makeText(
+                this,
+                getString(R.string.main_health_connect_not_available),
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        healthConnectViewModel?.let { healthConnectViewModel ->
+            healthConnectViewModel.readSleepData {
+                Toast.makeText(
+                    this,
+                    String.format(
+                        Locale.getDefault(),
+                        getString(R.string.main_health_connect_sleep_data),
+                        it.size
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+                val json = getGson().toJson(it)
+                Timber.d(json)
+
+            }
+            healthConnectViewModel.readStepsData {
+                Toast.makeText(
+                    this,
+                    String.format(
+                        Locale.getDefault(),
+                        getString(R.string.main_health_connect_steps_data),
+                        it.size
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+                val json = getGson().toJson(it)
+                Timber.d(json)
+            }
+        }
+//        healthConnectViewModel.readTotalCaloriesBurnedData {
+//            Toast.makeText(
+//                this,
+//                String.format(
+//                    Locale.getDefault(),
+//                    getString(R.string.main_health_connect_total_calories_burned_data),
+//                    it.size
+//                ),
+//                Toast.LENGTH_SHORT
+//            ).show()
+//            val json = getGson().toJson(it)
+//            Timber.d(json)
+//        }
+    }
+
+    override fun bindingGarminHealth(enable: String, finished: () -> Unit) {
+        bindingManager.bindNewDevice(GARMIN)
+    }
+
+    override fun bindingFitbitHealth(enable: String, finished: () -> Unit) {
+        bindingManager.bindNewDevice(FITBIT)
+
+//        // 版本29之後才需要要求此權限 29之前的可以直接執行
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            val permissions = ArrayList<String>()
+//            permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
+//            getPermissionAndCallback(
+//                permissions,
+//                MainWebViewJava.SimpleCallback {
+//                    accessGoogleFit()
+//                })
+//        } else {
+//            accessGoogleFit()
+//        }
+    }
+
+    override fun setPushMessageStatus(enable: String, finished: () -> Unit) {
+        val permissionList = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        val permissionGratedCallback = {
+            SecuredPreferenceStoreManager.editAndApply {
+                it.putBoolean(Config.SP_NOTIFICATION, enable.enableToBoolean())
+            }
+            Toast.makeText(
+                this,
+                getString(R.string.main_push_notification_setting_done),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        val requestPermissionFunction = {
+            permissionManager.requestPermissions(permissionList.toTypedArray()) { granted, denied ->
+                if (granted) {
+                    permissionGratedCallback()
+                } else {
+                    denied.forEach {
+                        val deniedText = permissionManager.getPermissionDeniedText(it, this)
+                        if (!TextUtils.isEmpty(deniedText)) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                deniedText,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+        if (!permissionManager.hasPermissions(this, permissionList.toTypedArray())) {
+            val atLeastOneRationale =
+                permissionManager.shouldShowRationale(permissionList.toTypedArray()) { permission ->
+                    val rationale = permissionManager.getPermissionRationaleText(permission, this)
+                    if (!TextUtils.isEmpty(rationale)) {
+                        Toast.makeText(this, rationale, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            if (atLeastOneRationale) {
+                getAlertDialog(
+                    this,
+                    getString(R.string.notification_permission_rationale),
+                    false,
+                    true,
+                    getString(R.string.confirm), {
+                        requestPermissionFunction()
+                    }
+                )
+            } else {
+                requestPermissionFunction()
+            }
+        } else {
+            permissionGratedCallback()
+        }
+    }
+
+    override fun syncHealthData(finished: () -> Unit) {
+        getHealthConnectData()
+    }
+
+    override fun onProviderInstallFailed(errorCode: Int, recoveryIntent: Intent?) {
+        GoogleApiAvailability.getInstance().apply {
+            if (isUserResolvableError(errorCode)) {
+                // Recoverable error. Show a dialog prompting the user to
+                // install/update/enable Google Play services.
+                showErrorDialogFragment(
+                    this@MainActivity,
+                    errorCode,
+                    GOOGLE_ERROR_DIALOG_REQUEST_CODE
+                ) {
+                    // The user chose not to take the recovery action.
+                    onProviderInstallerNotAvailable()
+                }
+            } else {
+                onProviderInstallerNotAvailable()
+            }
+        }
+    }
+
+    override fun onProviderInstalled() {
+        Timber.d("ProviderInstalled")
+    }
+}

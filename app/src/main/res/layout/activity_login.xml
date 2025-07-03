@@ -5,10 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/login_bg_style"
-    tools:context=".login.LoginActivity">
+    tools:context=".ui.login.LoginActivity">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/linearLayoutCompat3"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -24,17 +23,296 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <segmented_control.widget.custom.android.com.segmentedcontrol.SegmentedControl
-            android:id="@+id/login_segment_control"
+        <!--        <segmented_control.widget.custom.android.com.segmentedcontrol.SegmentedControl-->
+        <!--            android:id="@+id/login_segment_control"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginHorizontal="16dp"-->
+        <!--            android:layout_marginBottom="24dp"-->
+        <!--            app:columnCount="3"-->
+        <!--            app:distributeEvenly="true"-->
+        <!--            app:radius="50dp"-->
+        <!--            app:segments="@array/login_methods"-->
+        <!--            app:textVerticalPadding="8dp" />-->
+
+        <LinearLayout
+            android:id="@+id/tabSelector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="24dp"
-            app:columnCount="3"
-            app:distributeEvenly="true"
-            app:radius="50dp"
-            app:segments="@array/login_methods"
-            app:textVerticalPadding="8dp" />
+            android:background="@drawable/tab_container_bg"
+            android:orientation="horizontal"
+            android:padding="1dp">
+
+            <TextView
+                android:id="@+id/password"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/tab_left_selector_filled"
+                android:gravity="center"
+                android:paddingTop="@dimen/base1"
+                android:paddingBottom="@dimen/base1"
+                android:text="Password"
+                android:textColor="@color/white" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/colorAccent" />
+
+            <TextView
+                android:id="@+id/pattern"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/tab_right_selector"
+                android:gravity="center"
+                android:paddingTop="@dimen/base1"
+                android:paddingBottom="@dimen/base1"
+                android:text="Pattern"
+                android:textColor="@color/colorAccent" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/login_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/login_layout_password_pid"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/login_editText_password_pid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        android:ems="10"
+                        android:hint="@string/login_password_pid"
+                        android:imeOptions="actionNext"
+                        android:inputType="text|textCapCharacters"
+                        android:maxLength="10"
+                        android:singleLine="true" />
+
+                    <CheckBox
+                        android:id="@+id/login_checkBox_remember_me"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:buttonTint="#00d7c2"
+                        android:text="@string/login_remember_me"
+                        android:textColor="#80908E" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <TextView
+                    android:id="@+id/login_textView_warning_pid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/login_password_warning_pid"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorError"
+                    android:visibility="gone" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/password_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/linearLayoutCompat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:divider="@drawable/layout_divider"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:showDividers="middle|end">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:id="@+id/login_layout_password_password"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/login_editText_password"
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:background="@android:color/transparent"
+                                android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ()[]{}&lt;&gt;+-*/?,.:;_\|~`!@#$%^&amp;="
+                                android:ems="10"
+                                android:hint="@string/login_password_pass"
+                                android:imeOptions="actionNext"
+                                android:inputType="textPassword"
+                                android:maxLength="30"
+                                android:singleLine="true" />
+
+                            <TextView
+                                android:id="@+id/login_forget_pass_textView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="8dp"
+                                android:gravity="center_vertical"
+                                android:text="@string/forget_pass" />
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+
+                        <TextView
+                            android:id="@+id/login_textView_warning_password"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/login_password_warning_password"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/colorError"
+                            android:visibility="gone" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:id="@+id/login_layout_password_captcha"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/login_editText_captcha"
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:layout_weight="3"
+                                android:background="@android:color/transparent"
+                                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                android:ems="10"
+                                android:hint="@string/login_password_captcha"
+                                android:imeOptions="actionDone"
+                                android:inputType="text|textCapCharacters"
+                                android:singleLine="true" />
+
+
+                            <android.widget.Button
+                                android:id="@+id/login_button_captcha"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/captcha_style"
+                                android:drawableEnd="@drawable/reload"
+                                android:paddingEnd="8dp" />
+
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+
+                        <TextView
+                            android:id="@+id/login_textView_warning_captcha"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/login_password_warning_captcha"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/colorError"
+                            android:visibility="gone" />
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <Button
+                    android:id="@+id/login_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="48dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/button_style"
+                    android:backgroundTint="@null"
+                    android:elevation="3dp"
+                    android:stateListAnimator="@null"
+                    android:text="@string/login"
+                    android:textColor="@color/colorLinkText"
+                    app:layout_constraintBottom_toTopOf="@+id/login_signup_textView"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/linearLayoutCompat" />
+
+                <TextView
+                    android:id="@+id/login_signup_textView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/sign_up"
+                    android:textColor="@color/colorLinkText"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/pattern_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <com.andrognito.patternlockview.PatternLockView
+                    android:id="@+id/login_pattern_lock_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginEnd="40dp"
+                    app:correctStateColor="#00d7c2"
+                    app:dotCount="4"
+                    app:dotNormalSize="16dp"
+                    app:dotSelectedSize="24dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:normalStateColor="#d1d5db" />
+
+                <Button
+                    android:id="@+id/login_pattern_toggle_stealth_mode_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@android:color/transparent"
+                    android:drawableEnd="@drawable/visibility"
+                    android:drawablePadding="8dp"
+                    android:text="@string/login_pattern_normal_mode"
+                    android:textColor="#405754"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/login_pattern_lock_view" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
 
         <FrameLayout
             android:id="@+id/login_fragment"
@@ -42,7 +320,7 @@
             android:layout_height="match_parent"
             android:layout_margin="8dp" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/login_build_appv"

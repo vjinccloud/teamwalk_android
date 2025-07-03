@@ -1,125 +1,168 @@
 <resources>
-    <string name="app_name" translatable="false">TeamWalk</string>
-    <string name="app_slogan">Keep healthy, Never stop</string>
-    <string name="env" translatable="false"></string>
+    <string name="app_name">TeamWalk</string>
+    
+    <string name="login_timeout_for_password_change_message">提醒您：因已持續登入一段時間，需重新登入才能變更密碼</string>
+    <string name="confirm">確定</string>
 
-    <!-- login preferences -->
-    <string name="pref_login" translatable="false">com.taiwanlife.teamwalk.android.pref_login</string>
+    <string name="login_no_ticket">未取得登入許可</string>
+    <string name="login_success">你已登入</string>
 
-    <string name="pref_login_segment_control_pos" translatable="false">com.taiwanlife.teamwalk.android.pref_login_segment_control_pos</string>
-    <string name="pref_login_remember_me" translatable="false">com.taiwanlife.teamwalk.android.pref_login_remember_me</string>
-    <string name="pref_login_pid" translatable="false">com.taiwanlife.teamwalk.android.pref_login_pid</string>
-    <string name="pref_login_pattern_status" translatable="false">com.taiwanlife.teamwalk.android.pref_login_pattern_status</string>
-    <string name="pref_login_auth" translatable="false">com.taiwanlife.teamwalk.android.pref_login_auth</string>
-    <string name="pref_login_fid" translatable="false">com.taiwanlife.teamwalk.android.pref_login_fid</string>
-    <string name="knows_root" translatable="false">com.taiwanlife.teamwalk.android.pref_login_knows_root</string>
+    <string name="main_provider_installer_error">Google Play服務不可用。</string>
+    <string name="main_push_notification_setting_done">推播設定完成</string>
+    <string name="main_health_connect_unavailable">您的裝置不支援Health Connect</string>
+    <string name="main_health_connect_permission_denied">Health Connect 權限被拒絕</string>
+    <string name="main_health_connect_permission_rationale">Health Connect 需要權限才能運作</string>
+    <string name="main_health_connect_dummy_insert_finished">Health Connect 假資料已經插入</string>
+    <string name="main_health_connect_sleep_data" formatted="true">取得%d筆睡眠資料</string>
+    <string name="main_health_connect_steps_data" formatted="true">取得%d筆步數資料</string>
+    <string name="main_health_connect_total_calories_burned_data" formatted="true">取得%d筆總消耗卡洛里資料</string>
+    <string name="main_health_connect_not_available">您的裝置不支援Health Connect</string>
+    <string name="main_permission_rationale">需要權限才能夠執行部分功能</string>
+    <string name="main_binding_same_device">您已綁定 %s </string>
+    <string name="main_not_logged_in">尚未登入</string>
+    <string name="main_simulate_logout">模擬登出</string>
+    <string name="main_simulate_health_connect_fake_data">於Health Connect插入假資料</string>
 
-    <!-- signin -->
-    <string name="pref_login_username" translatable="false">com.taiwanlife.teamwalk.android.pref_login_username</string>
-    <string name="pref_login_ticket" translatable="false">com.taiwanlife.teamwalk.android.pref_login_ticket</string>
-    <string name="pref_login_token" translatable="false">com.taiwanlife.teamwalk.android.pref_login_token</string>
-    <string name="pref_login_refresh_token" translatable="false">com.taiwanlife.teamwalk.android.pref_login_refresh_token</string>
-    <string name="pref_login_exp" translatable="false">com.taiwanlife.teamwalk.android.pref_login_exp</string>
-    <string name="pref_login_castgc" translatable="false">com.taiwanlife.teamwalk.android.pref_login_castgc</string>
-    <string name="pref_login_uuid" translatable="false">com.taiwanlife.teamwalk.android.pref_login_uuid</string>
-    <string name="pref_login_jwt_token" translatable="false">com.taiwanlife.teamwalk.android.pref_login_jwt_token</string>
+    <string name="camera_permission_rationale">需要相機權限才能夠執行部分功能</string>
+    <string name="camera_permission_denied">相機權限被拒絕，無法使用部分功能</string>
+    <string name="recognition_permission_rationale">需要感測器權限才能夠執行部分功能</string>
+    <string name="recognition_permission_denied">感測器權限被拒絕，無法使用部分功能</string>
+    <string name="notification_permission_rationale">需要推播權限才能夠執行部分功能</string>
+    <string name="notification_permission_denied">推播權限被拒絕，無法使用部分功能</string>
+    <string name="write_permission_rationale">需要儲存權限才能夠執行部分功能</string>
+    <string name="write_permission_denied">儲存權限被拒絕，無法使用部分功能</string>
+    <string name="read_permission_rationale">需要讀取權限才能夠執行部分功能</string>
+    <string name="read_permission_denied">讀取權限被拒絕，無法使用部分功能</string>
 
-    <!-- push notification -->
-    <string name="noti_channel_id" translatable="false">default</string>
+    <string name="alert_root_message">提醒您，若在非一般環境(Root/Jailbreak/刷機)使用Teamwalk APP可能會有資訊外流的風險</string>
+    <string name="alert_no_password_message">手機未設定密碼，有資安疑慮請設定密碼，謝謝"</string>
+    <string name="alert_reverse_tool_message">提醒您，有逆向工具運行，APP可能會有資訊外流的風險"</string>
+    <string name="alert_covered_message">提醒您，屏幕被覆蓋，APP可能會有資訊外流的風險"</string>
+    <string name="understand_and_continue">我知道了並繼續使用</string>
 
-    <string name="login_method_password">Password</string>
-    <string name="login_method_pattern">Pattern</string>
-    <string name="login_method_biometric">Biometric</string>
-    <string name="login_remember_me">Remember me</string>
+    <string name="onboarding_connect_skip">暫時先不綁定，開始您的健康生活</string>
+    <string name="onboarding_connect_next">開始您的健康生活</string>
+    <string name="onboarding_connect_done">首次登入流程結束</string>
 
-    <string name="login_password_pid">Personal ID numbers</string>
-    <string name="login_password_warning_pid">personal id numbers is wrong</string>
-    <string name="login_password_warning_password">password format is wrong</string>
-    <string name="login_password_warning_captcha">don not match</string>
-    <string name="login_password_pass">Password</string>
-    <string name="login_password_captcha">Random numbers</string>
+    <string name="pattern_setting_different">兩次圖形碼不相符，請重新再試</string>
 
-    <string name="login_pattern_stealth_mode">Hide the track path</string>
-    <string name="login_pattern_normal_mode">Show the track path</string>
-    <string name="login_pattern_lt_six_dots">less the 6 dots</string>
-    <string name="login_pattern_bt_dots">more the 16 dots</string>
+    <string name="connect_health_connect">Health Connect</string>
+    <string name="connect_google_fit">Google Fit</string>
+    <string name="connect_fitbit">Fitbit</string>
+    <string name="connect_garmin">Garmin</string>
 
-    <string name="login_alert_user_unauthorized_title">You are unauthorized</string>
-    <string name="login_alert_user_unauthorized_body">You are unauthorized to login!</string>
-    <string name="login_alert_user_not_found_title">You are not member yet</string>
-    <string name="login_alert_user_not_found_body">Click the button, join TeamWalk！</string>
-    <string name="login_alert_pattern_not_set_title">Pattern did not setup</string>
-    <string name="login_alert_pattern_not_set_body">Pattern lock function did not setup by user. Go back to use password login</string>
-    <string name="login_alert_pattern_over_year_title">Pattern is over a year</string>
-    <string name="login_alert_pattern_over_year_body">Pattern has not been changed over a year, please change it as you can</string>
+    <string name="binding_change_device_title">解除綁定裝置</string>
+    <string name="binding_change_device_message" formatted="true">1. 解除綁定後，歷史步數無法再同步更新\n2. 新裝置綁定完成後，系統會自綁定完成日起進行步數同步。\n\n提醒您解除綁定前，務必先完成資料同步！請問是否仍要解除 %s 的綁定？</string>
+    <string name="binding_change_device_cancel">先不要</string>
+    <string name="binding_change_device_confirm">解除綁定</string>
 
-    <string name="login">Sign in</string>
-    <string name="login_fail">Login fail</string>
-    <string name="sign_up">Sign up</string>
-    <string name="register_now">Register_now</string>
-    <string name="register_next">Next time</string>
-    <string name="forget_pass">Forget password</string>
+    <string name="binding_change_health_connect_title">解除Health Connect綁定</string>
+    <string name="binding_change_health_connect_message">請確認是否要前往Health Connect 收回權限</string>
+    <string name="binding_change_health_connect_confirm">是</string>
+    <string name="binding_change_health_connect_cancel">否，解除綁定就好</string>
 
-    <string name="onboard_avatar_nickname">Avatar and Nickname</string>
-    <string name="onboard_edit_nickname">Nickname</string>
-    <string name="onboard_edit_nickname_emoji">Can not input emoji</string>
-    <string name="onboard_height">Your height?</string>
-    <string name="onboard_height_text">This information help us to provide more accurate healthy assessments</string>
-    <string name="onboard_height_cm">cm</string>
-    <string name="onboard_weight">Your weight?</string>
-    <string name="onboard_weight_text">This information help us to provide more accurate healthy assessments</string>
-    <string name="onboard_weight_kg">kg</string>
-    <string name="onboard_interval">Your interval of activity?</string>
-    <string name="onboard_interval_text">This information help us to provide more accurate healthy assessments</string>
-    <string name="onboard_connect">Choose data source</string>
-    <string name="onboard_connect_text">Connect an application to upload data automatically</string>
-    <string name="onboard_connect_later_text">Temporarily do not bind, start your healthy life!</string>
-    <string name="onboard_connect_info"><![CDATA[fitbit]]></string>
-    <string name="onboard_connect_message">Msg</string>
-    <string name="onboard_connect_change_title">Change device!</string>
-    <string name="onboard_connect_change_body">Are you sure to change device to </string>
-    <string name="onboard_connect_success">connect successully</string>
-    <string name="onboard_connect_fail">connect fail</string>
-    <string name="onboard_connect_remove_success">remove devices successully</string>
-    <string name="onboard_promote">Promote code from your friend?</string>
-    <string name="onboard_promote_text">You and your friend will get extra bonus when you enter teamWalk promote code</string>
-    <string name="onboard_promote_editText">Promote Code</string>
-    <string name="onboard_promote_info"><![CDATA[promote]]></string>
-    <string name="onboard_promote_next">Start your healthy live!</string>
+    <string name="test">teamwalkdebug</string>
+
+    <!--  加入原本的String  -->
+    <string name="app_slogan">健康保障，永不止步</string>
+
+    <string name="login_method_password">帳號密碼</string>
+    <string name="login_method_pattern">圖形</string>
+    <string name="login_method_biometric">臉部</string>
+    <string name="login_remember_me">記住我</string>
+
+    <string name="login_password_pid">身份證或用戶代碼</string>
+    <string name="login_password_pass">請輸入密碼</string>
+    <string name="login_password_captcha">驗證碼</string>
+    <string name="login_password_warning_pid">身份證字號格式錯誤</string>
+    <string name="login_password_warning_password">密碼格式錯誤</string>
+    <string name="login_password_warning_captcha">驗證碼錯誤</string>
+
+    <string name="login_pattern_stealth_mode">隱藏圖形軌跡</string>
+    <string name="login_pattern_normal_mode">顯示圖形軌跡</string>
+    <string name="login_pattern_lt_six_dots">少於6個點</string>
+    <string name="login_pattern_bt_dots">多於16個點</string>
+
+    <string name="login_alert_user_unauthorized_title">你還沒被授權</string>
+    <string name="login_alert_user_unauthorized_body">你的帳號還未被授權登入!</string>
+    <string name="login_alert_user_not_found_title">你還不是TeamWalk會員哦</string>
+    <string name="login_alert_user_not_found_body">動動手指，立即加入TeamWalk！</string>
+    <string name="login_alert_pattern_not_set_title">你還沒設定圖形登入</string>
+    <string name="login_alert_pattern_not_set_body">你還沒設定圖形登入,請使用帳號密碼登入後,至「我的」右上角設定啟用。</string>
+    <string name="login_alert_pattern_over_year_title">圖形設定已超過一年</string>
+    <string name="login_alert_pattern_over_year_body">圖形密碼超過一年未變更，請盡快變更</string>
+
+    <string name="login">登入</string>
+    <string name="login_fail">登入失敗</string>
+    <string name="sign_up">建立新帳號</string>
+    <string name="register_now">立即註冊</string>
+    <string name="register_next">下次再說</string>
+    <string name="forget_pass">忘記密碼</string>
+
+    <string name="onboard_avatar_nickname">編輯你的頭像和暱稱, 暱稱上限中文最多4個字, 或英文最多8個字母</string>
+    <string name="onboard_edit_nickname">編輯暱稱</string>
+    <string name="onboard_edit_nickname_emoji">暱稱不能含有Emoji符號</string>
+    <string name="onboard_height">你的身高?</string>
+    <string name="onboard_height_text">這些資訊幫助我們提供更精準的健康評估</string>
+    <string name="onboard_height_cm">公分</string>
+    <string name="onboard_weight">你的體重?</string>
+    <string name="onboard_weight_text">這些資訊幫助我們提供更精準的健康評估</string>
+    <string name="onboard_weight_kg">公斤</string>
+    <string name="onboard_interval">每週運動次數?</string>
+    <string name="onboard_interval_text">這些資訊幫助我們提供更精準的健康評估</string>
+    <string name="onboard_connect">選擇運動數據來源</string>
+    <string name="onboard_connect_text">綁定任一裝置,將自動上傳運動數據!</string>
+    <string name="onboard_connect_info"><![CDATA[1.若使用Fitbit或Garmin開始紀錄時沒有選擇跑步類型，將不會傳至系統內喔！<br />換而言之，我們只收入「跑步類型」，若您是選擇「步行」、「騎車」這種，將不收錄於App內。<br />2.為公平起見，若單次紀錄之速度與距離有以下任一情況，則該次紀錄將不同步於App內，並於隔天推播告知。<br />- 配速限制3:00~10:59(不可快於3分速，以及低於10分速）<br />- 距離少於1公里 (里程數太少不予以計算)<br />- 用戶GPS裝置無法取得起跑位置資料<br />- 室內跑不算數，例如跑步機、室內操場，請一起跑出戶外吧！]]></string>
+    <string name="onboard_connect_message">為了更準確紀錄步數，TeamWalk可串接Apple health、Google fit、Garmin、Fibit等四種健康數據來源，只要選擇其中一種來源，即刻上傳步數資訊，讓阿龍陪你一起走路更健康!</string>
+    <string name="onboard_connect_change_title">切換綁定裝置</string>
+    <string name="onboard_connect_change_body">請確認是否要切換到</string>
+    <string name="onboard_connect_success">連結成功</string>
+    <string name="onboard_connect_fail">連結失敗</string>
+    <string name="onboard_connect_remove_success">成功移除設備</string>
+    <string name="onboard_promote">是否有好友推薦碼?</string>
+    <string name="onboard_promote_text">輸入推薦你加入TeamWalk的用戶推薦碼,你和好友都會得到額外獎勵!\n(獎勵內容依活動網站公告為主)</string>
+    <string name="onboard_promote_editText">輸入推薦碼(非必填)</string>
+    <string name="onboard_promote_info"><![CDATA[<b>什麼是推薦碼？</b><br />每個TeamWalk成員都有一組推薦碼，將存放於會員管理頁面。]]></string>
+    <string name="onboard_promote_next">開始你的健康生活!</string>
     <string name="onboard_promote_msg">推薦碼含有不合法內容或格式不正確</string>
 
-    <string name="pattern_setup_title">Setup new pattern</string>
-    <string name="pattern_setup_body">Draw your pattern at least 6 - 14 points. Point can repeat itself in the pattern</string>
-    <string name="pattern_setup_confirm_title">Confirm new pattern</string>
-    <string name="pattern_setup_confirm_body">Draw your new pattern again</string>
-    <string name="pattern_setup_original_title">Draw current pattern</string>
-    <string name="pattern_setup_original_body">Draw your current pattern to proceed the process</string>
-    <string name="pattern_setup_resp_401">You are unauthorized. Login again</string>
-    <string name="pattern_setup_notice_title">Notice</string>
-    <string name="pattern_setup_notice_content">If you have sign in for a quite some time, you might need to sing out then sign in again, or pattern setup will fail.</string>
+    <string name="pattern_setup_title">設定圖形密碼</string>
+    <string name="pattern_setup_body">須連接 6-14 個點，可重複</string>
+    <string name="pattern_setup_confirm_title">確認圖形密碼</string>
+    <string name="pattern_setup_confirm_body">請再次畫出圖形密碼</string>
+    <string name="pattern_setup_original_title">原有圖形</string>
+    <string name="pattern_setup_original_body">請畫出原有圖形以進行新圖形設定</string>
+    <string name="pattern_setup_resp_401">未授權，請重新登入</string>
+    <string name="pattern_setup_notice_title">提醒您</string>
+    <string name="pattern_setup_notice_content">若登入後持續一段時間，可能需要重新登入後才能設定圖形密碼</string>
 
-    <string name="next_step">Next</string>
-    <string name="cancel">Cancel</string>
-    <string name="ok">OK</string>
-    <string name="setup_fail">Setup fail</string>
-    <string name="setup_fail_msg">Please exit and try again</string>
-    <string name="change_success">Success</string>
-    <string name="change_success_text"> has been modified successfully</string>
-    <string name="empty">is empty</string>
-    <string name="close">Close</string>
-    <string name="go_back">Go back</string>
+    <string name="next_step">下一步</string>
+    <string name="cancel">取消</string>
+    <string name="ok">確認</string>
+    <string name="setup_fail">設定失敗</string>
+    <string name="setup_fail_msg">請重新登入後再重新操作</string>
+    <string name="change_success">設定圖形登入成功</string>
+    <string name="change_success_text">為保護您的帳戶安全，提醒您下列情況圖形登入會驗證失敗，謝謝！\n1. 移除APP後重新下載\n2. 使用其他裝置登入同一組帳號</string>
+    <string name="empty">未填寫</string>
+    <string name="close">關閉</string>
+    <string name="go_back">返回</string>
 
-    <string name="main_finish_login">you are already login</string>
-    <string name="main_add_to_clipboard">Add to clipboard</string>
-    <string name="main_can_not_open_file_chooser">Can not open file chooser</string>
-    <string name="main_is_not_online">Network is down. Connected to network is necessary for app to work properly</string>
+    <string name="main_finish_login">你以登入</string>
+    <string name="main_add_to_clipboard">複製到剪貼簿</string>
+    <string name="main_can_not_open_file_chooser">無法打開相簿</string>
+    <string name="main_is_not_online">無法連線, APP需要網路連線才可正常運作</string>
 
     <!-- api / data access -->
-    <string name="access_connect_fail">connection failure</string>
-    <string name="access_data_fail">data read error</string>
+    <string name="access_connect_fail">連線失敗</string>
+    <string name="access_data_fail">資料讀取錯誤，無法設定</string>
+
+    <string name="security_msg">提醒您，請於您的設備安裝防毒軟體以保護系統及個資安全，點選確認後仍可持續使用TeamWalk APP。</string>
+    <string name="loading_msg">連線中，請稍等片刻</string>
+    <string name="onboarding_weight_msg">限輸入體重範圍30 ~ 250公斤，小數點後最多一位</string>
+    <string name="onboarding_height_msg">限輸入身高範圍100 ~ 250公分，小數點後最多一位</string>
 
 
-<!--share app    -->
+    <!--share app    -->
     <string name="shareapp_name_fb">FB</string>
     <string name="shareapp_pkgname_fb">com.facebook.katana</string>
     <string name="shareapp_classname_fb">com.facebook.composer.shareintent.ImplicitShareIntentHandlerDefaultAlias</string>
@@ -134,10 +177,6 @@
     <string name="shareapp_pkgname_line">jp.naver.line.android</string>
     <string name="shareapp_classname_line">com.linecorp.line.share.common.view.FullPickerLaunchActivity</string>
     <string name="errorstr_line">你還沒安裝 [LINE] APP喔，要安裝完畢後才能使用本功能！</string>
-    <string name="security_msg">提醒您，請於您的設備安裝防毒軟體以保護系統及個資安全，點選確認後仍可持續使用TeamWalk APP。</string>
-    <string name="loading_msg">連線中，請稍等片刻</string>
-    <string name="onboarding_weight_msg">限輸入體重範圍30 ~ 250公斤，小數點後最多一位</string>
-    <string name="onboarding_height_msg">限輸入身高範圍100 ~ 250公分，小數點後最多一位</string>
 
     <string name="csso_forget_pwd_key" translatable="false">forgetPassword</string>
 

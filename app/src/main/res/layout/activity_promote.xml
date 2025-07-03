@@ -4,13 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".onboard.PromoteActivity">
+    tools:context=".ui.onboarding.PromoteActivity">
 
     <Button
         android:id="@+id/onboarding_skip_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="16pt"
         android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
@@ -39,8 +38,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16pt"
         android:layout_marginTop="36dp"
-        android:layout_marginBottom="16dp"
         android:layout_marginEnd="16pt"
+        android:layout_marginBottom="16dp"
         android:text="@string/onboard_promote"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -61,30 +60,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-<!--    <ImageButton-->
-<!--        android:id="@+id/onboarding_imageView_info"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="4dp"-->
-<!--        android:layout_marginTop="44dp"-->
-<!--        android:background="@android:color/transparent"-->
-<!--        app:layout_constraintStart_toEndOf="@+id/textView"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/progressBar"-->
-<!--        app:srcCompat="@drawable/info_icon" />-->
+    <ImageButton
+        android:id="@+id/onboarding_imageView_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="44dp"
+        android:background="@android:color/transparent"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/progressBar"
+        app:srcCompat="@drawable/info_icon" />
 
 
     <EditText
         android:id="@+id/onboarding_editText_promote_code"
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="64dp"
+        android:layout_marginEnd="24dp"
+        android:background="@android:color/transparent"
         android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         android:ems="10"
-        android:maxLength="8"
-        android:inputType="text"
-        android:textAlignment="center"
-        android:textSize="30sp"
         android:hint="@string/onboard_promote_editText"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:maxLength="8"
+        android:textAlignment="center"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
