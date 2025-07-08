@@ -19,3 +19,17 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+-keep class com.taiwanlife.teamwalk.remote.** { *; }
+-keep class com.taiwanlife.teamwalk.ui.common.model.** { *; }
+
+-keep class retrofit2.** { *; }
+-keep interface retrofit2.Call
+
+-keepattributes Signature, RuntimeVisibleAnnotations
+-keepattributes *Annotation*
+-keepattributes Exceptions
+-keep class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}

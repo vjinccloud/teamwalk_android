@@ -16,7 +16,7 @@ android {
         versionCode = 55
         versionName = "3.0.01"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -63,7 +63,7 @@ android {
         }
         create("uat") {
             isDebuggable = true
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-UAT"
 

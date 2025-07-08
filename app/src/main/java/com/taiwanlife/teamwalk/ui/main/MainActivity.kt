@@ -5,7 +5,6 @@ import android.app.ComponentCaller
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
@@ -32,7 +31,6 @@ import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
-import com.taiwanlife.teamwalk.remote.service.TestApi
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
@@ -70,8 +68,6 @@ import com.taiwanlife.teamwalk.utils.quoteJS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.util.Locale
 
@@ -167,7 +163,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         )
                     } else {
                         // 防呆傳入N 如果有登入不該走到這裡
-                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, false.enableToString().quoteJS())
+                        postEvent(
+                            EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                            false.enableToString().quoteJS()
+                        )
                     }
                 }
             }
@@ -194,16 +193,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://httpbin.org/") // ❗ 注意是 http 而不是 https
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        lifecycleScope.launch {
-            val response = retrofit.create(TestApi::class.java).getSomething()
-            Timber.d("Response: ${response.body()?.string()}")
-        }
 
         // 原本在這裡建立 Notification Channel 移至MyApplication
 
@@ -529,7 +518,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     ).show()
 
                     // 如果有需要透過JS回傳綁定結果
-                    val garminModel = GarminModel(garminData.oauthToken, garminData.oauthTokenSecret)
+                    val garminModel =
+                        GarminModel(garminData.oauthToken, garminData.oauthTokenSecret)
                     postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(garminModel))
                 }
             }
@@ -799,7 +789,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             ).show()
 
             // 如果有需要透過JS回傳推播設定結果
-            postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(SyncHealthDataModel(emptyList(), emptyList())))
+            postEvent(
+                EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                getGson().toJson(SyncHealthDataModel(emptyList(), emptyList()))
+            )
 
             return
         }
