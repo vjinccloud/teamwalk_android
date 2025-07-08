@@ -4,11 +4,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.webkit.WebSettings
 import android.webkit.WebView
+import androidx.lifecycle.LifecycleOwner
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
+import com.taiwanlife.teamwalk.utils.quoteJS
 
-class MyWebView: WebView {
+class MyWebView : WebView {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -31,7 +34,7 @@ class MyWebView: WebView {
         privateBrowsing: Boolean
     ) : super(context, attrs, defStyleAttr, privateBrowsing)
 
-    fun setUp(asyncCallbacks : MyWebAppInterface.AsyncCallbacks) {
+    fun setUp(lifecycleOwner: LifecycleOwner, asyncCallbacks: AsyncCallbacks) {
         val webSettings: WebSettings = settings
         webSettings.setUserAgentString(webSettings.userAgentString + "/env=taiwanlife_teamwalk_app")
         webSettings.javaScriptEnabled = true
@@ -50,12 +53,21 @@ class MyWebView: WebView {
         webSettings.displayZoomControls = false
 
         // chrome://inspect
-//        setWebContentsDebuggingEnabled(true)
+        if(BuildConfig.DEBUG) {
+            setWebContentsDebuggingEnabled(true)
+        }
 
 //        val webAppInterface = WebAppInterface(this)
 //        addJavascriptInterface(webAppInterface, webAppInterface.appBridgeJsName)
 
-        addJavascriptInterface(MyWebAppInterface(context, asyncCallbacks), Config.JAVASCRIPT_BRIDGE_NAME)
+        addJavascriptInterface(
+            MyWebAppInterface(
+                context,
+                lifecycleOwner,
+                this,
+                asyncCallbacks
+            ), Config.JAVASCRIPT_BRIDGE_NAME
+        )
 
         loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
     }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="true">taiwanlife.com</domain>
+        <pin-set expiration="2025-11-21">
+            <!-- server.cer 2024/10/29-->
+            <pin digest="SHA-256">aUwhrwFOuVNV09mJEmQtd6VU7hXNY9QT5aP0Sl2z8HY=</pin>
+            <pin digest="SHA-256">xES1tmzl1x4bXkDyc4XJXL/SSgW1b3DKwJkvD1DDN5w=</pin>
+            <pin digest="SHA-256">9VZ7Yd685RTXsE6rL/puuMbnejYaXwaZasGL7c+Uolc=</pin>
+
+            <pin digest="SHA-256">hVyCDjsZOzoIgMXzZT6QBGeYzT7AJODftPNYBAFd5Rg=</pin>
+            <pin digest="SHA-256">Ih4QY8T1moI2N0TqiPqdvs09aFarjVV7cdVuC6ShUcs=</pin>
+            <!-- backup pin -->
+            <pin digest="SHA-256">8hqbhsMMFPaPA8t81pxqFer9+neHBcQvO7+TAKjWkb0=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

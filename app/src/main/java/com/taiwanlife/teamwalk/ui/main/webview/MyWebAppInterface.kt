@@ -6,23 +6,66 @@ import android.text.TextUtils
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.taiwanlife.teamwalk.Config
-import com.taiwanlife.teamwalk.ui.main.webview.model.DeviceInfo
-import com.taiwanlife.teamwalk.ui.main.webview.model.LoginInfo
+import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
+import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
+import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
+import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
+import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 
-class MyWebAppInterface(private val context: Context, private val asyncCallbacks: AsyncCallbacks) {
+class MyWebAppInterface(
+    private val context: Context,
+    private val lifecycleOwner: LifecycleOwner,
+    private val webView: MyWebView,
+    private val asyncCallbacks: AsyncCallbacks
+) {
+
+    companion object {
+        const val CALLBACK_GET_GRAPHICAL_LOGIN = "graphicalLoginResolver"
+        const val CALLBACK_BINDING_GOOGLE_HEALTH = "bindGoogleHealthConnectResolver"
+        const val CALLBACK_BINDING_GARMIN_HEALTH = "bindGarminHealthResolver"
+        const val CALLBACK_BINDING_FITBIT_HEALTH = "bindFitbitHealthResolver"
+        const val CALLBACK_PUSH_MESSAGE_STATUS = "openNotificationResolver"
+        const val CALLBACK_SYNC_HEALTH_DATA = "syncHealthDataResolver"
+    }
+
 
     interface AsyncCallbacks {
-        fun setGraphicalLogin(enable: String, finished: () -> Unit)
-        fun bindingGoogleHealth(enable: String, finished: () -> Unit)
-        fun bindingGarminHealth(enable: String, finished: () -> Unit)
-        fun bindingFitbitHealth(enable: String, finished: () -> Unit)
-        fun setPushMessageStatus(enable: String, finished: () -> Unit)
-        fun syncHealthData(finished: () -> Unit)
+        fun setGraphicalLogin(enable: String)
+        fun bindingGoogleHealth(enable: String)
+        fun bindingGarminHealth(enable: String)
+        fun bindingFitbitHealth(enable: String)
+        fun setPushMessageStatus(enable: String)
+        fun syncHealthData()
+    }
 
+    private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
+    private var currentWaitingCallbackName = ""
+
+    init {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                sharedEventViewModel.eventFlow.collect { (eventName, result) ->
+                    Timber.d("eventName = $eventName, result = $result")
+                    if (eventName.equals(EVENT_EXECUTE_JAVASCRIPT_CALLBACK) && currentWaitingCallbackName.isNotEmpty()) {
+                        webView.post {
+                            webView.evaluateJavascript("$currentWaitingCallbackName(${result})", null)
+
+                            currentWaitingCallbackName = ""
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -30,13 +73,13 @@ class MyWebAppInterface(private val context: Context, private val asyncCallbacks
      */
     @JavascriptInterface
     fun getDeviceInfo(): String {
-        val deviceInfo = DeviceInfo(
-            appUuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_FID, ""),
+        val deviceInfoModel = DeviceInfoModel(
+            appUuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, ""),
             deviceId = Utils.getDeviceId(context),
-            pushId = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_FID, "")
+            pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
         )
-        Toast.makeText(context, getGson().toJson(deviceInfo), Toast.LENGTH_SHORT).show()
-        return getGson().toJson(deviceInfo)
+        Toast.makeText(context, getGson().toJson(deviceInfoModel), Toast.LENGTH_SHORT).show()
+        return getGson().toJson(deviceInfoModel)
     }
 
     /**
@@ -44,11 +87,11 @@ class MyWebAppInterface(private val context: Context, private val asyncCallbacks
      */
     @JavascriptInterface
     fun getLoginInfo(): String {
-        val loginInfo = LoginInfo(
+        val loginInfoModel = LoginInfoModel(
             jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT_TOKEN, "")
         )
-        Toast.makeText(context, getGson().toJson(loginInfo), Toast.LENGTH_SHORT).show()
-        return getGson().toJson(loginInfo)
+        Toast.makeText(context, getGson().toJson(loginInfoModel), Toast.LENGTH_SHORT).show()
+        return getGson().toJson(loginInfoModel)
     }
 
     /**
@@ -82,55 +125,45 @@ class MyWebAppInterface(private val context: Context, private val asyncCallbacks
      * 設定圖形密碼登入
      */
     @JavascriptInterface
-    fun setGraphicalLogin(enable: String): String {
-        asyncCallbacks.setGraphicalLogin(enable) {
-
-        }
-        return ""
+    fun setGraphicalLogin(enable: String) {
+        currentWaitingCallbackName = CALLBACK_GET_GRAPHICAL_LOGIN
+        asyncCallbacks.setGraphicalLogin(enable)
     }
 
     /**
      * 綁定Google Health Connect
      */
     @JavascriptInterface
-    fun bindingGoogleHealth(enable: String): String {
-        asyncCallbacks.bindingGoogleHealth(enable) {
-
-        }
-        return ""
+    fun bindingGoogleHealth(enable: String) {
+        currentWaitingCallbackName = CALLBACK_BINDING_GOOGLE_HEALTH
+        asyncCallbacks.bindingGoogleHealth(enable)
     }
 
     /**
      * 綁定Garmin Health
      */
     @JavascriptInterface
-    fun bindingGarminHealth(enable: String): String {
-        asyncCallbacks.bindingGarminHealth(enable) {
-
-        }
-        return ""
+    fun bindingGarminHealth(enable: String) {
+        currentWaitingCallbackName = CALLBACK_BINDING_GARMIN_HEALTH
+        asyncCallbacks.bindingGarminHealth(enable)
     }
 
     /**
      * 綁定Fitbit Health
      */
     @JavascriptInterface
-    fun bindingFitbitHealth(enable: String): String {
-        asyncCallbacks.bindingFitbitHealth(enable) {
-
-        }
-        return ""
+    fun bindingFitbitHealth(enable: String) {
+        currentWaitingCallbackName = CALLBACK_BINDING_FITBIT_HEALTH
+        asyncCallbacks.bindingFitbitHealth(enable)
     }
 
     /**
      * 開啟推播通知
      */
     @JavascriptInterface
-    fun setPushMessageStatus(enable: String): String {
-        asyncCallbacks.setPushMessageStatus(enable) {
-
-        }
-        return "Y"
+    fun setPushMessageStatus(enable: String) {
+        currentWaitingCallbackName = CALLBACK_PUSH_MESSAGE_STATUS
+        asyncCallbacks.setPushMessageStatus(enable)
     }
 
     /**
@@ -156,8 +189,7 @@ class MyWebAppInterface(private val context: Context, private val asyncCallbacks
      */
     @JavascriptInterface
     fun syncHealthData() {
-        asyncCallbacks.syncHealthData() {
-
-        }
+        currentWaitingCallbackName = CALLBACK_SYNC_HEALTH_DATA
+        asyncCallbacks.syncHealthData()
     }
 }

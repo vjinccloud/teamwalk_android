@@ -23,11 +23,11 @@ class PromoteActivity :
     companion object {
         fun startPromoteActivity(context: Context, userInfoResponse: UserInfoResponse): Intent {
             val userInfo = UserInfo(
-                referrerCode = userInfoResponse.referrerCode,
+                referrerCode = userInfoResponse.referrerCode ?: "",
                 nickname = userInfoResponse.getAvailableNickName(),
-                bindingApple = userInfoResponse.bindingApple,
-                bindingAndroid = userInfoResponse.bindingAndroid,
-                bindingFibit = userInfoResponse.bindingFibit,
+                bindingApple = userInfoResponse.bindingApple == true,
+                bindingAndroid = userInfoResponse.bindingAndroid == true,
+                bindingFibit = userInfoResponse.bindingFibit == true,
             )
 
             val onboardingIntent = Intent(context, PromoteActivity::class.java)

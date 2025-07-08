@@ -1,7 +1,6 @@
 package com.taiwanlife.teamwalk
 
 data class EnvironmentConfig(
-    val networkSecurityConfigResId: String, // R.xml.network_security_config_release 或 R.xml.network_security_config_debug
     val cssoUrl: String,
     val cssoForgetMimaUrl: String,
     val cssoSignUpUrl: String,

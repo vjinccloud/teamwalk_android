@@ -11,7 +11,6 @@ import com.taiwanlife.teamwalk.Config.variableCssoSignUpUrl
 import com.taiwanlife.teamwalk.Config.variableCssoUrl
 import com.taiwanlife.teamwalk.Config.variableFitbitUrl
 import com.taiwanlife.teamwalk.Config.variableGarminUrl
-import com.taiwanlife.teamwalk.Config.variableNetworkSecurityConfigResId
 import com.taiwanlife.teamwalk.Config.variableOrigin
 import com.taiwanlife.teamwalk.Config.variableTaiwanlifeMemberUrl
 import com.taiwanlife.teamwalk.Config.variableTcavUrl
@@ -33,7 +32,6 @@ object EnvironmentManager {
     }
 
     val RELEASE_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        networkSecurityConfigResId = variableNetworkSecurityConfigResId.release,
         cssoUrl = variableCssoUrl.release,
         cssoForgetMimaUrl = variableCssoForgetMimaUrl.release,
         cssoSignUpUrl = variableCssoSignUpUrl.release,
@@ -52,7 +50,6 @@ object EnvironmentManager {
     )
 
     val DEBUG_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        networkSecurityConfigResId = variableNetworkSecurityConfigResId.debug,
         cssoUrl = variableCssoUrl.debug,
         cssoForgetMimaUrl = variableCssoForgetMimaUrl.debug,
         cssoSignUpUrl = variableCssoSignUpUrl.debug,
@@ -71,7 +68,6 @@ object EnvironmentManager {
     )
 
     val SIT_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        networkSecurityConfigResId = variableNetworkSecurityConfigResId.sit,
         cssoUrl = variableCssoUrl.sit,
         cssoForgetMimaUrl = variableCssoForgetMimaUrl.sit,
         cssoSignUpUrl = variableCssoSignUpUrl.sit,
@@ -90,7 +86,6 @@ object EnvironmentManager {
     )
 
     val UAT_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        networkSecurityConfigResId = variableNetworkSecurityConfigResId.uat,
         cssoUrl = variableCssoUrl.uat,
         cssoForgetMimaUrl = variableCssoForgetMimaUrl.uat,
         cssoSignUpUrl = variableCssoSignUpUrl.uat,

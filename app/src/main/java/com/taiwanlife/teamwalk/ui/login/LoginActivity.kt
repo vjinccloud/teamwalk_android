@@ -54,18 +54,20 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         observeOnLifeCycle(loginViewModel.loginFlow.sharedFlow) { loginResponse ->
             SecuredPreferenceStoreManager.editAndApply {
-                it.putBoolean(Config.PREF_LOGIN_AUTH, true)
-                it.putString(Config.PREF_LOGIN_TICKET, ticket!!)
-                it.putString(Config.PREF_LOGIN_PID, pid)
-                it.putString(Config.PREF_LOGIN_USERNAME, pid)
+                it.putBoolean(Config.SP_LOGIN_AUTH, true)
+//                it.putBoolean(Config.PREF_LOGIN_AUTH, true)
+//                it.putString(Config.PREF_LOGIN_TICKET, ticket!!)
+//                it.putString(Config.PREF_LOGIN_USERNAME, pid)
 
                 if (isRememberMe) {
-                    it.putString(Config.PREF_LOGIN_PID, pid)
+//                    it.putString(Config.PREF_LOGIN_PID, pid)
+                    it.putString(Config.SP_LOGIN_PID, pid)
                 } else {
-                    it.putString(Config.PREF_LOGIN_PID, "")
+//                    it.putString(Config.PREF_LOGIN_PID, "")
+                    it.putString(Config.SP_LOGIN_PID, "")
                 }
 
-                loginResponse?.let { loginResponse ->
+                loginResponse.let { loginResponse ->
                     it.putString(Config.SP_LOGIN_JWT_TOKEN, loginResponse.token)
                 }
             }
@@ -75,9 +77,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
         isRememberMe =
-            SecuredPreferenceStoreManager.getBoolean(Config.PREF_LOGIN_REMEMBER_ME, false)
+            SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
         pid = if (isRememberMe) SecuredPreferenceStoreManager.getString(
-            Config.PREF_LOGIN_PID,
+            Config.SP_LOGIN_PID,
             ""
         ) else ""
 
@@ -88,10 +90,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             e.printStackTrace()
         }
 
-        var uuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_UUID, "")
-        if (uuid.isEmpty()) {
-            uuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_FID, "")
-            SecuredPreferenceStoreManager.simpleEditAndApply(Config.PREF_LOGIN_UUID, uuid)
+//        var uuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_UUID, "")
+        var showSecurity = SecuredPreferenceStoreManager.getBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, true)
+        if (showSecurity) {
+//            uuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
+//            SecuredPreferenceStoreManager.simpleEditAndApply(Config.PREF_LOGIN_UUID, uuid)
             val commonDialog = CommonDialog(this)
             commonDialog.oneButtonInit(
                 title = "",
@@ -100,7 +103,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 showButtons = true,
                 canceledOnTouchOutside = true,
                 text = getString(R.string.ok),
-                onClick = {}
+                onClick = {
+                    SecuredPreferenceStoreManager.editAndApply {
+                        it.putBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, false)
+                    }
+                }
             )
             commonDialog.show()
         }
@@ -123,7 +130,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             isRememberMe = isChecked
 
             SecuredPreferenceStoreManager.editAndApply {
-                it.putBoolean(Config.PREF_LOGIN_REMEMBER_ME, isRememberMe)
+                it.putBoolean(Config.SP_LOGIN_REMEMBER_ME, isRememberMe)
             }
         }
         // 註冊
@@ -220,7 +227,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             override fun onProgress(progressPattern: List<PatternLockView.Dot?>?) {}
 
             override fun onComplete(pattern: List<PatternLockView.Dot>) {
-                val fid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_FID, "")
+                val fid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
                 val currentPid = viewBinding.loginEditTextPasswordPid.text.toString().trim()
                 if (TextUtils.isEmpty(currentPid) || currentPid.length != 10) {
                     viewBinding.loginLayoutPasswordPid.setBackgroundColor(getColor(R.color.colorError))
@@ -341,9 +348,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     "O"
                 )
             ) {
-                SecuredPreferenceStoreManager.editAndApply { editor ->
-                    editor.putBoolean(Config.PREF_LOGIN_PATTERN_STATUS, true)
-                }
+//                SecuredPreferenceStoreManager.editAndApply { editor ->
+//                    editor.putBoolean(Config.PREF_LOGIN_PATTERN_STATUS, true)
+//                }
                 viewBinding.loginPatternLockView.isInputEnabled = true
             }
             if (TextUtils.equals(patternLockStatus, "N") || TextUtils.equals(
@@ -351,9 +358,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     "E"
                 )
             ) {
-                SecuredPreferenceStoreManager.editAndApply { editor ->
-                    editor.putBoolean(Config.PREF_LOGIN_PATTERN_STATUS, false)
-                }
+//                SecuredPreferenceStoreManager.editAndApply { editor ->
+//                    editor.putBoolean(Config.PREF_LOGIN_PATTERN_STATUS, false)
+//                }
                 viewBinding.loginPatternLockView.isInputEnabled = false
             }
         }
@@ -471,7 +478,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             position = 0
             SecuredPreferenceStoreManager.editAndApply {
-                it.putInt(Config.PREF_LOGIN_SEGMENT_CONTROL_POS, 0)
+                it.putInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 0)
             }
 
             viewBinding.loginEditTextPasswordPid.imeOptions = EditorInfo.IME_ACTION_NEXT
@@ -486,13 +493,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             position = 1
             SecuredPreferenceStoreManager.editAndApply {
-                it.putInt(Config.PREF_LOGIN_SEGMENT_CONTROL_POS, 1)
+                it.putInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 1)
             }
 
             viewBinding.loginEditTextPasswordPid.imeOptions = EditorInfo.IME_ACTION_DONE
         }
 
-        position = SecuredPreferenceStoreManager.getInt(Config.PREF_LOGIN_SEGMENT_CONTROL_POS, 0)
+        position = SecuredPreferenceStoreManager.getInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 0)
         when (position) {
             0 -> viewBinding.password.performClick()
             1 -> viewBinding.pattern.performClick()

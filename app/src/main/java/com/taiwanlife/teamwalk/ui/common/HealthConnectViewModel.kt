@@ -5,10 +5,12 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
-import androidx.health.connect.client.units.Energy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
+import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
+import com.taiwanlife.teamwalk.utils.toTeamWalkRecord
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -22,34 +24,53 @@ class HealthConnectViewModel(
 ) : ViewModel() {
     // 設定結束時間為現在
     private val defaultEndTime = Instant.now()
+
     // 設定一個足夠早的開始時間。
     // 這裡使用 2020 年 1 月 1 日作為範例，因為這通常遠遠早於 30 天的預設限制。
     private val earliestPossibleStartTime =
         LocalDateTime.of(2020, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC)
 
 
-
-    fun readSleepData(
+    fun getAllData(
         startTime: Instant = earliestPossibleStartTime,
         endTime: Instant = defaultEndTime,
-        callback: (List<SleepSessionRecord>) -> Unit
+        callback: (List<TeamWalkRecordModel>, List<TeamWalkRecordModel>) -> Unit
     ) {
         viewModelScope.launch {
-            val result = healthConnectRepository.readSleepData(startTime, endTime)
-            callback.invoke(result)
+            val sleepDataDeferred =
+                async { healthConnectRepository.readSleepData(startTime, endTime) }
+            val stepDataDeferred =
+                async { healthConnectRepository.readStepData(startTime, endTime) }
+
+            val sleepData = sleepDataDeferred.await().map { it.toTeamWalkRecord() }
+            val stepData = stepDataDeferred.await().map { it.toTeamWalkRecord() }
+
+            callback(sleepData, stepData)
         }
     }
 
-    fun readStepsData(
-        startTime: Instant = earliestPossibleStartTime,
-        endTime: Instant = defaultEndTime,
-        callback: (List<StepsRecord>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val result = healthConnectRepository.readStepData(startTime, endTime)
-            callback.invoke(result)
-        }
-    }
+//
+//    fun readSleepData(
+//        startTime: Instant = earliestPossibleStartTime,
+//        endTime: Instant = defaultEndTime,
+//        callback: (List<SleepSessionRecord>) -> Unit
+//    ) {
+//        viewModelScope.launch {
+//            val result = healthConnectRepository.readSleepData(startTime, endTime)
+//            callback.invoke(result)
+//        }
+//    }
+//
+//    fun readStepsData(
+//        startTime: Instant = earliestPossibleStartTime,
+//        endTime: Instant = defaultEndTime,
+//        callback: (List<StepsRecord>) -> Unit
+//    ) {
+//        viewModelScope.launch {
+//            val result = healthConnectRepository.readStepData(startTime, endTime)
+//            callback.invoke(result)
+//        }
+//    }
 
     fun readTotalCaloriesBurnedData(
         startTime: Instant = earliestPossibleStartTime,
@@ -113,7 +134,8 @@ class HealthConnectViewModel(
                     val dayStart =
                         now.minus(i.toLong(), ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS)
                     val sleepStartTime = dayStart.plus(22, ChronoUnit.HOURS)
-                    val sleepEndTime = sleepStartTime.plus(Random.Default.nextLong(6, 9), ChronoUnit.HOURS)
+                    val sleepEndTime =
+                        sleepStartTime.plus(Random.Default.nextLong(6, 9), ChronoUnit.HOURS)
 
                     val record = SleepSessionRecord(
                         startTime = sleepStartTime,

@@ -9,6 +9,12 @@ open class ResponseWrapper<T>(
 )
 
 data class Header(
+    /**
+     * 回應代碼(0000代表成功，其餘失敗)
+     */
     val code: String,
+    /**
+     * 系統錯誤訊息
+     */
     val message: String,
 )

@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.ui.pattern
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
@@ -17,6 +18,11 @@ import com.taiwanlife.teamwalk.utils.Utils
 
 class PatternSetupActivity :
     BaseActivity<ActivityPatternSetupBinding>({ ActivityPatternSetupBinding.inflate(it) }) {
+
+    companion object {
+        const val KEY_IS_GRAPHICAL_LOGIN_SET = "KEY_IS_GRAPHICAL_LOGIN_SET"
+        const val KEY_IS_GRAPHICAL_LOGIN_CHANGED = "KEY_IS_GRAPHICAL_LOGIN_CHANGED"
+    }
 
     // 使用者是否再確認Pattern與第一次相符
     private var isConfirm: Boolean = false
@@ -83,7 +89,7 @@ class PatternSetupActivity :
     }
 
     private fun processSetUp(pattern: List<PatternLockView.Dot>) {
-        val fid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_FID, "")
+        val fid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
 
         if (!isConfirm) {
             // 第一次
@@ -116,7 +122,7 @@ class PatternSetupActivity :
 
     private fun callSetPatternApi(newPattern: String) {
         val url = EnvironmentManager.getEnvironmentConfig().cssoUrl + "rest/setPatternLock"
-        val userName = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_USERNAME, "")
+        val userName = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_PID, "")
 
         //TODO 設定PatternLock 目前無API
         // 模擬API結果成功
@@ -130,7 +136,10 @@ class PatternSetupActivity :
                 canceledOnTouchOutside = false,
                 text = getString(R.string.close),
                 onClick = {
-                    setResult(RESULT_OK)
+                    val intent = Intent()
+                    intent.putExtra(KEY_IS_GRAPHICAL_LOGIN_SET, true)
+                    intent.putExtra(KEY_IS_GRAPHICAL_LOGIN_CHANGED, true)
+                    setResult(RESULT_OK, intent)
                     finish()
                 }
             )

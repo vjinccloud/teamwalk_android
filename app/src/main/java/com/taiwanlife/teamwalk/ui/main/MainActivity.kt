@@ -2,7 +2,6 @@ package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
 import android.app.ComponentCaller
-import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -14,7 +13,6 @@ import android.view.View
 import android.webkit.CookieManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -24,6 +22,7 @@ import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -33,11 +32,15 @@ import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import com.taiwanlife.teamwalk.remote.service.TestApi
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
+import com.taiwanlife.teamwalk.ui.common.model.FitbitModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
+import com.taiwanlife.teamwalk.ui.common.model.GarminModel
+import com.taiwanlife.teamwalk.ui.common.model.SyncHealthDataModel
 import com.taiwanlife.teamwalk.ui.login.LoginActivity
 import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
@@ -55,21 +58,25 @@ import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
 import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
 import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
-import com.taiwanlife.teamwalk.utils.GoogleHealthManager
 import com.taiwanlife.teamwalk.utils.HealthConnectHelper
 import com.taiwanlife.teamwalk.utils.PermissionManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.enableToBoolean
+import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.quoteJS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.util.Locale
 
-class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }), ProviderInstaller.ProviderInstallListener,
+class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
+    ProviderInstaller.ProviderInstallListener,
     MyWebAppInterface.AsyncCallbacks {
 
     companion object {
@@ -130,6 +137,40 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private val patternLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             Toast.makeText(this, getString(R.string.change_success), Toast.LENGTH_SHORT).show()
+
+            if (result.resultCode == RESULT_OK) {
+                val changed = result.data?.getBooleanExtra(
+                    PatternSetupActivity.KEY_IS_GRAPHICAL_LOGIN_CHANGED,
+                    false
+                )
+                val isGraphicalLoginSet = result.data?.getBooleanExtra(
+                    PatternSetupActivity.KEY_IS_GRAPHICAL_LOGIN_SET,
+                    false
+                )
+                // 如果有變更圖形修改的狀況 就把最新的綁定圖形結果回傳
+                if (changed == true && isGraphicalLoginSet != null) {
+                    postEvent(
+                        EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                        isGraphicalLoginSet.enableToString().quoteJS()
+                    )
+                } else {
+                    // 如果沒有改變 就將使用者現在的狀況回傳
+                    val userInfoString =
+                        SecuredPreferenceStoreManager.getString(Config.SP_USER_INFO, "")
+                    val userInfoResponse =
+                        getGson().fromJson(userInfoString, UserInfoResponse::class.java)
+
+                    if (userInfoString.isNotEmpty() && userInfoResponse.bindingCaptcha != null) {
+                        postEvent(
+                            EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                            userInfoResponse.bindingCaptcha.enableToString().quoteJS()
+                        )
+                    } else {
+                        // 防呆傳入N 如果有登入不該走到這裡
+                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, false.enableToString().quoteJS())
+                    }
+                }
+            }
         }
 
     override fun onLastCreateBaseActivity(
@@ -148,20 +189,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             this,
             garminViewModel,
             fitbitViewModel,
-            healthConnectHelper, {
-                Toast.makeText(
-                    this,
-                    String.format(
-                        Locale.getDefault(),
-                        getString(R.string.main_binding_same_device),
-                        it.displayName
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-            },
+            healthConnectHelper,
+            ::sameDeviceCallback,
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://httpbin.org/") // ❗ 注意是 http 而不是 https
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        lifecycleScope.launch {
+            val response = retrofit.create(TestApi::class.java).getSomething()
+            Timber.d("Response: ${response.body()?.string()}")
+        }
 
         // 原本在這裡建立 Notification Channel 移至MyApplication
 
@@ -196,8 +238,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             FirebaseInstallations.getInstance().id
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful && !task.result.isNullOrEmpty()) {
+//                        SecuredPreferenceStoreManager.simpleEditAndApply(
+//                            Config.PREF_LOGIN_FID,
+//                            task.result
+//                        )
                         SecuredPreferenceStoreManager.simpleEditAndApply(
-                            Config.PREF_LOGIN_FID,
+                            Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
                             task.result
                         )
                     } else {
@@ -210,7 +256,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)
-        viewBinding.webView.setUp(this)
+        viewBinding.webView.setUp(this, this)
         CelebrusCSAUtil.sessionSharing(this)
 
         // 如果以前分享的圖片還在 刪除
@@ -225,7 +271,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         // 測試用
         forTest()
 
-        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.PREF_LOGIN_AUTH, false)
+        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_AUTH, false)
         if (isLogin) {
             // 取得使用者資料
             mainViewModel.getUserInfo()
@@ -321,29 +367,32 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private fun observeApiResultSetUp() {
         // 使用者資訊
         observeOnLifeCycle(mainViewModel.userInfoFlow.sharedFlow) { userInfoResponse ->
-            userInfoResponse?.let { userInfoResponse ->
-                // 取得使用者資訊 將現在綁定的設備儲存
-                var deviceType = NONE
-                if (userInfoResponse.bindingAndroid) {
-                    // 綁定 Health Connect
-                    deviceType = HEALTH_CONNECT
-                } else if (userInfoResponse.bindingFibit) {
-                    // 綁定FITBIT
-                    deviceType = FITBIT
-                } else if (userInfoResponse.bindingGarmin) {
-                    // 綁定Garmin
-                    deviceType = GARMIN
-                }
-
-                SecuredPreferenceStoreManager.simpleEditAndApply(
-                    Config.SP_BIND_CURRENT_DEVICE,
-                    deviceType.value
-                )
-
-                if (!userInfoResponse.completeOnboarding) {
-                    toOnBoarding(userInfoResponse)
-                }
+            // 取得使用者資訊 將現在綁定的設備儲存
+            var deviceType = NONE
+            if (userInfoResponse.bindingAndroid != null && userInfoResponse.bindingAndroid) {
+                // 綁定 Health Connect
+                deviceType = HEALTH_CONNECT
+            } else if (userInfoResponse.bindingFibit != null && userInfoResponse.bindingFibit) {
+                // 綁定FITBIT
+                deviceType = FITBIT
+            } else if (userInfoResponse.bindingGarmin != null && userInfoResponse.bindingGarmin) {
+                // 綁定Garmin
+                deviceType = GARMIN
             }
+
+            SecuredPreferenceStoreManager.simpleEditAndApply(
+                Config.SP_BIND_CURRENT_DEVICE,
+                deviceType.value
+            )
+
+            if (userInfoResponse.completeOnboarding != null && !userInfoResponse.completeOnboarding) {
+                toOnBoarding(userInfoResponse)
+            }
+
+            SecuredPreferenceStoreManager.simpleEditAndApply(
+                Config.SP_USER_INFO,
+                getGson().toJson(userInfoResponse)
+            )
         }
     }
 
@@ -375,7 +424,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             LOGIN_SUCCESS -> {
                 // 新版照理來說不會透過url告知登入成功 有API了 預防萬一留著
-                loginSuccess(uri)
+//                loginSuccess(uri)
             }
 
             LOGIN_FAILURE -> {
@@ -384,13 +433,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             USER_INFO -> {
                 // 新版會透過API取得使用者資料 照理來說不會靠url
-                val pwPageFlag =
-                    SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
-                if (pwPageFlag) {
-                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
-                } else {
-                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
-                }
+//                val pwPageFlag =
+//                    SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
+//                if (pwPageFlag) {
+//                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+//                } else {
+//                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
+//                }
             }
 
             ONBOARDING -> {
@@ -430,6 +479,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
     }
 
+    private fun sameDeviceCallback(deviceType: DeviceType) {
+        Toast.makeText(
+            this,
+            String.format(
+                Locale.getDefault(),
+                getString(R.string.main_binding_same_device),
+                deviceType.displayName
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
+
+        // 如果有需要透過JS回傳綁定結果
+        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
+    }
+
+
     private fun bindingRemoved(deviceType: DeviceType) {
         Toast.makeText(this, "Removed $deviceType", Toast.LENGTH_SHORT).show()
     }
@@ -449,6 +514,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 lifecycleScope.launch(Dispatchers.Main.immediate) {
                     viewBinding.dummyData.visibility = View.VISIBLE
                 }
+                // 如果有需要透過JS回傳綁定結果
+                postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
             }
 
             GARMIN -> {
@@ -460,6 +527,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         "t = ${garminData.oauthToken}\ns = ${garminData.oauthTokenSecret}",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // 如果有需要透過JS回傳綁定結果
+                    val garminModel = GarminModel(garminData.oauthToken, garminData.oauthTokenSecret)
+                    postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(garminModel))
                 }
             }
 
@@ -472,6 +543,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         "t = ${fitbitData.accessToken}\nr = ${fitbitData.refreshToken}",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // 如果有需要透過JS回傳綁定結果
+                    val fitbitModel = FitbitModel(fitbitData.accessToken, fitbitData.refreshToken)
+                    postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(fitbitModel))
                 }
             }
 
@@ -490,31 +565,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
     }
 
-    private fun loginSuccess(uri: Uri) {
-        Timber.d("CSSO Login Success: ${Utils.formatDate()}")
-        val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
-
-        if (TextUtils.isEmpty(ticket)) {
-            Toast.makeText(this, getString(R.string.login_no_ticket), Toast.LENGTH_SHORT).show()
-            toLogin()
-        } else {
-            val pid = intent.getStringExtra(KEY_PID)
-            SecuredPreferenceStoreManager.editAndApply { prefEditor ->
-                prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, true)
-                if (!TextUtils.isEmpty(pid)) {
-                    prefEditor.putString(Config.PREF_LOGIN_USERNAME, pid)
-                }
-                prefEditor.putString(Config.PREF_LOGIN_TICKET, ticket)
-            }
-            val pwPageFlag = SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
-
-            if (pwPageFlag) {
-                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().tcavUrl + "other/user/teamwalk")
-            } else {
-                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
-            }
-        }
-    }
+//    private fun loginSuccess(uri: Uri) {
+//        Timber.d("CSSO Login Success: ${Utils.formatDate()}")
+//        val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+//
+//        if (TextUtils.isEmpty(ticket)) {
+//            Toast.makeText(this, getString(R.string.login_no_ticket), Toast.LENGTH_SHORT).show()
+//            toLogin()
+//        } else {
+//            val pid = intent.getStringExtra(KEY_PID)
+//            SecuredPreferenceStoreManager.editAndApply { prefEditor ->
+//                prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, true)
+//                if (!TextUtils.isEmpty(pid)) {
+//                    prefEditor.putString(Config.PREF_LOGIN_USERNAME, pid)
+//                }
+//                prefEditor.putString(Config.PREF_LOGIN_TICKET, ticket)
+//            }
+//            val pwPageFlag = SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
+//
+//            if (pwPageFlag) {
+//                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().tcavUrl + "other/user/teamwalk")
+//            } else {
+//                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+//            }
+//        }
+//    }
 
     private fun loginFailure() {
         Timber.d("Login Failed - ${Utils.formatDate()}")
@@ -528,7 +603,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun securityCheck() {
-        val knowsRoot = SecuredPreferenceStoreManager.getBoolean(Config.KNOWS_ROOT, false)
+        val knowsRoot = SecuredPreferenceStoreManager.getBoolean(Config.SP_KNOWS_ROOT, false)
         if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
             getAlertDialog(
                 context = this,
@@ -540,7 +615,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 positiveOnClick = {
                     doBusiness()
                     SecuredPreferenceStoreManager.editAndApply { editor ->
-                        editor.putBoolean(Config.KNOWS_ROOT, true)
+                        editor.putBoolean(Config.SP_KNOWS_ROOT, true)
                     }
                 }
             )
@@ -591,7 +666,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun doBusiness() {
         // 這邊檢查是否登入
-        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.PREF_LOGIN_AUTH, false)
+        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_AUTH, false)
         if (!isLogin) {
             toLogin()
             viewBinding.logout.text = getString(R.string.main_not_logged_in)
@@ -656,9 +731,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         cookieManager.flush()
 
         SecuredPreferenceStoreManager.editAndApply { prefEditor ->
-            prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, false)
-            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
-            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
+//            prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, false)
+            prefEditor.putBoolean(Config.SP_LOGIN_AUTH, false)
+//            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
+//            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
             prefEditor.putString(Config.SP_LOGIN_JWT_TOKEN, "")
         }
 
@@ -705,12 +781,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         super.onDestroy()
     }
 
-    override fun setGraphicalLogin(enable: String, finished: () -> Unit) {
+    override fun setGraphicalLogin(enable: String) {
         val patternIntent = Intent(this, PatternSetupActivity::class.java)
         patternLauncher.launch(patternIntent)
     }
 
-    override fun bindingGoogleHealth(enable: String, finished: () -> Unit) {
+    override fun bindingGoogleHealth(enable: String) {
         bindingManager.bindNewDevice(HEALTH_CONNECT)
     }
 
@@ -721,36 +797,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 getString(R.string.main_health_connect_not_available),
                 Toast.LENGTH_SHORT
             ).show()
+
+            // 如果有需要透過JS回傳推播設定結果
+            postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(SyncHealthDataModel(emptyList(), emptyList())))
+
             return
         }
         healthConnectViewModel?.let { healthConnectViewModel ->
-            healthConnectViewModel.readSleepData {
-                Toast.makeText(
-                    this,
-                    String.format(
-                        Locale.getDefault(),
-                        getString(R.string.main_health_connect_sleep_data),
-                        it.size
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-                val json = getGson().toJson(it)
-                Timber.d(json)
+            healthConnectViewModel.getAllData { sleepData, stepsData ->
+                val syncHealthDataModel = SyncHealthDataModel(stepsData, sleepData)
 
+                // 如果有需要透過JS回傳推播設定結果
+                postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(syncHealthDataModel))
             }
-            healthConnectViewModel.readStepsData {
-                Toast.makeText(
-                    this,
-                    String.format(
-                        Locale.getDefault(),
-                        getString(R.string.main_health_connect_steps_data),
-                        it.size
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-                val json = getGson().toJson(it)
-                Timber.d(json)
-            }
+//            healthConnectViewModel.readSleepData {
+//                Toast.makeText(
+//                    this,
+//                    String.format(
+//                        Locale.getDefault(),
+//                        getString(R.string.main_health_connect_sleep_data),
+//                        it.size
+//                    ),
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//                val json = getGson().toJson(it)
+//                Timber.d(json)
+//
+//            }
+//            healthConnectViewModel.readStepsData {
+//                Toast.makeText(
+//                    this,
+//                    String.format(
+//                        Locale.getDefault(),
+//                        getString(R.string.main_health_connect_steps_data),
+//                        it.size
+//                    ),
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//                val json = getGson().toJson(it)
+//                Timber.d(json)
+//            }
         }
 //        healthConnectViewModel.readTotalCaloriesBurnedData {
 //            Toast.makeText(
@@ -767,11 +853,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //        }
     }
 
-    override fun bindingGarminHealth(enable: String, finished: () -> Unit) {
+    override fun bindingGarminHealth(enable: String) {
         bindingManager.bindNewDevice(GARMIN)
     }
 
-    override fun bindingFitbitHealth(enable: String, finished: () -> Unit) {
+    override fun bindingFitbitHealth(enable: String) {
         bindingManager.bindNewDevice(FITBIT)
 
 //        // 版本29之後才需要要求此權限 29之前的可以直接執行
@@ -788,7 +874,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //        }
     }
 
-    override fun setPushMessageStatus(enable: String, finished: () -> Unit) {
+    override fun setPushMessageStatus(enable: String) {
         val permissionList = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
@@ -802,6 +888,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 getString(R.string.main_push_notification_setting_done),
                 Toast.LENGTH_SHORT
             ).show()
+
+            // 如果有需要透過JS回傳推播設定結果
+            postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
         }
 
         val requestPermissionFunction = {
@@ -819,6 +908,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             ).show()
                         }
                     }
+                    // 如果有需要透過JS回傳推播設定結果
+                    postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, false.enableToString().quoteJS())
                 }
             }
         }
@@ -848,7 +939,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
     }
 
-    override fun syncHealthData(finished: () -> Unit) {
+    override fun syncHealthData() {
         getHealthConnectData()
     }
 

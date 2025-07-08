@@ -9,7 +9,7 @@ class MainViewModel(repository: Repository) : BaseViewModel(repository) {
 
     fun getUserInfo() {
         userInfoFlow.execute {
-            repository.api.userInfo()
+            repository.api.getUserInfo()
         }
     }
 }

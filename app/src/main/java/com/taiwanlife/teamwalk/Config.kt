@@ -22,6 +22,8 @@ object Config {
     const val EVENT_FITBIT_CONNECT_DONE = "EVENT_FITBIT_CONNECT_DONE"
 
     const val EVENT_NO_TOKEN_TO_LOGIN = "EVENT_NO_TOKEN_TO_LOGIN"
+
+    const val EVENT_EXECUTE_JAVASCRIPT_CALLBACK = "EVENT_EXECUTE_JAVASCRIPT_CALLBACK"
     //end region
 
     // region 推播設定參數
@@ -55,23 +57,27 @@ object Config {
     const val PREF_LOGIN_CASTGC = "com.taiwanlife.teamwalk.android.pref_login_castgc"
     const val PREF_LOGIN_UUID = "com.taiwanlife.teamwalk.android.pref_login_uuid"
 
-    // 我們新增的
+    // 新增的 為了不和上面的搞混 相同功能的也先重新做一個 到時候要清理才能將上面的一次全部刪除
     const val SP_FCM_TOKEN = "SP_FCM_TOKEN"
+    const val SP_FIREBASE_INSTALLATIONS_UNIQUE_ID = "SP_FIREBASE_INSTALLATIONS_UNIQUE_ID"
+
     const val SP_LOGIN_JWT_TOKEN = "SP_LOGIN_JWT_TOKEN"
+    const val SP_LOGIN_PID = "SP_LOGIN_PID"
+    const val SP_LOGIN_AUTH = "SP_LOGIN_AUTH"
+    const val SP_LOGIN_REMEMBER_ME = "SP_LOGIN_REMEMBER_ME"
+    const val SP_LOGIN_SEGMENT_CONTROL_POS = "SP_LOGIN_SEGMENT_CONTROL_POS"
+    const val SP_SHOW_SECURITY_ALERT_FIRST_TIME = "SP_SHOW_SECURITY_ALERT_FIRST_TIME"
+
     const val SP_NOTIFICATION = "SP_NOTIFICATION"
     const val SP_BIND_GARMIN = "SP_BIND_GARMIN"
     const val SP_BIND_FITBIT = "SP_BIND_FITBIT"
     const val SP_BIND_CURRENT_DEVICE = "SP_BIND_CURRENT_DEVICE"
+
+    const val SP_USER_INFO = "SP_USER_INFO"
+    const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
     // end region
 
     // region 根據不同的Build Types 有不同的環境變數
-    // 網路安全配置
-    val variableNetworkSecurityConfigResId = EnvironmentVariable(
-        release = "@xml/network_security_config_release",
-        debug = "@xml/network_security_config_debug",
-        sit = "@xml/network_security_config_debug", // SIT 使用 debug 的網路安全配置
-        uat = "@xml/network_security_config_release" // UAT 使用 release 的網路安全配置
-    )
 
     // CSSO URL
     val variableCssoUrl = EnvironmentVariable(

@@ -37,7 +37,7 @@ abstract class BaseViewModel(
      * 傳入要呼叫的API function
      */
     class ApiFlow<T>(private val baseViewModel: BaseViewModel) {
-        private val _mutableSharedFlow = MutableSharedFlow<UiState<T?>>()
+        private val _mutableSharedFlow = MutableSharedFlow<UiState<T>>()
         val sharedFlow get() = _mutableSharedFlow.asSharedFlow()
 
         fun execute(
@@ -83,7 +83,7 @@ abstract class BaseViewModel(
      * 如果傳入errorHandler 則這次呼叫API的錯誤會自行處理 會將default也傳入 方便在處理完自己需要的錯誤後 其他丟回給Default
      */
     private fun <T> apiCallAsSharedFlow(
-        mutableSharedFlow: MutableSharedFlow<UiState<T?>>,
+        mutableSharedFlow: MutableSharedFlow<UiState<T>>,
         apiFunction: suspend () -> Response<ResponseWrapper<T>>,
         errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null
     ) {
@@ -106,7 +106,8 @@ abstract class BaseViewModel(
                         // 看body裡面的header是不是回傳正確的code 0000
                         if (body.header.code == Config.API_CODE_SUCCESS) {
                             // 到這裡都正確
-                            var data = body.data
+                            // 如果我們期待的回傳值是Unit 代表我們期待這裡的data是null 這狀況將他轉為Unit
+                            var data = body.data ?: Unit as T
                             mutableSharedFlow.emit(UiState.Success(data))
                         } else {
                             // 回傳code 不是0000 帶message給他

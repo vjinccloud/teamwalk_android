@@ -5,11 +5,11 @@ import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
 
 class OnBoardingViewModel(repository: Repository) : BaseViewModel(repository) {
-    val landingFlow = ApiFlow<Unit>(this)
+    val saveLandingInfoFlow = ApiFlow<Unit>(this)
 
-    fun landing(userInfo: UserInfo) {
-        landingFlow.execute {
-            repository.api.landing(
+    fun saveLandingInfo(userInfo: UserInfo) {
+        saveLandingInfoFlow.execute {
+            repository.api.saveLandingInfo(
                 userInfo.referrerCode,
                 userInfo.nickname,
                 userInfo.bindingApple,

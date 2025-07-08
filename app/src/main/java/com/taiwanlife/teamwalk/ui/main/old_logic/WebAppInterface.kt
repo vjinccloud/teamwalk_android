@@ -1,4 +1,4 @@
-package com.taiwanlife.teamwalk.ui.main.webview
+package com.taiwanlife.teamwalk.ui.main.old_logic
 
 import android.Manifest
 import android.content.ClipData
@@ -17,11 +17,7 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.java_utils.FortifyUtil
-import com.taiwanlife.teamwalk.ui.main.old_logic.MainWebViewJava
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
-import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager.editAndApply
-import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager.getLong
-import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager.getString
 import devliving.online.securedpreferencestore.SecuredPreferenceStore
 import timber.log.Timber
 import java.io.File
@@ -38,11 +34,12 @@ class WebAppInterface(
 
     @JavascriptInterface
     fun signInUser(): String? {
-        val token = getString(Config.PREF_LOGIN_TOKEN, "")
-        val refreshToken = getString(Config.PREF_LOGIN_REFRESH_TOKEN, "")
-        val exp = getLong(Config.PREF_LOGIN_EXP, 0L)
-        val castgc = getString(Config.PREF_LOGIN_CASTGC, "")
-        var uUid: String? = getString(Config.PREF_LOGIN_UUID, "")
+        val token = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_TOKEN, "")
+        val refreshToken =
+            SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_REFRESH_TOKEN, "")
+        val exp = SecuredPreferenceStoreManager.getLong(Config.PREF_LOGIN_EXP, 0L)
+        val castgc = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_CASTGC, "")
+        var uUid: String? = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_UUID, "")
         //            String token = loginSharedPref.getString(getString(R.string.pref_login_token), "");
 //            String refreshToken = loginSharedPref.getString(getString(R.string.pref_login_refresh_token), "");
 //            Long exp = loginSharedPref.getLong(getString(R.string.pref_login_exp), 0L);
@@ -70,7 +67,7 @@ class WebAppInterface(
                 context.getPackageManager().getPackageInfo(context.getPackageName(), 0)
             user.put("vNo", pInfo.versionName)
         } catch (e: PackageManager.NameNotFoundException) {
-            Timber.d("Fail to get package version")
+            Timber.Forest.d("Fail to get package version")
         }
         return (Gson()).toJson(user)
     }
@@ -130,7 +127,7 @@ class WebAppInterface(
 
     @JavascriptInterface
     fun removePattern() {
-        editAndApply { editor: SecuredPreferenceStore.Editor? ->
+        SecuredPreferenceStoreManager.editAndApply { editor: SecuredPreferenceStore.Editor? ->
             editor!!.putBoolean(Config.PREF_LOGIN_PATTERN_STATUS, false)
             editor.putInt(Config.PREF_LOGIN_SEGMENT_CONTROL_POS, 0)
             Unit
@@ -151,7 +148,7 @@ class WebAppInterface(
 
     @JavascriptInterface
     fun signOut() {
-        editAndApply { editor: SecuredPreferenceStore.Editor? ->
+        SecuredPreferenceStoreManager.editAndApply { editor: SecuredPreferenceStore.Editor? ->
             editor!!.putBoolean(Config.PREF_LOGIN_AUTH, false)
             editor.putString(Config.PREF_LOGIN_USERNAME, "")
             editor.putString(Config.PREF_LOGIN_TICKET, "")

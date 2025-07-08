@@ -6,11 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.viewbinding.ViewBinding
-import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
-import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.getGson
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -33,7 +31,7 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
         }
 
         OnBoardingActivityManage.add(this)
-        observeOnLifeCycle(onBoardingViewModel.landingFlow.sharedFlow) {
+        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow.sharedFlow) {
             Toast.makeText(this, getString(R.string.onboarding_connect_done), Toast.LENGTH_SHORT).show()
 
             // 最後關閉所有頁面
@@ -59,6 +57,6 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
     }
 
     fun saveUserAndFinishAll() {
-        onBoardingViewModel.landing(userInfo)
+        onBoardingViewModel.saveLandingInfo(userInfo)
     }
 }
