@@ -61,10 +61,12 @@ import com.taiwanlife.teamwalk.utils.PermissionManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
 import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
+import com.taiwanlife.teamwalk.utils.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -108,7 +110,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private val loginLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                Toast.makeText(this, getString(R.string.login_success), Toast.LENGTH_SHORT).show()
+                debugToast(R.string.login_success)
 
                 // 登入完畢 取得使用者資訊
                 mainViewModel.getUserInfo()
@@ -132,7 +134,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     // 提供變更圖形密碼 PatternSetupActivity之成果回傳
     private val patternLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            Toast.makeText(this, getString(R.string.change_success), Toast.LENGTH_SHORT).show()
+            debugToast(R.string.change_success)
 
             if (result.resultCode == RESULT_OK) {
                 val changed = result.data?.getBooleanExtra(
@@ -271,20 +273,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         viewBinding.dummyData.setOnClickListener {
             if (healthConnectViewModel == null) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.main_health_connect_not_available),
-                    Toast.LENGTH_SHORT
-                ).show()
+                toast(R.string.main_health_connect_not_available)
                 return@setOnClickListener
             }
             healthConnectViewModel?.let { healthConnectViewModel ->
                 healthConnectViewModel.writeAndCleanDummyHealthDataForPast30Days {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.main_health_connect_dummy_insert_finished),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    debugToast(R.string.main_health_connect_dummy_insert_finished)
                 }
             }
         }
@@ -318,12 +312,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 } else {
                     denied.forEach {
                         val deniedText = permissionManager.getPermissionDeniedText(it, this)
-                        if (!TextUtils.isEmpty(deniedText)) {
-                            Toast.makeText(
-                                this@MainActivity,
-                                deniedText,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        if (!deniedText.isNullOrEmpty()) {
+                            toast(deniedText)
                         }
                     }
                 }
@@ -333,8 +323,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             val atLeastOneRationale =
                 permissionManager.shouldShowRationale(permissionList.toTypedArray()) { permission ->
                     val rationale = permissionManager.getPermissionRationaleText(permission, this)
-                    if (!TextUtils.isEmpty(rationale)) {
-                        Toast.makeText(this, rationale, Toast.LENGTH_SHORT).show()
+                    if (!rationale.isNullOrEmpty()) {
+                        toast(rationale)
                     }
                 }
             if (atLeastOneRationale) {
@@ -453,7 +443,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 val account = task.getResult<ApiException?>(ApiException::class.java)
                 googleAuthCode = account.serverAuthCode
             } catch (e: ApiException) {
-                Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+                toast(R.string.onboard_connect_fail)
                 e.printStackTrace()
             }
             // 流程結束 看看最後的authCode狀況
@@ -469,15 +459,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun sameDeviceCallback(deviceType: DeviceType) {
-        Toast.makeText(
-            this,
+        toast(
             String.format(
                 Locale.getDefault(),
                 getString(R.string.main_binding_same_device),
                 deviceType.displayName
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
+            )
+        )
+
+        if(deviceType == DeviceType.HEALTH_CONNECT) {
+            lifecycleScope.launch(Dispatchers.Main.immediate) {
+                viewBinding.dummyData.visibility = View.VISIBLE
+            }
+        }
 
         // 如果有需要透過JS回傳綁定結果
         postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
@@ -485,7 +479,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
 
     private fun bindingRemoved(deviceType: DeviceType) {
-        Toast.makeText(this, "Removed $deviceType", Toast.LENGTH_SHORT).show()
+        debugToast("${deviceType.displayName} removed")
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
@@ -495,11 +489,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
         when (deviceType) {
             HEALTH_CONNECT -> {
-                Toast.makeText(
-                    this,
-                    getString(R.string.onboard_connect_success),
-                    Toast.LENGTH_SHORT
-                ).show()
+                debugToast(R.string.onboard_connect_success)
                 lifecycleScope.launch(Dispatchers.Main.immediate) {
                     viewBinding.dummyData.visibility = View.VISIBLE
                 }
@@ -511,11 +501,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 val garminData = getGson().fromJson(data, GarminData::class.java)
 
                 if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
-                    Toast.makeText(
-                        this,
-                        "t = ${garminData.oauthToken}\ns = ${garminData.oauthTokenSecret}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    debugToast("t = ${garminData.oauthToken}\ns = ${garminData.oauthTokenSecret}")
 
                     // 如果有需要透過JS回傳綁定結果
                     val garminModel =
@@ -528,11 +514,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 val fitbitData = getGson().fromJson(data, FitbitData::class.java)
 
                 if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
-                    Toast.makeText(
-                        this,
-                        "t = ${fitbitData.accessToken}\nr = ${fitbitData.refreshToken}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    debugToast("t = ${fitbitData.accessToken}\nr = ${fitbitData.refreshToken}")
 
                     // 如果有需要透過JS回傳綁定結果
                     val fitbitModel = FitbitModel(fitbitData.accessToken, fitbitData.refreshToken)
@@ -546,12 +528,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun gsoAuthCodeProcessFinish() {
         if (TextUtils.isEmpty(googleAuthCode)) {
-            Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+            toast(R.string.onboard_connect_fail)
             Timber.d("Fail to connect google fit, no auth code")
         } else {
             viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "health/connect?device=google&a=" + googleAuthCode)
-            Toast.makeText(this, getString(R.string.onboard_connect_success), Toast.LENGTH_SHORT)
-                .show()
+            toast(R.string.onboard_connect_success)
         }
     }
 
@@ -691,11 +672,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //            }
 
             if (!isOnline()) {
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.main_is_not_online),
-                    Toast.LENGTH_SHORT
-                ).show()
+                toast(R.string.main_is_not_online)
             }
         }
     }
@@ -736,11 +713,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         // This is reached if the provider can't be updated for some reason.
         // App should consider all HTTP communication to be vulnerable and take
         // appropriate action.
-        Toast.makeText(
-            this@MainActivity,
-            getString(R.string.main_provider_installer_error),
-            Toast.LENGTH_SHORT
-        ).show()
+        toast(R.string.main_provider_installer_error)
     }
 
     override fun onResume() {
@@ -782,11 +755,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     fun getHealthConnectData() {
         if (healthConnectViewModel == null) {
-            Toast.makeText(
-                this,
-                getString(R.string.main_health_connect_not_available),
-                Toast.LENGTH_SHORT
-            ).show()
+            toast(R.string.main_health_connect_not_available)
 
             // 如果有需要透過JS回傳推播設定結果
             postEvent(
@@ -803,47 +772,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 // 如果有需要透過JS回傳推播設定結果
                 postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(syncHealthDataModel))
             }
-//            healthConnectViewModel.readSleepData {
-//                Toast.makeText(
-//                    this,
-//                    String.format(
-//                        Locale.getDefault(),
-//                        getString(R.string.main_health_connect_sleep_data),
-//                        it.size
-//                    ),
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//                val json = getGson().toJson(it)
-//                Timber.d(json)
-//
-//            }
-//            healthConnectViewModel.readStepsData {
-//                Toast.makeText(
-//                    this,
-//                    String.format(
-//                        Locale.getDefault(),
-//                        getString(R.string.main_health_connect_steps_data),
-//                        it.size
-//                    ),
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//                val json = getGson().toJson(it)
-//                Timber.d(json)
-//            }
         }
-//        healthConnectViewModel.readTotalCaloriesBurnedData {
-//            Toast.makeText(
-//                this,
-//                String.format(
-//                    Locale.getDefault(),
-//                    getString(R.string.main_health_connect_total_calories_burned_data),
-//                    it.size
-//                ),
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            val json = getGson().toJson(it)
-//            Timber.d(json)
-//        }
     }
 
     override fun bindingGarminHealth(enable: String) {
@@ -876,11 +805,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             SecuredPreferenceStoreManager.editAndApply {
                 it.putBoolean(Config.SP_NOTIFICATION, enable.enableToBoolean())
             }
-            Toast.makeText(
-                this,
-                getString(R.string.main_push_notification_setting_done),
-                Toast.LENGTH_SHORT
-            ).show()
+            toast(R.string.main_push_notification_setting_done)
 
             // 如果有需要透過JS回傳推播設定結果
             postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
@@ -893,12 +818,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 } else {
                     denied.forEach {
                         val deniedText = permissionManager.getPermissionDeniedText(it, this)
-                        if (!TextUtils.isEmpty(deniedText)) {
-                            Toast.makeText(
-                                this@MainActivity,
-                                deniedText,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        if (!deniedText.isNullOrEmpty()) {
+                            toast(deniedText)
                         }
                     }
                     // 如果有需要透過JS回傳推播設定結果
@@ -910,8 +831,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             val atLeastOneRationale =
                 permissionManager.shouldShowRationale(permissionList.toTypedArray()) { permission ->
                     val rationale = permissionManager.getPermissionRationaleText(permission, this)
-                    if (!TextUtils.isEmpty(rationale)) {
-                        Toast.makeText(this, rationale, Toast.LENGTH_SHORT).show()
+                    if (!rationale.isNullOrEmpty()) {
+                        toast(rationale)
                     }
                 }
             if (atLeastOneRationale) {

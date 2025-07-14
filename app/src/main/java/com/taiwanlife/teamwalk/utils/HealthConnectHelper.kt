@@ -2,7 +2,6 @@ package com.taiwanlife.teamwalk.utils
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
@@ -29,11 +28,7 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
         val availabilityStatus =
             HealthConnectClient.getSdkStatus(context, Config.GOOGLE_HEALTH_CONNECT_PACKAGE_NAME)
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.main_health_connect_unavailable),
-                Toast.LENGTH_SHORT
-            ).show()
+            context.toast(R.string.main_health_connect_unavailable)
             return false// early return as there is no viable integration
         }
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
@@ -62,11 +57,7 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
             if (granted) {
                 permissionGratedCallback()
             } else {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.main_health_connect_permission_denied),
-                    Toast.LENGTH_SHORT
-                ).show()
+                context.toast(R.string.main_health_connect_permission_denied)
             }
         }
     }

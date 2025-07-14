@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
-import android.widget.Toast
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.listener.PatternLockViewListener
 import com.taiwanlife.teamwalk.Config
@@ -15,6 +14,7 @@ import com.taiwanlife.teamwalk.databinding.ActivityPatternSetupBinding
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.toast
 
 class PatternSetupActivity :
     BaseActivity<ActivityPatternSetupBinding>({ ActivityPatternSetupBinding.inflate(it) }) {
@@ -42,17 +42,9 @@ class PatternSetupActivity :
 
             override fun onComplete(pattern: List<PatternLockView.Dot>) {
                 if (pattern.size < 6) {
-                    Toast.makeText(
-                        this@PatternSetupActivity,
-                        getString(R.string.login_pattern_lt_six_dots),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    toast(R.string.login_pattern_lt_six_dots)
                 } else if (pattern.size > 16) {
-                    Toast.makeText(
-                        this@PatternSetupActivity,
-                        getString(R.string.login_pattern_bt_dots),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    toast(R.string.login_pattern_bt_dots)
                 } else {
                     val dotSet = HashSet<Int>()
                     pattern.forEach { dot ->
@@ -60,11 +52,7 @@ class PatternSetupActivity :
                     }
 
                     if (dotSet.size < 6) {
-                        Toast.makeText(
-                            this@PatternSetupActivity,
-                            getString(R.string.login_pattern_lt_six_dots),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        toast(R.string.login_pattern_lt_six_dots)
                         return
                     }
 
@@ -89,7 +77,8 @@ class PatternSetupActivity :
     }
 
     private fun processSetUp(pattern: List<PatternLockView.Dot>) {
-        val fid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
+        val fid =
+            SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
 
         if (!isConfirm) {
             // 第一次

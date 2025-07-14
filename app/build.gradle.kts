@@ -63,7 +63,7 @@ android {
         }
         create("uat") {
             isDebuggable = true
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-UAT"
 
@@ -79,7 +79,7 @@ android {
         }
         release {
             isDebuggable = false
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

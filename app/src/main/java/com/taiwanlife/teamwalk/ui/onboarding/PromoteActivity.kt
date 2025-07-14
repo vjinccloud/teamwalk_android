@@ -16,6 +16,7 @@ import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.toast
 
 class PromoteActivity :
     OnBoardingActivity<ActivityPromoteBinding>({ ActivityPromoteBinding.inflate(it) }) {
@@ -51,11 +52,7 @@ class PromoteActivity :
         viewBinding.onboardingEditTextPromoteCode.addTextChangedListener(CustomTextWatcher {
             val currentText = viewBinding.onboardingEditTextPromoteCode.text.toString().trim()
             if (TextUtils.isEmpty(currentText)) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.onboard_promote_editText) + " " + getString(R.string.empty),
-                    Toast.LENGTH_SHORT
-                ).show()
+                toast(getString(R.string.onboard_promote_editText) + " " + getString(R.string.empty))
                 userInfo = userInfo.copy(referrerCode = "")
             } else {
                 userInfo = userInfo.copy(referrerCode = currentText)
@@ -64,11 +61,7 @@ class PromoteActivity :
 
         viewBinding.onboardingNextButton.setOnClickListener {
             if (!TextUtils.isEmpty(userInfo.referrerCode) && userInfo.referrerCode!!.length < 8) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.onboard_promote_msg),
-                    Toast.LENGTH_SHORT
-                ).show()
+                toast(R.string.onboard_promote_msg)
                 return@setOnClickListener
             }
 

@@ -17,6 +17,7 @@ import com.taiwanlife.teamwalk.ui.main.HostTypes
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
@@ -45,13 +46,12 @@ class ConnectFitbitSuccessActivity() : BaseActivity<ActivityConnectSuccessBindin
 
         // 觀察Fitbit Connect 是否成功
         observeOnLifeCycle(fitbitViewModel.getTokenFlow.sharedFlow, onError = {
-            Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+            toast(R.string.onboard_connect_fail)
             finish()
         }) { fitbitGetTokenResponse ->
             val accessToken = fitbitGetTokenResponse.accessToken
             val refreshToken = fitbitGetTokenResponse.refreshToken
             if (!TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken)) {
-                Toast.makeText(this, R.string.onboard_connect_success, Toast.LENGTH_SHORT).show()
 
                 fitbitData = fitbitData.copy(
                     accessToken = accessToken,
@@ -103,8 +103,7 @@ class ConnectFitbitSuccessActivity() : BaseActivity<ActivityConnectSuccessBindin
 
         if (TextUtils.isEmpty(code) && !TextUtils.isEmpty(error)) {
             Timber.d("Connect fitbit error: $error")
-            Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
-            finish()
+            failedEnd()
         }
 
         val encodeAuthString =
@@ -121,7 +120,7 @@ class ConnectFitbitSuccessActivity() : BaseActivity<ActivityConnectSuccessBindin
     }
 
     private fun failedEnd() {
-        Toast.makeText(this, getString(R.string.onboard_connect_fail), Toast.LENGTH_SHORT).show()
+        toast(R.string.onboard_connect_fail)
         finish()
     }
 }

@@ -2,12 +2,10 @@ package com.taiwanlife.teamwalk.utils
 
 import android.content.Intent
 import android.text.TextUtils
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.facebook.common.Common
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -18,7 +16,10 @@ import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
-import com.taiwanlife.teamwalk.utils.DeviceType.*
+import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
+import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
+import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
+import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -45,7 +46,8 @@ class BindingManager(
     private val bindingRemovedCallback: (deviceType: DeviceType) -> Unit,
     private val bindingNewDeviceSuccessCallback: (newDeviceType: DeviceType, data: String?) -> Unit
 ) {
-    private val sharedEventViewModel: SharedEventViewModel = baseActivity.getSharedEventViewModelInstance()
+    private val sharedEventViewModel: SharedEventViewModel =
+        baseActivity.getSharedEventViewModelInstance()
 
     init {
         // 這裡接網頁的Redirection成功後的處理
@@ -181,7 +183,7 @@ class BindingManager(
     }
 
     private fun startHealthConnectProcess() {
-        if(!healthConnectHelper.availableStatusFlow()) return
+        if (!healthConnectHelper.availableStatusFlow()) return
 
         healthConnectHelper.requestPermissionFlow {
             if (!(!healthConnectHelper.availableStatusFlow() || !healthConnectHelper.checkPermissions())) {
@@ -197,8 +199,7 @@ class BindingManager(
             garminViewModel.getAuthCodeFlow.sharedFlow,
             unSubscribeOnComplete = true,
             onError = {
-                Toast.makeText(baseActivity, R.string.onboard_connect_fail, Toast.LENGTH_SHORT)
-                    .show()
+                baseActivity.toast(R.string.onboard_connect_fail)
             }) { response ->
             // 處理成功結果
             val responseString = response.string()
@@ -210,15 +211,13 @@ class BindingManager(
                         getGson().toJson(garminData)
                     )
                 }, showFailedToast = {
-                    Toast.makeText(baseActivity, R.string.onboard_connect_fail, Toast.LENGTH_SHORT)
-                        .show()
+                    baseActivity.toast(R.string.onboard_connect_fail)
                 }, getUrlCallback = { url ->
                     val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                     baseActivity.startActivity(intent)
                 })
             } else {
-                Toast.makeText(baseActivity, R.string.onboard_connect_fail, Toast.LENGTH_SHORT)
-                    .show()
+                baseActivity.toast(R.string.onboard_connect_fail)
             }
         }
         garminViewModel.getGarminAuthCode(authorization)

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.text.TextUtils
 import android.webkit.JavascriptInterface
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -17,11 +16,14 @@ import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.getGson
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 
+// 會被Javascript呼叫 Android端unuse 故忽略警告
+@Suppress("unused")
 class MyWebAppInterface(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
@@ -58,8 +60,12 @@ class MyWebAppInterface(
                     Timber.d("eventName = $eventName, result = $result")
                     if (eventName.equals(EVENT_EXECUTE_JAVASCRIPT_CALLBACK) && currentWaitingCallbackName.isNotEmpty()) {
                         webView.post {
-                            webView.evaluateJavascript("$currentWaitingCallbackName(${result})", null)
+                            webView.evaluateJavascript(
+                                "$currentWaitingCallbackName(${result})",
+                                null
+                            )
 
+                            context.debugToast("透過${currentWaitingCallbackName}回傳結果 - $result")
                             currentWaitingCallbackName = ""
                         }
                     }
@@ -74,11 +80,14 @@ class MyWebAppInterface(
     @JavascriptInterface
     fun getDeviceInfo(): String {
         val deviceInfoModel = DeviceInfoModel(
-            appUuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, ""),
+            appUuid = SecuredPreferenceStoreManager.getString(
+                Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
+                ""
+            ),
             deviceId = Utils.getDeviceId(context),
             pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
         )
-        Toast.makeText(context, getGson().toJson(deviceInfoModel), Toast.LENGTH_SHORT).show()
+        context.debugToast(getGson().toJson(deviceInfoModel))
         return getGson().toJson(deviceInfoModel)
     }
 
@@ -90,7 +99,7 @@ class MyWebAppInterface(
         val loginInfoModel = LoginInfoModel(
             jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT_TOKEN, "")
         )
-        Toast.makeText(context, getGson().toJson(loginInfoModel), Toast.LENGTH_SHORT).show()
+        context.debugToast(getGson().toJson(loginInfoModel))
         return getGson().toJson(loginInfoModel)
     }
 
@@ -103,7 +112,7 @@ class MyWebAppInterface(
             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
             context.startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(context, "無法開啟網頁 url = $url", Toast.LENGTH_SHORT).show()
+            context.debugToast("無法開啟網頁 url = $url")
             e.printStackTrace()
         }
     }
@@ -117,7 +126,7 @@ class MyWebAppInterface(
         val version =
             if (!TextUtils.isEmpty(packageInfo.versionName)) packageInfo.versionName!! else ""
 
-        Toast.makeText(context, version, Toast.LENGTH_SHORT).show()
+        context.debugToast(version)
         return version
     }
 

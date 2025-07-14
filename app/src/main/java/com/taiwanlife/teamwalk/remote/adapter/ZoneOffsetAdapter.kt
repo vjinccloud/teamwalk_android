@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.remote.adapter
 
+import androidx.annotation.Keep
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -12,6 +13,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 
+@Keep
 class ZoneOffsetAdapter : JsonSerializer<ZoneOffset>, JsonDeserializer<ZoneOffset> {
     override fun serialize(
         src: ZoneOffset?,

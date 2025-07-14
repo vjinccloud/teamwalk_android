@@ -26,6 +26,7 @@ import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.security.SecureRandom
@@ -236,17 +237,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 }
 
                 if (pattern.size < 6) {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        getString(R.string.login_pattern_lt_six_dots),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    toast(R.string.login_pattern_lt_six_dots)
                 } else if (pattern.size > 16) {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        getString(R.string.login_pattern_bt_dots),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    toast(R.string.login_pattern_bt_dots)
                 } else {
                     val dotSet = HashSet<Int>()
                     pattern.forEach { dot ->
@@ -254,11 +247,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     }
 
                     if (dotSet.size < 6) {
-                        Toast.makeText(
-                            this@LoginActivity,
-                            getString(R.string.login_pattern_lt_six_dots),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        toast(R.string.login_pattern_lt_six_dots)
                         return
                     }
 

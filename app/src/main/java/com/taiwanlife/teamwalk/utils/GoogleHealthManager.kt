@@ -148,7 +148,7 @@ class GoogleHealthManager(private val context: Context) {
                 authCode = googleAccount.serverAuthCode
             } catch (e: ApiException) {
                 e.printStackTrace()
-                Toast.makeText(context, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+                context.toast(R.string.onboard_connect_fail)
             }
             getAuthCode(authCode)
         }

@@ -17,6 +17,7 @@ import com.taiwanlife.teamwalk.ui.main.HostTypes
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
@@ -40,19 +41,17 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
 
         // 觀察呼叫Garmin getToken的結果
         observeOnLifeCycle(garminViewModel.getTokenFlow.sharedFlow, onError = {
-            Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+            toast(R.string.onboard_connect_fail)
             finish()
         }) { response ->
             // 處理成功結果
             val responseString = response.string()
             if (!TextUtils.isEmpty(responseString)) {
                 val result = GarminHelper.parseGetTokenString(responseString) {
-                    Toast.makeText(this, R.string.onboard_connect_fail, Toast.LENGTH_SHORT).show()
+                    toast(R.string.onboard_connect_fail)
                 }
                 if (result != null) {
                     val (oauthToken, oauthTokenSecret) = result
-
-                    Toast.makeText(this, R.string.onboard_connect_success, Toast.LENGTH_SHORT).show()
 
                     garminData = garminData.copy(
                         oauthToken = oauthToken,
@@ -114,7 +113,7 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
     }
 
     private fun failedEnd() {
-        Toast.makeText(this, getString(R.string.onboard_connect_fail), Toast.LENGTH_SHORT).show()
+        toast(R.string.onboard_connect_fail)
         finish()
     }
 }

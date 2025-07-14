@@ -109,7 +109,7 @@ object ShareUtil {
         } catch (e: IllegalArgumentException) {
 //            Log.e("shareContent Exception", e.getMessage())
             e.printStackTrace()
-            Toast.makeText(activity, errorMsg, Toast.LENGTH_SHORT).show()
+            activity.toast(errorMsg)
         } catch (e: NullPointerException) {
             e.printStackTrace()
 //            Log.e("shareContent Exception", e.getMessage())
@@ -117,7 +117,7 @@ object ShareUtil {
         } catch (e: ActivityNotFoundException) {
 //            Log.e("shareContent Exception", e.getMessage())
             e.printStackTrace()
-            Toast.makeText(activity, errorMsg, Toast.LENGTH_SHORT).show()
+            activity.toast(errorMsg)
         }
         return true
     }

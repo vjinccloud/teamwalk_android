@@ -1,9 +1,13 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.content.Context
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.remote.adapter.InstantAdapter
 import com.taiwanlife.teamwalk.remote.adapter.ZoneOffsetAdapter
 import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
@@ -35,6 +39,41 @@ fun getGson(): Gson {
         .create()
 }
 
+/**
+ * 只有在Debug模式會出現的Toast
+ */
+fun Context.debugToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+    if (BuildConfig.DEBUG) {
+        toast(message, duration)
+    }
+}
+
+/**
+ * 只有在Debug模式會出現的Toast
+ */
+fun Context.debugToast(@StringRes stringId: Int, duration: Int = Toast.LENGTH_SHORT) {
+    if (BuildConfig.DEBUG) {
+        toast(stringId, duration)
+    }
+}
+
+/**
+ * Toast
+ */
+fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}
+
+/**
+ * Toast
+ */
+fun Context.toast(@StringRes stringId: Int, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, this.getString(stringId), Toast.LENGTH_SHORT).show()
+}
+
+/**
+ * 將HealthConnect的類別轉為給Javascript頁面的Record類別
+ */
 fun SleepSessionRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     val zoneId =
         endZoneOffset?.let { ZoneOffset.ofTotalSeconds(it.totalSeconds) } ?: ZoneId.of("UTC")
@@ -57,6 +96,9 @@ fun SleepSessionRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     )
 }
 
+/**
+ * 將HealthConnect的類別轉為給Javascript頁面的Record類別
+ */
 fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     val zoneId = endZoneOffset?.let { ZoneId.ofOffset("UTC", it) } ?: ZoneId.of("UTC")
 

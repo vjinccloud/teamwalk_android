@@ -1,6 +1,5 @@
 package com.taiwanlife.teamwalk.ui.onboarding
 
-import android.R.attr.data
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
@@ -10,12 +9,10 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityConnectBinding
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
-import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
@@ -26,8 +23,8 @@ import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
 import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import com.taiwanlife.teamwalk.utils.HealthConnectHelper
+import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.getGson
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ConnectActivity :
@@ -46,7 +43,13 @@ class ConnectActivity :
         super.onLastCreateBaseActivity(view, savedInstanceState)
 
         bindingManager = BindingManager(
-            this, garminViewModel, fitbitViewModel, healthConnectHelper, {}, ::bindingRemoved, ::bindNewDeviceSuccess
+            this,
+            garminViewModel,
+            fitbitViewModel,
+            healthConnectHelper,
+            {},
+            ::bindingRemoved,
+            ::bindNewDeviceSuccess
         )
 
         intent.getStringExtra(KEY_USER_INFO)?.let {
@@ -90,7 +93,7 @@ class ConnectActivity :
     }
 
     private fun bindingRemoved(deviceType: DeviceType) {
-        Toast.makeText(this, "Removed $deviceType", Toast.LENGTH_SHORT).show()
+        debugToast("${deviceType.displayName} removed")
 
         when (deviceType) {
             HEALTH_CONNECT -> {
@@ -120,7 +123,7 @@ class ConnectActivity :
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
-        Toast.makeText(this, "Bind $deviceType success", Toast.LENGTH_SHORT).show()
+        debugToast("${deviceType.displayName} bind success")
 
         when (deviceType) {
             HEALTH_CONNECT -> {

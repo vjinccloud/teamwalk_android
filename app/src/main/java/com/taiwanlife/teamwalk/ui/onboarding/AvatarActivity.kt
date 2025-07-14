@@ -24,6 +24,7 @@ import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.YELLOW
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.toast
 
 class AvatarActivity :
     OnBoardingActivity<ActivityAvatarBinding>({ ActivityAvatarBinding.inflate(it) }) {
@@ -59,11 +60,7 @@ class AvatarActivity :
                 for (aChar in chars) {
                     val type = Character.getType(aChar)
                     if (type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()) {
-                        Toast.makeText(
-                            this,
-                            getString(R.string.onboard_edit_nickname_emoji),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        toast(R.string.onboard_edit_nickname_emoji)
                         return@setOnClickListener
                     }
                 }
@@ -173,11 +170,7 @@ class AvatarActivity :
 
     private fun validate(nickname: String) {
         if (TextUtils.isEmpty(nickname)) {
-            Toast.makeText(
-                this,
-                getString(R.string.onboard_edit_nickname) + " " + getString(R.string.empty),
-                Toast.LENGTH_SHORT
-            ).show()
+            toast(getString(R.string.onboard_edit_nickname) + " " + getString(R.string.empty))
             userInfo = userInfo.copy(nickname = "")
         } else {
             userInfo = userInfo.copy(nickname = nickname)

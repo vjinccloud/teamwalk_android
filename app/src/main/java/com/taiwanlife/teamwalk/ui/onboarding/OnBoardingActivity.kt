@@ -9,6 +9,7 @@ import androidx.viewbinding.ViewBinding
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
+import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.getGson
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -32,7 +33,7 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
 
         OnBoardingActivityManage.add(this)
         observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow.sharedFlow) {
-            Toast.makeText(this, getString(R.string.onboarding_connect_done), Toast.LENGTH_SHORT).show()
+            debugToast(R.string.onboarding_connect_done)
 
             // 最後關閉所有頁面
             OnBoardingActivityManage.finishAll()

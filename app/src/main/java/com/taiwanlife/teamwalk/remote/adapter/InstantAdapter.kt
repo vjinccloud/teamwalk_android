@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.remote.adapter
 
+import androidx.annotation.Keep
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -15,6 +16,7 @@ import java.time.format.DateTimeParseException
  * Gson TypeAdapter for serializing and deserializing java.time.Instant objects.
  * Serializes Instant to ISO 8601 string format (e.g., "2025-06-30T15:37:34.000Z").
  */
+@Keep
 class InstantAdapter : JsonSerializer<Instant>, JsonDeserializer<Instant> {
 
     // 當將 Instant 物件序列化為 JSON 字串時調用
