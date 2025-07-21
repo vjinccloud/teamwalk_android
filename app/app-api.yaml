@@ -32,7 +32,7 @@ paths:
           type: string
           in: query
           required: true
-          
+
       responses:
         '302':
           description: Success(會帶入ticket參數在網址後)
@@ -200,9 +200,9 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
-    
-       
+          description: Internal server error occurred
+
+
   /index:
     get:
       produces:
@@ -227,7 +227,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
   /index-health:
     get:
       produces:
@@ -252,7 +252,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
 
   /personal-pk:
     get:
@@ -309,7 +309,7 @@ paths:
         '500':
           description: Internal server error occurred
   /personal-pk-cancel-invite:
-  
+
     post:
       produces:
         - application/json
@@ -541,7 +541,7 @@ paths:
             $ref: '#/definitions/GeneralResponse'
         '500':
           description: Internal server error occurred
-    
+
   /team/my:
     post:
       produces:
@@ -573,7 +573,7 @@ paths:
         '500':
           description: Internal server error occurred
   /team/invite:
-   
+
     post:
       produces:
         - application/json
@@ -587,7 +587,7 @@ paths:
           description: 登入者JWT
           required: true
           type: string
-        
+
         - name: post_info
           in: body
           required: true
@@ -713,7 +713,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
   
   /adventure/map/{level_id}:
     get:
@@ -744,8 +744,37 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
-  
+          description: Internal server error occurred
+  /game:
+    post:
+      produces:
+        - application/json
+      summary: "完成遊戲"
+      tags:
+        - 遊戲
+      operationId: saveGame
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GamePostRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
   /my:
     get:
       produces:
@@ -770,7 +799,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
     post:
       produces:
         - application/json
@@ -800,7 +829,7 @@ paths:
             $ref: '#/definitions/GeneralResponse'
         '500':
           description: Internal server error occurred
-  
+
   /take-task-bonus:
     post:
       produces:
@@ -856,7 +885,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
   /my-coin:
     get:
       produces:
@@ -881,7 +910,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
   /my-badge:
     get:
       produces:
@@ -906,7 +935,7 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
+          description: Internal server error occurred
   /my-product-exchange:
     get:
       produces:
@@ -931,12 +960,12 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred          
+          description: Internal server error occurred
   /my-product-exchange/{exchange_id}:
     get:
       produces:
         - application/json
-      summary: "取得我的兌換券資-明細料"
+      summary: "取得我的兌換券資料-明細"
       tags:
         - 我的
       operationId: getMyProductExchange
@@ -961,8 +990,64 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred        
-  
+          description: Internal server error occurred
+
+  /product:
+    get:
+      produces:
+        - application/json
+      summary: "取得商城資料"
+      tags:
+        - 商城
+      operationId: listProduct
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListProductResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /product-exchange:
+    post:
+      produces:
+        - application/json
+      summary: "兌換商品"
+      tags:
+        - 商城
+      operationId: productExchange
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProductExchangePostRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+
   /insurance/activity:
     get:
       produces:
@@ -987,8 +1072,287 @@ paths:
           schema:
             $ref: '#/definitions/GeneralResponse'
         '500':
-          description: Internal server error occurred  
-          
+          description: Internal server error occurred
+
+  /insurance/policy:
+    get:
+      produces:
+        - application/json
+      summary: "取得團險保單清單"
+      tags:
+        - 保險
+      operationId: listInsurancePolicy
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListInsurancePolicyResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /insurance/policy/{insurance_id}:
+    get:
+      produces:
+        - application/json
+      summary: "取得團險保單明細"
+      tags:
+        - 保險
+      operationId: getInsurancePolicy
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: insurance_id
+          in: path
+          description: 團險主檔代碼
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GetInsurancePolicyResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /bank:
+    get:
+      produces:
+        - application/json
+      summary: "取得各銀行分行"
+      tags:
+        - 保險
+      operationId: listBank
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListBankInfoResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /bank/account:
+    get:
+      produces:
+        - application/json
+      summary: "取得登入者銀行匯款帳號"
+      tags:
+        - 保險
+      operationId: listBankAccount
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListBankAccountInfoResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+    post:
+      produces:
+        - application/json
+      summary: "儲存登入者銀行匯款帳號"
+      tags:
+        - 保險
+      operationId: saveBankAccount
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/BankAccountPostRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /bank/account/delete:
+    post:
+      produces:
+        - application/json
+      summary: "刪除登入者銀行匯款帳號"
+      tags:
+        - 保險
+      operationId: deleteBankAccount
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/BankAccountDeleteRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /claim:
+    get:
+      produces:
+        - application/json
+      summary: "取得登入者理賠申請清單"
+      tags:
+        - 保險
+      operationId: listClaim
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ListClaimInfoResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+    post:
+      produces:
+        - application/json
+      summary: "申請理賠"
+      tags:
+        - 保險
+      operationId: saveClaim
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SaveClaimRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /claim/{claim_id}:
+    get:
+      produces:
+        - application/json
+      summary: "取得登入者理賠申請明細"
+      tags:
+        - 保險
+      operationId: getClaim
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: claim_id
+          in: path
+          description: 理賠申請案號
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GetClaimInfoResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+  /contact_me:
+    post:
+      produces:
+        - application/json
+      summary: "與我連絡"
+      tags:
+        - 保險
+      operationId: contactMe
+      parameters:
+        - name: authorization
+          in: header
+          description: 登入者JWT
+          required: true
+          type: string
+        - name: post_info
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ContactMeRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal server error occurred
+
 definitions:
 
   GetPkSummaryResponse:
@@ -998,31 +1362,31 @@ definitions:
         $ref: '#/definitions/Header'
       data:
         $ref: '#/definitions/GetPkSummaryInfo'
-          
+
     required:
       - header
       - data
 
   GetPkSummaryInfo:
     type: object
-    properties: 
-      personal: 
+    properties:
+      personal:
         $ref: '#/definitions/PkSummaryInfo'
-      team: 
+      team:
         $ref: '#/definitions/PkSummaryInfo'
 
   PkSummaryInfo:
     type: object
-    properties: 
-      summary_1: 
+    properties:
+      summary_1:
         type: number
         example: '1'
         description: 勝率欄位1(個人：勝率、團體：前10%幾場)
-      summary_2: 
+      summary_2:
         type: number
         example: '1'
         description: 勝率欄位2(個人：獲勝場數、團體：排名)
-      summary_3: 
+      summary_3:
         type: number
         example: '1'
         description: 勝率欄位3(挑戰場數)
@@ -1038,35 +1402,64 @@ definitions:
         $ref: '#/definitions/Header'
       data:
         $ref: '#/definitions/ProductExchangeDetailInfo'
-          
+
     required:
       - header
       - data
 
   ProductExchangeDetailInfo:
     type: object
-    properties: 
-      exchange_id: 
+    properties:
+      exchange_id:
         type: string
         example: 'xxx'
         description: 兌換代碼
-      exchange_name: 
+      exchange_name:
         type: string
         example: 'xxx'
         description: 兌換卷名稱
-      exchange_img: 
+      exchange_img:
         type: string
         example: 'xxx'
         description: 兌換卷圖檔
-      exchange_date: 
+      exchange_date:
         type: string
         example: '2025/01/01'
         description: 使用期限
-      status: 
+      status:
         type: string
         example: 'N'
         description: 狀態(N:未使用、U:已使用、E:已過期)
-      
+      coupon_no:
+        type: string
+        example: '42a53393-5ae3-49df-8d90-d3725f787cf8'
+        description: 票券序號
+      redeem_url:
+        type: string
+        example: 'https://txp.rs/viewvoucher.aspx?voucherguid=42a53393-5ae3-49df-8d90-d3725f787cf8'
+        description: 核銷使用 URL
+      valid_number:
+        type: string
+        example: 'PO4N8ZGJ23VJP5TB'
+        description: 驗證碼
+
+      prod_type:
+        type: string
+        example: 'C'
+        description: 商品類型 (C:電子票券, V:折價券, G:Garmin 商城, E:網站連結)
+      description:
+        type: string
+        example: '<p>0805????-1</p><p>0805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1<br></p>'
+        description: 商品說明
+      usage:
+        type: string
+        example: '<ol><li>??????,???i???????????,??????????</li><li>?????</li></ol><div><br></div>'
+        description: 使用說明
+      notes:
+        type: string
+        example: '<ol><li>???:???????????????:??????65?2?????:???&nbsp; ????:22555003</li><li>???????????????????????,????????????/??(?????????,?????????????????????????????????????)?</li><li>???????,????????,??????????????????,??????????????????????????????????,??????????????</li><li>??????????????:0800-886-711?????????,???<a href="http://www.7-11.com.tw/service/card.asp"><span style="color:#0070C0">http://www.7-11.com.tw/service/card.asp</span></a></li><li>?????????,??????????????????????,??????,???????????</li><li>????????????,?????????????????????</li></ol>'
+        description: 注意事項
+
     required:
       - exchange_id
       - exchange_name
@@ -1089,35 +1482,35 @@ definitions:
 
   ProductExchangeInfo:
     type: object
-    properties: 
-      exchange_id: 
+    properties:
+      exchange_id:
         type: string
         example: 'xxx'
         description: 兌換代碼
-      exchange_name: 
+      exchange_name:
         type: string
         example: 'xxx'
         description: 兌換卷名稱
-      exchange_img: 
+      exchange_img:
         type: string
         example: 'xxx'
         description: 兌換卷圖檔
-      exchange_date: 
+      exchange_date:
         type: string
         example: '2025/01/01'
         description: 使用期限
-      status: 
+      status:
         type: string
         example: 'N'
         description: 狀態(N:未使用、U:已使用、E:已過期)
-      
+
     required:
       - exchange_id
       - exchange_name
       - exchange_img
       - exchange_date
       - status
-  
+
   ListMyCoinResponse:
     type: object
     properties:
@@ -1146,30 +1539,30 @@ definitions:
 
   MyBadgeInfo:
     type: object
-    properties: 
-      badge_id: 
+    properties:
+      badge_id:
         type: string
         example: 'xxxx'
         description: 徽章
-      type: 
+      type:
         type: string
         example: 'I'
         description: 類型 (H:成就徽章, S:特殊徽章 , I:圖鑑)
-      name: 
+      name:
         type: string
         example: 'PK達人'
         description: 徽章名稱
-      progress_status: 
+      progress_status:
         type: number
         example: 1
         description: 類型是H或S才會有達成階段(0/1/2/3)，0代表沒有達到
-      
-      
+
+
     required:
       - badge_id
       - type
       - name
-      
+
 
   ListMyExpResponse:
     type: object
@@ -1186,24 +1579,24 @@ definitions:
 
   ExpCoinHistoryInfo:
     type: object
-    properties: 
-      reason: 
+    properties:
+      reason:
         type: string
         example: 'xxx'
         description: 原因
-      date: 
+      date:
         type: string
         example: '2025/01/01'
         description: 時間
-      type: 
+      type:
         type: string
         example: 'G'
         description: 類型(G:獲得、U:使用)
-      amt: 
+      amt:
         type: number
         example: 1
         description: 數量
-      
+
     required:
       - reason
       - date
@@ -1222,7 +1615,7 @@ definitions:
     required:
       - header
       - data
-  
+
   ListFriendResponse:
     type: object
     properties:
@@ -1235,39 +1628,39 @@ definitions:
     required:
       - header
       - data
-    
+
   FriendInfo:
     type: object
-    properties: 
-      friend_id: 
+    properties:
+      friend_id:
         type: string
         example: 'xxx'
         description: 好友代碼
-      name: 
+      name:
         type: string
         example: '鄧x文'
         description: 好友名稱
-      my_referrer_code: 
+      my_referrer_code:
         type: string
         example: 'XXXX'
         description: 推薦碼
-      level: 
+      level:
         type: number
         example: 1
         description: 等級
-      avatar: 
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 頭像
-      one_day_max_steps: 
+      one_day_max_steps:
         type: number
         example: 1500
         description: 單日最高步數
-      winner_rate: 
+      winner_rate:
         type: number
         example: 30
         description: PK勝率
-      
+
     required:
       - friend_id
       - name
@@ -1289,43 +1682,43 @@ definitions:
     required:
       - header
       - data
-    
+
   PersonalPkInfo:
     type: object
-    properties: 
-      pk_id: 
+    properties:
+      pk_id:
         type: string
         example: 'xxx'
         description: 個人PK賽ID
-      period: 
+      period:
         type: number
         example: 7
         description: 對戰天數
-      steps: 
+      steps:
         type: number
         example: 15000
         description: 對戰步數
-      coins: 
+      coins:
         type: number
         example: 50
         description: 押注龍珠數
-      remaining_days: 
+      remaining_days:
         type: number
         example: 6
         description: 剩餘天數
-      my_steps: 
+      my_steps:
         type: number
         example: 1500
         description: 自己當前步數
-      target_steps: 
+      target_steps:
         type: number
         example: 150
         description: 對手當前步數
-      target_nickname: 
+      target_nickname:
         type: string
         example: '鄧x文'
         description: 對手暱稱
-      target_avatar: 
+      target_avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 對手頭像路徑
@@ -1333,7 +1726,7 @@ definitions:
         type: string
         example: 'P'
         description: 狀態(P:進行中,C:待確認,E:已結束,X:已過期,R:已拒絕,N:已取消)
-      invite_expire_day: 
+      invite_expire_day:
         type: number
         example: '20'
         description: 邀請挑戰幾天後失效(當status為C才會有值)
@@ -1341,7 +1734,7 @@ definitions:
         type: string
         example: 'I'
         description: 邀請方向(當status為C才會有值，I：主動、P：被動)
-      pk_end_time: 
+      pk_end_time:
         type: string
         example: '2025/10/10'
         description: PK結束時間(當status為E才會有值)
@@ -1369,70 +1762,70 @@ definitions:
 
   GetTeamInfo:
     type: object
-    properties: 
-    
-      avatar: 
+    properties:
+
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 隊伍頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 隊伍名稱
-      active_rate: 
+      active_rate:
         type: number
         example: '30'
         description: 活躍度
-      step: 
+      step:
         type: number
         example: '999999'
         description: 總步數
-      members: 
+      members:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamMemberInfo'
 
-          
+
     required:
       - avatar
       - name
       - active_rate
       - step
       - members
-      
-  
-      
+
+
+
   TeamMemberInfo:
     type: object
-    properties: 
-      avatar: 
+    properties:
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 團隊頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 會員名稱
-      my_referrer_code: 
+      my_referrer_code:
         type: string
         example: 'xxxx'
         description: 推薦碼
-      step: 
+      step:
         type: number
         example: '1000000'
         description: 目前總步數
-      is_leader: 
+      is_leader:
         type: string
         example: 'Y'
         description: 是否為隊長(Y/N)
-      
+
     required:
       - avatar
       - name
       - my_referrer_code
       - step
       - is_leader
-  
+
   GetMyTeamResponse:
     type: object
     properties:
@@ -1446,33 +1839,33 @@ definitions:
 
   GetMyTeamInfo:
     type: object
-    properties: 
-    
-      avatar: 
+    properties:
+
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 隊伍頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 隊伍名稱
-      active_rate: 
+      active_rate:
         type: number
         example: '30'
         description: 活躍度
-      step: 
+      step:
         type: number
         example: '999999'
         description: 總步數
-      members: 
+      members:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamMemberInfo'
-      invite: 
+      invite:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamInviteMemberInfo'
-        
+
     required:
       - avatar
       - name
@@ -1480,39 +1873,39 @@ definitions:
       - step
       - members
       - invite
-  
+
   TeamInviteMemberInfo:
     type: object
-    properties: 
-      team_invite_id: 
+    properties:
+      team_invite_id:
         type: string
         example: 'xxxxx'
         description: 團隊邀請代碼
-      avatar: 
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 團隊頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 會員名稱
-      my_referrer_code: 
+      my_referrer_code:
         type: string
         example: 'xxxx'
         description: 推薦碼
-      avg_step: 
+      avg_step:
         type: number
         example: '1000000'
         description: 平均日步數
-      
+
     required:
       - team_invite_id
       - avatar
       - name
       - my_referrer_code
       - avg_step
-      - is_leader    
-  
+      - is_leader
+
   GetTeamPkResponse:
     type: object
     properties:
@@ -1526,132 +1919,132 @@ definitions:
 
   GetTeamPkInfo:
     type: object
-    properties: 
-    
-      team_act_name: 
+    properties:
+
+      team_act_name:
         type: string
         example: '1月健康企業正式賽'
         description: 活動名稱
-      banner: 
+      banner:
         type: string
         example: 'assets/images/banner_1.png'
         description: 活動Banner
-      season: 
+      season:
         type: string
         example: 'spring'
         description: 季節背景(春天:spring夏天:summer秋天:fall冬天:winter)
-      
-      activity_deadline: 
+
+      activity_deadline:
         type: string
         example: '2026/01/01'
         description: 活動報名截止日期
-        
+
       status:
         type: string
         example: 'P'
         description: 狀態(PENDING:即將開賽,ING:進行中,C:結算中,E:已結束)
-      
+
       description:
         type: string
         example: '活動說明活動說明活動說明'
         description: 活動說明
-      
-      game_start_date: 
+
+      game_start_date:
         type: string
         example: '2026/01/01'
         description: 比賽開始日期
-      game_end_date: 
+      game_end_date:
         type: string
         example: '2026/03/01'
         description: 比賽結束日期
-        
-      total_people: 
+
+      total_people:
         type: number
         example: 100
         description: 總人數
-      total_team: 
+      total_team:
         type: number
         example: 100
         description: 總隊伍
-      recent_join: 
+      recent_join:
         type: array
-        items: 
+        items:
           example: 'assets/images/avatar.png'
-      target_steps: 
+      target_steps:
         type: number
         example: 9999999
         description: 目標步數
-      total_coins: 
+      total_coins:
         type: number
         example: 9999999
         description: 龍珠總數
-      
-      bonus_team_no_1: 
+
+      bonus_team_no_1:
         type: number
         example: 30
         description: 團體賽第一名占比
-      bonus_team_no_1_coins: 
+      bonus_team_no_1_coins:
         type: number
         example: 30
         description: 團體賽第一名可獲得龍珠數
-      bonus_team_no_2: 
+      bonus_team_no_2:
         type: number
         example: 30
         description: 團體賽第二名占比
-      bonus_team_no_2_coins: 
+      bonus_team_no_2_coins:
         type: number
         example: 30
         description: 團體賽第二名可獲得龍珠數
-      bonus_team_no_3: 
+      bonus_team_no_3:
         type: number
         example: 30
         description: 團體賽第三名占比
-      bonus_team_no_3_coins: 
+      bonus_team_no_3_coins:
         type: number
         example: 30
         description: 團體賽第三名可獲得龍珠數
-      
-      bonus_personal_no_1: 
+
+      bonus_personal_no_1:
         type: number
         example: 30
         description: 個人第一名占比
-      bonus_personal_no_1_coins: 
+      bonus_personal_no_1_coins:
         type: number
         example: 30
         description: 個人第一名可獲得龍珠數
-      bonus_personal_no_2: 
+      bonus_personal_no_2:
         type: number
         example: 30
         description: 個人第二名占比
-      bonus_personal_no_2_coins: 
+      bonus_personal_no_2_coins:
         type: number
         example: 30
         description: 個人第二名可獲得龍珠數
-      bonus_personal_no_3: 
+      bonus_personal_no_3:
         type: number
         example: 30
         description: 個人第三名占比
-      bonus_personal_no_3_coins: 
+      bonus_personal_no_3_coins:
         type: number
         example: 30
         description: 個人第三名可獲得龍珠數
-      team_map: 
+      team_map:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamPkMapInfo'
-      team_leaderboard: 
+      team_leaderboard:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamPkTeamLeaderBoardInfo'
-      personal_leaderboard: 
+      personal_leaderboard:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamPkPersonalLeaderBoardInfo'
       my_team_id:
         type: string
         example: '222'
         description: 我的隊伍代碼
-        
+
     required:
       - team_act_name
       - banner
@@ -1680,57 +2073,57 @@ definitions:
 
   TeamPkPersonalLeaderBoardInfo:
     type: object
-    properties: 
-      avatar: 
+    properties:
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 團隊頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 會員名稱
-      my_referrer_code: 
+      my_referrer_code:
         type: string
         example: 'xxxx'
         description: 推薦碼
-      step: 
+      step:
         type: number
         example: '1000000'
         description: 目前總步數
-     
-  
+
+
     required:
       - avatar
       - name
       - my_referrer_code
       - step
-      
-      
-      
+
+
+
   TeamPkTeamLeaderBoardInfo:
     type: object
-    properties: 
-      team_id: 
+    properties:
+      team_id:
         type: string
         example: 'xxxxx'
         description: 團體團隊ID
-      avatar: 
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 團隊頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 團隊名稱
-      step: 
+      step:
         type: number
         example: '1000000'
         description: 團隊目前總步數
-      max_people_num: 
+      max_people_num:
         type: number
         example: '3'
         description: 團隊人數上限
-      current_people_num: 
+      current_people_num:
         type: number
         example: '2'
         description: 目前團隊人數
@@ -1741,39 +2134,49 @@ definitions:
       - step
       - max_people_num
       - current_people_num
-      
+
   TeamPkMapInfo:
     type: object
-    properties: 
-      map_point: 
+    properties:
+      map_point:
         type: number
         example: '1'
         description: 地圖顯示級距(共10個)
-      teams: 
+      point_start_step:
+        type: number
+        example: '0'
+        description: 級距開始步數
+      point_end_step:
+        type: number
+        example: '100000'
+        description: 級距結束步數
+      teams:
         type: array
-        items: 
+        items:
           $ref: '#/definitions/TeamPkMapTeamInfo'
-      
+
     required:
       - map_point
+      - point_start_step
+      - point_end_step
       - teams
-      
+
   TeamPkMapTeamInfo:
     type: object
-    properties: 
-      avatar: 
+    properties:
+      avatar:
         type: string
         example: 'assets/images/avatar.png'
         description: 團隊頭像
-      name: 
+      name:
         type: string
         example: '帶你飛'
         description: 團隊名稱
-      
+
     required:
       - avatar
       - name
-      
+
   ListTeamPkResponse:
     type: object
     properties:
@@ -1784,69 +2187,69 @@ definitions:
     required:
       - header
       - data
-      
+
   ListTeamPkInfo:
     type: object
-    properties: 
-      all: 
+    properties:
+      all:
         type: array
         items:
           $ref: '#/definitions/TeamPkInfo'
-      my: 
+      my:
         type: array
         items:
           $ref: '#/definitions/TeamPkInfo'
-      invite: 
+      invite:
         type: array
         items:
           $ref: '#/definitions/InviteTeamPkInfo'
-      join: 
+      join:
         type: array
         items:
           $ref: '#/definitions/JoinTeamPkInfo'
-      
+
     required:
       - all
       - my
       - invite
       - join
-  
+
   JoinTeamPkInfo:
     type: object
-    properties: 
-      team_invite_id: 
+    properties:
+      team_invite_id:
         type: string
         example: 'xxx'
         description: 團體團隊邀請ID
-      team_act_name: 
+      team_act_name:
         type: string
         example: '1月健康企業正式賽'
         description: 活動名稱
-      target_friend_name: 
+      target_friend_name:
         type: string
         example: 'XXXX'
         description: 受邀會員名稱
-      target_friend_avator: 
+      target_friend_avator:
         type: string
         example: 'assets/images/banner_1.png'
         description: 受邀會員頭像
-        
-      accu_member_cnt: 
+
+      accu_member_cnt:
         type: number
         example: 100
         description: 隊伍人數
-      max_people_num: 
+      max_people_num:
         type: number
         example: 100
         description: 隊伍人數上限
-      min_people_num: 
+      min_people_num:
         type: number
         example: 100
         description: 隊伍人數下限
 
-      recent_join: 
+      recent_join:
         type: array
-        items: 
+        items:
           example: 'assets/images/avatar.png'
     required:
       - team_invite_id
@@ -1856,43 +2259,43 @@ definitions:
       - accu_member_cnt
       - max_people_num
       - min_people_num
-  
+
   InviteTeamPkInfo:
     type: object
-    properties: 
-      team_invite_id: 
+    properties:
+      team_invite_id:
         type: string
         example: 'xxx'
         description: 團體團隊邀請ID
-      team_act_name: 
+      team_act_name:
         type: string
         example: '1月健康企業正式賽'
         description: 活動名稱
-      team_name: 
+      team_name:
         type: string
         example: 'XXXX'
         description: 隊伍名稱
-      team_avator: 
+      team_avator:
         type: string
         example: 'assets/images/banner_1.png'
         description: 隊伍頭像
-        
-      accu_member_cnt: 
+
+      accu_member_cnt:
         type: number
         example: 100
         description: 隊伍人數
-      max_people_num: 
+      max_people_num:
         type: number
         example: 100
         description: 隊伍人數上限
-      min_people_num: 
+      min_people_num:
         type: number
         example: 100
         description: 隊伍人數下限
 
-      recent_join: 
+      recent_join:
         type: array
-        items: 
+        items:
           example: 'assets/images/avatar.png'
     required:
       - team_invite_id
@@ -1902,53 +2305,53 @@ definitions:
       - accu_member_cnt
       - max_people_num
       - min_people_num
-  
+
   TeamPkInfo:
     type: object
-    properties: 
-      team_act_id: 
+    properties:
+      team_act_id:
         type: string
         example: 'xxx'
         description: 團體PK賽ID
-      team_act_name: 
+      team_act_name:
         type: string
         example: '1月健康企業正式賽'
         description: 活動名稱
-      banner: 
+      banner:
         type: string
         example: 'assets/images/banner_1.png'
         description: 活動Banner
-      activity_deadline: 
+      activity_deadline:
         type: string
         example: '2026/01/01'
         description: 活動報名截止日期
-      participent_limit: 
+      participent_limit:
         type: number
         example: 100
         description: 參與人數
-      total_coins: 
+      total_coins:
         type: number
         example: 1000
         description: 總獎勵龍珠數
-      recent_join: 
+      recent_join:
         type: array
-        items: 
+        items:
           example: 'assets/images/avatar.png'
       status:
         type: string
         example: 'P'
         description: 狀態(PENDING:即將開賽,ING:進行中,C:結算中,E:已結束)
-        
-      game_end_date: 
+
+      game_end_date:
         type: string
         example: '2020/06/10'
         description: 比賽結束日期(當status為ING才有值)
-      
-      invite_expire_day: 
+
+      invite_expire_day:
         type: number
         example: '20'
         description: 邀請挑戰幾天後失效(當status為C才會有值)
-      
+
     required:
       - team_act_id
       - team_act_name
@@ -1977,7 +2380,7 @@ definitions:
     required:
       - step
       - sleep
-  
+
   MainHealthSleepInfo:
     type: object
     properties:
@@ -1987,8 +2390,8 @@ definitions:
         $ref: '#/definitions/MainHealthSleepDetailInfo'
     required:
       - week
-      - month    
-  
+      - month
+
   MainHealthSleepDetailInfo:
     type: object
     properties:
@@ -2037,7 +2440,7 @@ definitions:
       - avg_light_sleep_hour
       - avg_light_sleep_minute
       - chart
-  
+
   SleepChartInfo:
     type: object
     properties:
@@ -2062,7 +2465,7 @@ definitions:
       - deep
       - light
       - rem
-  
+
   MainHealthStepInfo:
     type: object
     properties:
@@ -2073,7 +2476,7 @@ definitions:
     required:
       - week
       - month
-  
+
   MainHealthStepDetailInfo:
     type: object
     properties:
@@ -2120,7 +2523,7 @@ definitions:
       - total_distance
       - achieve_count
       - chart
-  
+
   StepChartInfo:
     type: object
     properties:
@@ -2135,7 +2538,7 @@ definitions:
     required:
       - date
       - step
-  
+
   GetAdventureMapResponse:
     type: object
     properties:
@@ -2145,7 +2548,7 @@ definitions:
         $ref: '#/definitions/GetAdventureMapInfo'
     required:
       - header
-  
+
   GetAdventureMapInfo:
     type: object
     properties:
@@ -2165,12 +2568,44 @@ definitions:
         type: string
         example: 'Y'
         description: 是否完成
+      checkpoint_bonus:
+        type: array
+        items:
+          $ref: '#/definitions/GetAdventureMapCheckPointBonusInfo'
     required:
       - level
       - exp_end
       - checkpoint_level
       - map_progress
-  
+      - checkpoint_bonus
+
+  GetAdventureMapCheckPointBonusInfo:
+    type: object
+    properties:
+      bonus_exp:
+        type: number
+        description: 獎勵經驗值
+        example: 20000
+      bonus_coins:
+        type: number
+        description: 獎勵龍珠
+        example: 20000
+      bonus_free_game:
+        type: number
+        description: 獎勵免費遊戲次數
+        example: 2
+      is_get:
+        type: string
+        example: 'Y'
+        description: 是否接收
+
+    required:
+      - bonus_exp
+      - bonus_coins
+      - bonus_free_game
+      - is_get
+
+
   GetAdventureResponse:
     type: object
     properties:
@@ -2196,7 +2631,7 @@ definitions:
     required:
       - current_map_level
       - roles
-  
+
   MapRoleInfo:
     type: object
     properties:
@@ -2226,7 +2661,7 @@ definitions:
       - image
       - is_complete
       - is_use
-  
+
   ListDistrictResponse:
     type: object
     properties:
@@ -2238,7 +2673,7 @@ definitions:
           $ref: '#/definitions/DistrictInfo'
     required:
       - header
-  
+
   DistrictInfo:
     type: object
     properties:
@@ -2254,7 +2689,346 @@ definitions:
     required:
       - city
       - district
-  
+
+  GetInsurancePolicyResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        $ref: '#/definitions/GetInsurancePolicyInfo'
+
+    required:
+      - header
+
+  GetInsurancePolicyInfo:
+    type: object
+    properties:
+      insurance_no:
+        type: string
+        example: '3500058278'
+        description: 團保單號
+      company_name:
+        type: string
+        example: '台灣人壽'
+        description: 投保公司名稱
+      start_date:
+        type: string
+        example: '2021-07-31'
+        description: 有效起日
+      end_date:
+        type: string
+        example: '2022-07-31'
+        description: 有效迄日
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/GetInsurancePolicyMemberInfo'
+
+    required:
+      - insurance_id
+      - insurance_no
+      - company_name
+      - start_date
+      - end_date
+      - members
+
+  GetInsurancePolicyMemberInfo:
+    type: object
+    properties:
+      type:
+        type: string
+        example: 'A'
+        description: 類型 (A:本人、B:配偶、C:字女、D:本父、E:本母、F:配父、G:配母)
+      name:
+        type: string
+        example: '涂Ｏ璇'
+        description: 團保人姓名
+      description:
+        type: string
+        example: '台灣人壽團體全方位傷害保險附約-航空意外'
+        description: 團保明細說明
+      amount:
+        type: number
+        example: '1000000.0'
+        description: 團保金額
+
+    required:
+      - type
+      - name
+      - description
+      - amount
+
+  GetClaimInfoResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        items:
+          $ref: '#/definitions/GetClaimInfo'
+    required:
+      - header
+
+  GetClaimInfo:
+    type: object
+    properties:
+      claim_id:
+        type: string
+        example: 'xxxxxx'
+        description: 理賠申請案號
+      type:
+        type: string
+        example: 'N'
+        description: 類別 (N:一般醫療(疾病), A:意外醫療(意外))
+      apply_date:
+        type: string
+        example: '2025/10/10'
+        description: 申請日期/時間
+      accident_name:
+        type: string
+        example: 'A123456789'
+        description: 事故人姓名
+      details:
+        type: array
+        items:
+          $ref: '#/definitions/GetClaimDetailInfo'
+
+
+    required:
+      - claim_id
+      - type
+      - apply_date
+      - accident_name
+      - details
+
+  GetClaimDetailInfo:
+    type: object
+    properties:
+      claim_case_no:
+        type: string
+        example: 'xxxxxx'
+        description: 保險理賠案號
+      status:
+        type: string
+        example: '審核中'
+        description: 狀態
+      status_date:
+        type: string
+        example: '2025/10/10'
+        description: 狀態時間
+      description:
+        type: string
+        example: '2025/10/10'
+        description: 理賠給付說明
+
+
+    required:
+      - claim_case_no
+      - status
+      - status_date
+      - description
+
+  ListClaimInfoResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ListClaimInfo'
+    required:
+      - header
+
+  ListClaimInfo:
+    type: object
+    properties:
+      claim_id:
+        type: string
+        example: 'xxxxxx'
+        description: 理賠案號
+      type:
+        type: string
+        example: 'N'
+        description: 類別 (N:一般醫療(疾病), A:意外醫療(意外))
+      apply_date:
+        type: string
+        example: '2025/10/10'
+        description: 申請日期/時間
+      status:
+        type: string
+        example: 'P'
+        description: 狀態 (P:審核中, S:已送出, F:已結案)
+
+
+    required:
+      - claim_id
+      - type
+      - apply_date
+      - status
+
+  ListBankAccountInfoResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ListBankAccountInfo'
+    required:
+      - header
+
+  ListBankAccountInfo:
+    type: object
+    properties:
+      account_id:
+        type: string
+        example: 'xxxxxx'
+        description: 匯款帳號代碼
+      bank_code:
+        type: string
+        example: '006'
+        description: 銀行代碼
+      bank_name:
+        type: string
+        example: '合作金庫商業銀行'
+        description: 銀行名稱
+      branch_code:
+        type: string
+        example: '1427'
+        description: 分行代碼
+      branch_name:
+        type: string
+        example: '石牌分行'
+        description: 分行名稱
+      account_no:
+        type: string
+        example: 'ＸＸＸＸＸ'
+        description: 匯款帳號
+      is_default:
+        type: string
+        example: 'Y'
+        description: 是否為預設帳戶(Y/N)
+
+    required:
+      - account_id
+      - bank_code
+      - bank_name
+      - branch_code
+      - account_no
+      - is_default
+
+  ListBankInfoResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ListBankInfo'
+    required:
+      - header
+
+  ListBankInfo:
+    type: object
+    properties:
+      bank_code:
+        type: string
+        example: '006'
+        description: 銀行代碼
+      bank_name:
+        type: string
+        example: '合作金庫商業銀行'
+        description: 銀行名稱
+      branch_code:
+        type: string
+        example: '1427'
+        description: 分行代碼
+      branch_name:
+        type: string
+        example: '石牌分行'
+        description: 分行名稱
+
+    required:
+      - bank_code
+      - bank_name
+      - branch_code
+      - branch_name
+
+
+  ListInsurancePolicyResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ListInsurancePolicyInfo'
+    required:
+      - header
+
+  ListInsurancePolicyInfo:
+    type: object
+    properties:
+      insurance_id:
+        type: string
+        example: '05139d10-5b0a-40e8-b66c-0fb6aefd6f12'
+        description: 團保主檔代碼
+      insurance_no:
+        type: string
+        example: '3500058278'
+        description: 團保單號
+      company_name:
+        type: string
+        example: '台灣人壽'
+        description: 投保公司名稱
+      start_date:
+        type: string
+        example: '2021-07-31'
+        description: 有效起日
+      end_date:
+        type: string
+        example: '2022-07-31'
+        description: 有效迄日
+      members:
+        type: array
+        items:
+          example: 'A'
+      assistant:
+        type: array
+        items:
+          $ref: '#/definitions/ListInsurancePolicyAssistantInfo'
+
+    required:
+      - insurance_id
+      - insurance_no
+      - company_name
+      - start_date
+      - end_date
+      - members
+      - assistant
+
+  ListInsurancePolicyAssistantInfo:
+    type: object
+    properties:
+      name:
+        type: string
+        example: '蕭Ｏ○'
+        description: 團保專員名稱
+      tel:
+        type: string
+        example: '0982xxxx33'
+        description: 團保專員電話
+
+    required:
+      - name
+      - tel
+
+
   GetInsuranceResponse:
     type: object
     properties:
@@ -2281,7 +3055,7 @@ definitions:
     required:
       - card
       - popular_act
-      
+
   InsurancePopularActInfo:
     type: object
     properties:
@@ -2304,8 +3078,8 @@ definitions:
     required:
       - subject
       - url
-      - image    
-  
+      - image
+
   InsuranceCardInfo:
     type: object
     properties:
@@ -2325,7 +3099,19 @@ definitions:
       - subject
       - url
       - image
-      
+
+  ListProductResponse:
+    type: object
+    properties:
+      header:
+        $ref: '#/definitions/Header'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ProductInfo'
+    required:
+      - header
+
   GetMyResponse:
     type: object
     properties:
@@ -2349,17 +3135,13 @@ definitions:
         description: 任務
         items:
           $ref: '#/definitions/TaskInfo'
-      product:
-        type: array
-        description: 商城
-        items:
-          $ref: '#/definitions/ProductInfo'
+
 
     required:
       - sign_up
       - tasks
-      - product
-  
+
+
   ProductInfo:
     type: object
     properties:
@@ -2379,7 +3161,7 @@ definitions:
         type: string
         example: '/uploads/images/product/16887117112631241.png'
         description: 首頁圖片
-      
+
       detail_img_1:
         type: string
         example: '/uploads/images/product/16887117112631241.png'
@@ -2400,7 +3182,7 @@ definitions:
         type: string
         example: '/uploads/images/product/16887117112631241.png'
         description: 商品詳情圖檔5
-      
+
       description:
         type: string
         example: '<p>0805????-1</p><p>0805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1</p><p>0805????-10805????-10805????-10805????-10805????-10805????-1<br></p>'
@@ -2417,7 +3199,7 @@ definitions:
         type: string
         example: 'Y'
         description: 是否為熱門商品
-        
+
       original_coins:
         type: number
         example: '100'
@@ -2434,9 +3216,9 @@ definitions:
         type: number
         example: '5'
         description: 餘下數量
-      
-        
-      
+
+
+
     required:
       - product_id
       - prod_name
@@ -2446,8 +3228,8 @@ definitions:
       - cost_unit_price
       - limit_exchange_amt
       - quantity
-      
-  
+
+
   TaskInfo:
     type: object
     properties:
@@ -2479,15 +3261,15 @@ definitions:
         type: number
         example: '100'
         description: 完成百分比
-      is_enable:
+      questionnaire_id:
         type: string
-        example: 'Y'
-        description: 是否啟用
+        example: 'xxxxx'
+        description: 問卷序號
       status:
         type: string
         example: 'P'
-        description: 任務達成狀態(P:進行中、U:已完成待領取、A:已領取)
-      
+        description: 任務達成狀態(T:去完成、P:進行中、U:已完成待領取、A:已領取)
+
     required:
       - task_id
       - task_type
@@ -2496,9 +3278,8 @@ definitions:
       - exp
       - game
       - complete_rate
-      - is_enable
       - status
-  
+
   SingUpInfo:
     type: object
     properties:
@@ -2514,14 +3295,14 @@ definitions:
         type: string
         example: 'EXP'
         description: 獎勵型態(COIN：龍珠、EXP：經驗值)
-      
+
     required:
       - continue_sign_up_count
       - coins
       - exp
       - bonus_type
-      
-  
+
+
   GetMainResponse:
     type: object
     properties:
@@ -2554,7 +3335,7 @@ definitions:
       - announcement
       - steps
       - sleep
-      
+
   ActivityInfo:
     type: object
     properties:
@@ -2597,7 +3378,7 @@ definitions:
       - home_img
       - url_type
       - url
-      
+
   AnnouncementInfo:
     type: object
     properties:
@@ -2617,23 +3398,23 @@ definitions:
       - announcement_id
       - subject
       - content
-  
+
   IndexStepInfo:
     type: object
     properties:
-      steps_goal: 
+      steps_goal:
         type: number
         example: 15000
-        description: 目標步數 
-      steps_today: 
+        description: 目標步數
+      steps_today:
         type: number
         example: 15000
-        description: 今日步數 
-      steps_distance: 
+        description: 今日步數
+      steps_distance:
         type: number
         example: 10
-        description: 步行距離(公里) 
-      calories: 
+        description: 步行距離(公里)
+      calories:
         type: number
         example: 300
         description: 消耗的卡路里
@@ -2642,23 +3423,23 @@ definitions:
       - steps_today
       - steps_distance
       - calories
-  
+
   IndexSleepInfo:
     type: object
     properties:
-      sleep_goal: 
+      sleep_goal:
         type: number
         example: 8
         description: 每日目標睡眠小時
-      sleep_today: 
+      sleep_today:
         type: number
         example: 420
-        description: 今日睡眠時間(分鐘) 
-      sleep_deep_today: 
+        description: 今日睡眠時間(分鐘)
+      sleep_deep_today:
         type: number
         example: 420
         description: 今日深眠時間(分鐘)
-      sleep_shallow_today: 
+      sleep_shallow_today:
         type: number
         example: 420
         description: 今日淺眠時間(分鐘)
@@ -2667,11 +3448,15 @@ definitions:
       - sleep_today
       - sleep_deep_today
       - sleep_shallow_today
-  
-  
+
+
   LoginPostRequest:
     type: object
     properties:
+      appl_id:
+        type: string
+        description: 登入者帳號
+        example: 'xxxxx'
       ticket:
         type: string
         description: CSSO Ticket資訊
@@ -2692,8 +3477,9 @@ definitions:
         type: string
         description: FCM推播Token
         example: 'xxxx'
-      
+
     required:
+      - appl_id
       - ticket
       - service
       - app_uuid
@@ -2707,8 +3493,8 @@ definitions:
         type: string
         description: 團隊組隊邀請代碼
         example: 'xxxx'
-      
-      
+
+
     required:
       - team_invite_id
 
@@ -2723,7 +3509,7 @@ definitions:
         type: string
         description: 會員代碼
         example: 'xxxx'
-      
+
 
   TeamInviteMyTeamPostRequest:
     type: object
@@ -2736,8 +3522,8 @@ definitions:
         type: string
         description: 接受或拒絕(Y：接受 / N拒絕)
         example: 'Y'
-      
-      
+
+
     required:
       - team_invite_id
       - result
@@ -2753,8 +3539,8 @@ definitions:
         type: string
         description: 接受或拒絕(Y：接受 / N拒絕)
         example: 'Y'
-      
-      
+
+
     required:
       - team_invite_id
       - result
@@ -2766,9 +3552,262 @@ definitions:
         type: string
         description: PK邀請代碼
         example: 'xxxx'
-      
+
     required:
       - pk_id
+
+  SaveClaimRequest:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 類別 (N:一般醫療(疾病), A:意外醫療(意外))
+        example: 'N'
+      dx_cert_path:
+        type: array
+        description: 診斷證明書圖片(base64)
+        items:
+          example: 'xxxxxxxxxxx'
+      med_receipt_path:
+        type: array
+        description: 就醫收據圖片(base64)
+        items:
+          example: 'xxxxxxxxxxx'
+      acc_cert_path:
+        type: array
+        description: 事故證明文件圖片(base64)
+        items:
+          example: 'xxxxxxxxxxx'
+      acc_date:
+        type: string
+        description: 事故日期
+        example: '2025/10/10'
+      acc_time:
+        type: string
+        description: 事故時間
+        example: '0-1時'
+      acc_location:
+        type: string
+        description: 事故地點
+        example: '台北車站前'
+      reason:
+        type: string
+        description: 原因
+        example: '車禍 (行人)'
+      supplement:
+        type: string
+        description: 補充說明
+        example: '碰撞'
+      is_call_police:
+        type: string
+        description: 是否報警(Y/N)
+        example: 'Y'
+      police_name:
+        type: string
+        description: 員警姓名
+        example: '古风'
+      police_mobile:
+        type: string
+        description: 員警連絡電話
+        example: '0936925814'
+
+      bank_code:
+        type: string
+        description: 銀行代碼
+        example: '004'
+      bank_name:
+        type: string
+        description: 銀行名稱
+        example: '臺灣銀行'
+      branch_code:
+        type: string
+        description: 分行代碼
+        example: '0107'
+      branch_name:
+        type: string
+        description: 分行名稱
+        example: '台中分行'
+      account_no:
+        type: string
+        description: 匯款帳號
+        example: '12345678'
+      agress_chaim_chain:
+        type: string
+        description: 是否同意理賠聯盟鏈(Y/N)
+        example: 'Y'
+
+
+      accident_id:
+        type: string
+        description: 事故人ID
+        example: 'A123456789'
+      accident_name:
+        type: string
+        description: 事故人姓名
+        example: 'A123456789'
+      accident_occupation:
+        type: string
+        description: 事故人職業
+        example: 'A123456789'
+      accident_mobile:
+        type: string
+        description: 事故人連絡電話
+        example: 'A123456789'
+      accident_tel:
+        type: string
+        description: 事故人住家電話
+        example: 'A123456789'
+      accident_county:
+        type: string
+        description: 事故人縣市
+        example: 'A123456789'
+      accident_district:
+        type: string
+        description: 事故人鄉鎮市區
+        example: 'A123456789'
+      accident_address:
+        type: string
+        description: 事故人地址
+        example: 'A123456789'
+      accident_birth:
+        type: string
+        description: 生日
+        example: 'A123456789'
+      accident_email:
+        type: string
+        description: 事故人Email
+        example: 'A123456789'
+
+
+    required:
+      - type
+      - dx_cert_path
+      - acc_date
+      - bank_code
+      - bank_name
+      - branch_code
+      - branch_name
+      - account_no
+      - accident_id
+      - accident_name
+      - accident_occupation
+      - accident_mobile
+      - accident_tel
+      - accident_county
+      - accident_district
+      - accident_address
+      - accident_birth
+      - accident_email
+
+  ContactMeRequest:
+    type: object
+    properties:
+      type:
+        type: string
+        description: 服務類別(T:團體保險、P:個人保險)
+        example: 'T'
+      name:
+        type: string
+        description: 姓名
+        example: '姓名姓名姓名姓名'
+      gender:
+        type: string
+        description: 性別(F:女性 M:男性 O:其它)
+        example: 'F'
+      mobile:
+        type: string
+        description: 行動電話
+        example: '0987654321'
+      email:
+        type: string
+        description: E-Mail
+        example: 'xxxx@gmail.com'
+      insurance_no:
+        type: string
+        description: 團保單號
+        example: '12121222'
+      tel_home:
+        type: string
+        description: 住家電話
+        example: '02-1121212121'
+      tel_office:
+        type: string
+        description: 公司電話
+        example: '02-121212121'
+      contact_week:
+        type: array
+        description: 聯絡時間(1/2/3/4/5/6/7)
+        items:
+          example: '1'
+      conact_period:
+        type: array
+        description: 聯絡時段(m:早上/a：中午/e：晚上)
+        items:
+          example: '1'
+      message:
+        type: string
+        description: 留言
+        example: '留言留言留言留言留言'
+
+    required:
+      - type
+      - name
+      - gender
+      - mobile
+      - email
+      - contact_week
+      - conact_period
+      - message
+
+  BankAccountDeleteRequest:
+    type: object
+    properties:
+      account_id:
+        type: string
+        description: 匯款帳號代碼
+        example: 'xxxx'
+
+    required:
+      - account_id
+
+  BankAccountPostRequest:
+    type: object
+    properties:
+      account_id:
+        type: string
+        description: 匯款帳號代碼
+        example: 'xxxx'
+      bank_code:
+        type: string
+        example: '006'
+        description: 銀行代碼
+      bank_name:
+        type: string
+        example: '合作金庫商業銀行'
+        description: 銀行名稱
+      branch_code:
+        type: string
+        example: '1427'
+        description: 分行代碼
+      branch_name:
+        type: string
+        example: '石牌分行'
+        description: 分行名稱
+      account_no:
+        type: string
+        example: 'ＸＸＸＸＸ'
+        description: 匯款帳號
+      is_default:
+        type: string
+        example: 'Y'
+        description: 是否為預設帳戶(Y/N)
+
+    required:
+      - bank_code
+      - bank_name
+      - branch_code
+      - account_no
+      - is_default
 
   PersonalPKPostRequest:
     type: object
@@ -2789,7 +3828,7 @@ definitions:
         type: number
         description: 挑戰龍珠數
         example: '100'
-      
+
     required:
       - invited_member_id
       - steps
@@ -2802,9 +3841,24 @@ definitions:
         type: string
         description: 任務ID
         example: 'XXXXX'
-      
+
     required:
       - task_id
+
+  ProductExchangePostRequest:
+    type: object
+    properties:
+      product_company_id:
+        type: string
+        description: 商品企業代碼
+        example: 'XXXXX'
+      amount:
+        type: number
+        description: 兌換數量
+        example: '10'
+
+    required:
+      - amount
 
   InviteFriendPostRequest:
     type: object
@@ -2817,7 +3871,7 @@ definitions:
         type: string
         description: 邀請結果(Y：接受、N：拒絕)
         example: 'Y'
-      
+
     required:
       - friend_id
       - result
@@ -2836,7 +3890,7 @@ definitions:
     required:
       - step
       - sleep
-      
+
   SyncHealthInfoInfo:
     type: object
     properties:
@@ -2852,10 +3906,26 @@ definitions:
       - date
       - data
 
+  GamePostRequest:
+    type: object
+    properties:
+      game_id:
+        type: string
+        description: 遊戲代碼
+        example: '4c21e73a-f357-470a-81f6-4bb062bde358'
+      success:
+        type: string
+        description: 是否成功(Y/N)
+        example: 'Y'
+    required:
+      - game_id
+      - success
+
+
   MyInfoPostRequest:
     type: object
     properties:
-      
+
       mobile:
         type: string
         description: 行動電話
@@ -2896,8 +3966,24 @@ definitions:
         type: string
         description: 使用阿龍角色
         example: '1'
-      
-      
+      binding_type:
+        type: boolean
+        description: 綁定哪種裝置
+        example: 'APPLE|GOOGLE|GARMIN|FITBIT'
+      binding_token:
+        type: string
+        description: 綁定Fibit或Garmin 才有Token值
+        example: 'XXXXXXX'
+      binding_captcha:
+        type: boolean
+        example: 'true'
+        description: 是否綁定圖形登入
+      enable_notification:
+        type: boolean
+        example: false
+        description: 是否開啟推播
+
+
 
   LandingPostRequest:
     type: object
@@ -2910,27 +3996,15 @@ definitions:
         type: string
         description: 暱稱
         example: '哈哈哈'
-      binding_apple:
+      binding_type:
         type: boolean
-        description: 綁定Apple
-        example: 'true'
-      binding_android:
-        type: boolean
-        description: 綁定Google
-        example: 'true'
-      binding_fibit:
-        type: boolean
-        description: 綁定Fibit
-        example: 'true'
-      binding_fibit_token:
+        description: 綁定哪種裝置
+        example: 'APPLE|GOOGLE|GARMIN|FITBIT'
+      binding_token:
         type: string
-        description: 綁定Fibit Token
+        description: 綁定Fibit或Garmin 才有Token值
         example: 'XXXXXXX'
-      binding_garmin_token:
-        type: boolean
-        description: 綁定Garmin Token
-        example: 'XXXXXXX'
-      
+
 
   LoginPostResponse:
     type: object
@@ -2962,7 +4036,7 @@ definitions:
         $ref: '#/definitions/SysParamInfo'
     required:
       - header
-  
+
   SysParamInfo:
     type: object
     properties:
@@ -3009,7 +4083,7 @@ definitions:
       terms_of_use_title2:
         type: string
         example: '使用者活動辦法2標題'
-        description: 使用者活動辦法2標題 
+        description: 使用者活動辦法2標題
       terms_of_use_title3:
         type: string
         example: '使用者活動辦法3標題'
@@ -3042,8 +4116,8 @@ definitions:
         type: string
         example: '使用者活動辦法5'
         description: 使用者活動辦法5
-      
-    
+
+
 
   GetUserInfoResponse:
     type: object
@@ -3054,7 +4128,7 @@ definitions:
         $ref: '#/definitions/UserInfo'
     required:
       - header
-  
+
   UserInfo:
     type: object
     properties:
@@ -3062,10 +4136,22 @@ definitions:
         type: string
         example: 'U0001234'
         description: 使用者唯一ID
+      username:
+        type: string
+        example: 'A182385074'
+        description: 身份證字號
+      company_id:
+        type: string
+        example: '17814a59-04fc-41fb-9b45-9bd609626a44'
+        description: 所屬企業代碼
       level:
         type: integer
         example: 1
         description: 會員等級
+      level_text:
+        type: string
+        example: '團險**保險'
+        description: 會員等級顯示文字(團險**保險 / 一般)
       coins:
         type: integer
         example: 100
@@ -3188,13 +4274,19 @@ definitions:
         type: number
         example: 8
         description: 每日目標睡眠小時
-      
-    
+      occupation:
+        type: string
+        example: '金融業'
+        description: 職業(從團險保單中取得)
+
     required:
       - id
+      - username
       - pid
+      - company_id
       - nickName
       - level
+      - level_text
       - coins
       - exp
       - continue_sign_up_count

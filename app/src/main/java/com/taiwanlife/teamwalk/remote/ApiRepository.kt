@@ -73,21 +73,15 @@ class ApiRepository(
     suspend fun saveLandingInfo(
         referrerCode: String?,
         nickname: String?,
-        bindingApple: Boolean?,
-        bindingAndroid: Boolean?,
-        bindingFibit: Boolean?,
-        bindingFibitToken: String?,
-        bindingGarminToken: String?
+        bindingType: String?,
+        bindingToken: String?,
     ): Response<ResponseWrapper<Unit>> {
         return apiService.saveLandingInfo(
             LandingPostRequest(
                 referrerCode,
                 nickname,
-                bindingApple,
-                bindingAndroid,
-                bindingFibit,
-                bindingFibitToken,
-                bindingGarminToken
+                bindingType,
+                bindingToken
             )
         )
     }

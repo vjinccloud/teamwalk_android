@@ -9,12 +9,12 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityPromoteBinding
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
 import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
+import com.taiwanlife.teamwalk.utils.DeviceType
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.toast
 
@@ -23,12 +23,19 @@ class PromoteActivity :
 
     companion object {
         fun startPromoteActivity(context: Context, userInfoResponse: UserInfoResponse): Intent {
+            val bindingType = if (userInfoResponse.bindingFibit == true) {
+                DeviceType.FITBIT.value
+            } else if (userInfoResponse.bindingGarmin == true) {
+                DeviceType.GARMIN.value
+            } else if (userInfoResponse.bindingAndroid == true) {
+                DeviceType.HEALTH_CONNECT.value
+            } else {
+                null
+            }
             val userInfo = UserInfo(
                 referrerCode = userInfoResponse.referrerCode ?: "",
                 nickname = userInfoResponse.getAvailableNickName(),
-                bindingApple = userInfoResponse.bindingApple == true,
-                bindingAndroid = userInfoResponse.bindingAndroid == true,
-                bindingFibit = userInfoResponse.bindingFibit == true,
+                bindingType = bindingType
             )
 
             val onboardingIntent = Intent(context, PromoteActivity::class.java)

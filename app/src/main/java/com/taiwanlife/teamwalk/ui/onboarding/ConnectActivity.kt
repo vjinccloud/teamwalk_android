@@ -94,30 +94,10 @@ class ConnectActivity :
 
     private fun bindingRemoved(deviceType: DeviceType) {
         debugToast("${deviceType.displayName} removed")
-
-        when (deviceType) {
-            HEALTH_CONNECT -> {
-                userInfo = userInfo.copy(
-                    bindingAndroid = false,
-                )
-            }
-
-            GARMIN -> {
-                userInfo = userInfo.copy(
-                    bindingGarmin = false,
-                    bindingGarminToken = "",
-                )
-            }
-
-            FITBIT -> {
-                userInfo = userInfo.copy(
-                    bindingFibit = false,
-                    bindingFibitToken = ""
-                )
-            }
-
-            NONE -> {}
-        }
+        userInfo = userInfo.copy(
+            bindingType = null,
+            bindingToken = null,
+        )
 
         setCheckBoxAndNext()
     }
@@ -128,11 +108,8 @@ class ConnectActivity :
         when (deviceType) {
             HEALTH_CONNECT -> {
                 userInfo = userInfo.copy(
-                    bindingAndroid = true,
-                    bindingFibit = false,
-                    bindingGarmin = false,
-                    bindingGarminToken = "",
-                    bindingFibitToken = ""
+                    bindingType = deviceType.value,
+                    bindingToken = null,
                 )
             }
 
@@ -141,11 +118,8 @@ class ConnectActivity :
                     val garminData = getGson().fromJson(data, GarminData::class.java)
                     if (!garminData.oauthToken.isNullOrEmpty()) {
                         userInfo = userInfo.copy(
-                            bindingAndroid = false,
-                            bindingFibit = false,
-                            bindingGarmin = true,
-                            bindingGarminToken = garminData.oauthToken,
-                            bindingFibitToken = ""
+                            bindingType = deviceType.value,
+                            bindingToken = garminData.oauthToken,
                         )
                     }
                 }
@@ -156,11 +130,8 @@ class ConnectActivity :
                     val fitbitData = getGson().fromJson(data, FitbitData::class.java)
                     if (!fitbitData.accessToken.isNullOrEmpty()) {
                         userInfo = userInfo.copy(
-                            bindingAndroid = false,
-                            bindingFibit = true,
-                            bindingGarmin = false,
-                            bindingGarminToken = "",
-                            bindingFibitToken = fitbitData.accessToken
+                            bindingType = deviceType.value,
+                            bindingToken = fitbitData.accessToken,
                         )
                     }
                 }
@@ -168,11 +139,8 @@ class ConnectActivity :
 
             NONE -> {
                 userInfo = userInfo.copy(
-                    bindingAndroid = false,
-                    bindingFibit = false,
-                    bindingGarmin = false,
-                    bindingGarminToken = "",
-                    bindingFibitToken = ""
+                    bindingType = null,
+                    bindingToken = null,
                 )
             }
         }
@@ -183,10 +151,31 @@ class ConnectActivity :
     private fun setCheckBoxAndNext() {
         val currentDeviceType = bindingManager.getCurrentDeviceType()
 
-        viewBinding.checkboxHealthConnect.isChecked = userInfo.bindingAndroid
-        viewBinding.onboardingCheckboxFitbit.isChecked = userInfo.bindingFibit
-        viewBinding.onboardingCheckboxGarmin.isChecked = userInfo.bindingGarmin
-        viewBinding.onboardingCheckboxGoogleFit.isChecked = false
+        if(userInfo.bindingType.isNullOrEmpty()) {
+            viewBinding.checkboxHealthConnect.isChecked = false
+            viewBinding.onboardingCheckboxFitbit.isChecked = false
+            viewBinding.onboardingCheckboxGarmin.isChecked = false
+            viewBinding.onboardingCheckboxGoogleFit.isChecked = false
+        } else {
+            val deviceType = DeviceType.getDeviceTypeFromValue(userInfo.bindingType!!)
+            viewBinding.checkboxHealthConnect.isChecked = false
+            viewBinding.onboardingCheckboxFitbit.isChecked = false
+            viewBinding.onboardingCheckboxGarmin.isChecked = false
+            viewBinding.onboardingCheckboxGoogleFit.isChecked = false
+            when(deviceType) {
+                HEALTH_CONNECT -> {
+                    viewBinding.checkboxHealthConnect.isChecked = true
+                }
+                GARMIN -> {
+                    viewBinding.onboardingCheckboxGarmin.isChecked = true
+                }
+                FITBIT -> {
+                    viewBinding.onboardingCheckboxFitbit.isChecked = true
+                }
+                NONE -> {
+                }
+            }
+        }
 
         viewBinding.onboardingNextButton.text = getString(R.string.onboarding_connect_next)
 

@@ -15,28 +15,14 @@ data class LandingPostRequest(
     @SerializedName("nickname")
     val nickname: String?,
     /**
-     * 綁定Apple
+     * example: APPLE|GOOGLE|GARMIN|FITBIT
+     * 綁定哪種裝置
      */
-    @SerializedName("binding_apple")
-    val bindingApple: Boolean?,
+    @SerializedName("binding_type")
+    val bindingType: String?,
     /**
-     * 綁定Google
+     * 綁定Fibit或Garmin 才有Token值
      */
-    @SerializedName("binding_android")
-    val bindingAndroid: Boolean?,
-    /**
-     * 綁定Fibit
-     */
-    @SerializedName("binding_fibit")
-    val bindingFibit: Boolean?,
-    /**
-     * 綁定Fibit Token
-     */
-    @SerializedName("binding_fibit_token")
-    val bindingFibitToken: String?,
-    /**
-     * 綁定Garmin Token
-     */
-    @SerializedName("binding_garmin_token")
-    val bindingGarminToken: String?
+    @SerializedName("binding_token")
+    val bindingToken: String?,
 ) : BaseRequest()

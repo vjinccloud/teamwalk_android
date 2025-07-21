@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 enum class DeviceType(val value: String, val displayName: String) {
-    HEALTH_CONNECT("HEALTH_CONNECT", "Health Connect"),
+    HEALTH_CONNECT("GOOGLE", "Health Connect"),
     GARMIN("GARMIN", "Garmin"),
     FITBIT("FITBIT", "Fitbit"),
     NONE("NONE", "");

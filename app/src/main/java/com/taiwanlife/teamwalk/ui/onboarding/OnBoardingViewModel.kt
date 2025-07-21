@@ -12,11 +12,8 @@ class OnBoardingViewModel(repository: Repository) : BaseViewModel(repository) {
             repository.api.saveLandingInfo(
                 userInfo.referrerCode,
                 userInfo.nickname,
-                userInfo.bindingApple,
-                userInfo.bindingAndroid,
-                userInfo.bindingFibit,
-                userInfo.bindingFibitToken,
-                userInfo.bindingGarminToken
+                userInfo.bindingType,
+                userInfo.bindingToken
             )
         }
     }
