@@ -29,7 +29,8 @@ class TokenInterceptor : Interceptor {
         }
 
         val newRequest = originalRequest.newBuilder()
-            .header("Authorization", "Bearer $jwtToken") // 在 Authorization Header 中添加 Bearer Token
+//            .header("Authorization", "Bearer $jwtToken") // 在 Authorization Header 中添加 Bearer Token
+            .header("Authorization", jwtToken) // 在 Authorization Header 中添加 Bearer Token
             .build()
 
         return chain.proceed(newRequest)

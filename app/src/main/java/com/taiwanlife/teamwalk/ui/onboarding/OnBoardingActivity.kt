@@ -23,6 +23,8 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
     protected var userInfo = UserInfo()
     protected val onBoardingViewModel: OnBoardingViewModel by viewModel()
 
+    override val statusBarColor: Int = android.R.color.transparent
+
     override fun onLastCreateBaseActivity(
         view: View,
         savedInstanceState: Bundle?

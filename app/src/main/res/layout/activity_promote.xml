@@ -6,17 +6,52 @@
     android:layout_height="match_parent"
     tools:context=".ui.onboarding.PromoteActivity">
 
-    <Button
+    <LinearLayout
+        android:id="@+id/back"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/base2"
+        android:paddingEnd="@dimen/base2"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/onboarding_skip_button"
+        app:layout_constraintEnd_toStartOf="@+id/onboarding_skip_button"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/onboarding_skip_button">
+
+        <ImageButton
+            android:layout_width="@dimen/base4"
+            android:layout_height="@dimen/base4"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/go_back"
+            android:scaleType="fitXY"
+            app:srcCompat="@drawable/back"
+            app:tint="@color/blue_onboarding_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/go_back"
+            android:textSize="@dimen/text_17sp"
+            android:textColor="@color/blue_onboarding_back" />
+
+    </LinearLayout>
+
+    <ImageButton
         android:id="@+id/onboarding_skip_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16pt"
-        android:layout_marginBottom="8dp"
+        android:layout_width="@dimen/base6"
+        android:layout_height="@dimen/base6"
+        android:layout_marginStart="@dimen/base2"
+        android:layout_marginTop="@dimen/base2"
+        android:layout_marginEnd="@dimen/base2"
         android:background="@android:color/transparent"
-        android:drawableEnd="@drawable/close"
-        app:layout_constraintBottom_toTopOf="@+id/progressBar"
+        android:padding="@dimen/base1"
+        android:scaleType="fitXY"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/close" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -24,7 +59,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16pt"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/base2"
         android:layout_marginEnd="16pt"
         android:progress="33"
         android:progressTint="@color/colorPrimary"
@@ -86,9 +121,9 @@
         android:hint="@string/onboard_promote_editText"
         android:imeOptions="actionDone"
         android:inputType="text"
+        android:maxLength="8"
         android:maxLines="1"
         android:singleLine="true"
-        android:maxLength="8"
         android:textAlignment="center"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"

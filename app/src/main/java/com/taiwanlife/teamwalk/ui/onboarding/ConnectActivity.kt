@@ -62,6 +62,9 @@ class ConnectActivity :
         viewBinding.onboardingNextButton.setOnClickListener {
             saveUserAndFinishAll()
         }
+        viewBinding.back.setOnClickListener {
+            finish()
+        }
         setDialog()
         viewBinding.garminMask.setOnClickListener {
             if (viewBinding.onboardingCheckboxGarmin.isChecked) {

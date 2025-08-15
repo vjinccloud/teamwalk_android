@@ -1,0 +1,68 @@
+/*
+ * <p> Source File Name: CheckValidCode.java </p>
+ * <p> Modify Date:  </p>
+ */
+package com.taiwanlife.teamwalk.code_view_only;
+
+import jakarta.validation.Valid;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.neux.garden.runtime.api.exception.APIException;
+import com.neux.garden.runtime.api.exception.UnknowException;
+import com.taiwanlife.api.model.CheckValidCodeRequest;
+import com.taiwanlife.api.model.OKResponse;
+import com.taiwanlife.service.logic.ResponseHeaderService;
+import com.taiwanlife.service.logic.ValidNumberService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@RestController
+@Slf4j
+public class CheckValidCodeController {
+
+	@Autowired
+	private ResponseHeaderService responseHeaderService;
+
+	@Autowired
+	private ValidNumberService validNumberService;
+
+	@RequestMapping(value = "/CheckValidCode", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	@ResponseBody
+	@Validated
+	public OKResponse postCheckvalidcodeValidCode(@Valid @RequestBody CheckValidCodeRequest body) {
+
+		try {
+
+			String category = StringUtils.isNotEmpty(body.getCategory()) ? body.getCategory() : "";
+			String inputValue = body.getValidCode();
+			
+			validNumberService.checkValidCode(inputValue, category);
+			
+			String validNumber = validNumberService.getValidNumber(category);
+			log.trace("CheckValidCode validNumber[" + validNumber + "]");
+
+			return new OKResponse(responseHeaderService.getSuccessHeader());
+
+		} catch (APIException e) {
+
+			log.error("post-checkvalidcode-validCode APIException !!", e);
+			throw e;
+
+		} catch (Exception e) {
+
+			log.error("Unknow Exception !!", e);
+			throw new UnknowException(e);
+
+		}
+
+	}
+}

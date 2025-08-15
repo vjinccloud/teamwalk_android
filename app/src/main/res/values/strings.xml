@@ -71,7 +71,7 @@
     <string name="login_method_biometric">臉部</string>
     <string name="login_remember_me">記住我</string>
 
-    <string name="login_password_pid">身份證或用戶代碼</string>
+    <string name="login_password_pid">身份證字號或居留證號</string>
     <string name="login_password_pass">請輸入密碼</string>
     <string name="login_password_captcha">驗證碼</string>
     <string name="login_password_warning_pid">身份證字號格式錯誤</string>

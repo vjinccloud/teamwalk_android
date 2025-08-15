@@ -107,7 +107,7 @@ abstract class BaseViewModel(
                         if (body.header.code == Config.API_CODE_SUCCESS) {
                             // 到這裡都正確
                             // 如果我們期待的回傳值是Unit 代表我們期待這裡的data是null 這狀況將他轉為Unit
-                            var data = body.data ?: Unit as T
+                            val data = body.data ?: Unit as T
                             mutableSharedFlow.emit(UiState.Success(data))
                         } else {
                             // 回傳code 不是0000 帶message給他

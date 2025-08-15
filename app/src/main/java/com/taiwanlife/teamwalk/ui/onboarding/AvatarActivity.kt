@@ -49,6 +49,9 @@ class AvatarActivity :
         viewBinding.onboardingSkipButton.setOnClickListener {
             saveUserAndFinishAll()
         }
+        viewBinding.back.setOnClickListener {
+            finish()
+        }
 
         setOptions()
         setAvatars()

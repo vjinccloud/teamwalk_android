@@ -67,7 +67,7 @@ public class DeviceUtil {
     public static void setFlagSecure(Activity activity) {
         activity.runOnUiThread(() -> {
             //窗口设置 FLAG_SECURE，以防止截图、录屏或其他应用程序覆盖窗口
-            activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+//            activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
 
             //窗口的优先级提升，以防止其不会被其他窗口覆盖
             WindowManager.LayoutParams params = activity.getWindow().getAttributes();

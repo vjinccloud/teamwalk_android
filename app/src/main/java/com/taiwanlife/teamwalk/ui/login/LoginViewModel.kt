@@ -15,9 +15,9 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
     fun getTicket(pid: String, pwd: String) {
         ticketFlow.execute {
             repository.cssoRepository.cssoLogin(
-                Config.API_SYS_ID,
-                pid,
-                pwd,
+                Config.API_SYS_ID, // teamwalk
+                pid, // 帳號
+                pwd, // 密碼/圖形密碼
                 "teamwalk${BuildConfig.BUILD_TYPE}://loginsuccess"
             )
         }
@@ -25,7 +25,7 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
 
     fun patternLogin(userId: String, patternPath: String) {
         patternFlow.execute {
-            repository.cssoRepository.cssoPatternLogin(
+            repository.cssoRepository.patternLogin(
                 Config.API_SYS_ID,
                 userId,
                 patternPath,
@@ -35,11 +35,11 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
     }
 
 
-    fun login(ticket: String, deviceId: String) {
+    fun login(userId: String, ticket: String, deviceId: String) {
         val appUuid =
             SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
         val pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
 
-        loginFlow.execute { repository.api.login(ticket, "teamwalk", appUuid, deviceId, pushId) }
+        loginFlow.execute { repository.api.login(userId, ticket, "teamwalk", appUuid, deviceId, pushId) }
     }
 }

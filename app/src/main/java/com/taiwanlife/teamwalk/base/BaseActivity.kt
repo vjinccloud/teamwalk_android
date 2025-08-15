@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.withStarted
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.color.MaterialColors.isColorLight
+import com.google.gson.Gson
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityBaseBinding
@@ -182,6 +185,11 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         val green = Color.green(colorInt)
         val blue = Color.blue(colorInt)
 
+        // 如果是透明，直接定義為「亮色或深色」
+        if (Color.alpha(colorInt) == 0) {
+            return true // 或 false，看預設透明色偏亮還是偏暗
+        }
+
         val luminance = (0.299 * red + 0.587 * green + 0.114 * blue)
         return luminance > 128
     }
@@ -213,6 +221,17 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                         is UiState.Error -> {
                             // 如果有需要特別處理才會使用
                             onError(it.e)
+                            if(BuildConfig.DEBUG) {
+                                when(it.e) {
+                                    is ApiException.ResponseHeaderCodeNotSuccessException -> {
+                                        Toast.makeText(this@BaseActivity, it.e.header.message, Toast.LENGTH_SHORT).show()
+                                    }
+                                    is ApiException.ResponseNotSuccessfulException -> {
+                                        val errorBody = it.e.response.errorBody()
+                                        Toast.makeText(this@BaseActivity, it.e.code.toString() + " - " + errorBody?.string(), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
                             if (unSubscribeOnComplete) {
                                 scope.cancel()
                             }

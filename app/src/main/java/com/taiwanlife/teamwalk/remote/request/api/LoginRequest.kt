@@ -5,6 +5,11 @@ import com.taiwanlife.teamwalk.remote.request.BaseRequest
 
 data class LoginRequest(
     /**
+     * 登入者帳號
+     */
+    @SerializedName("appl_id")
+    val applId: String,
+    /**
      * CSSO Ticket資訊
      */
     @SerializedName("ticket")

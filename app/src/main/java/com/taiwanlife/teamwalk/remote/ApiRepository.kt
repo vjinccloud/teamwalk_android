@@ -44,6 +44,7 @@ class ApiRepository(
 
     /**
      * 使用者登入
+     * @param applId 登入者帳號
      * @param ticket CSSO Ticket資訊
      * @param service CSSO service
      * @param appUuid app安裝後產生唯一識別碼
@@ -51,13 +52,14 @@ class ApiRepository(
      * @param pushId FCM推播Token
      */
     suspend fun login(
+        applId: String,
         ticket: String,
         service: String,
         appUuid: String,
         deviceId: String,
         pushId: String
     ): Response<ResponseWrapper<LoginResponse>> {
-        return apiService.login(LoginRequest(ticket, service, appUuid, deviceId, pushId))
+        return apiService.login(LoginRequest(applId, ticket, service, appUuid, deviceId, pushId))
     }
 
     /**

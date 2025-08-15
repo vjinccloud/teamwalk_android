@@ -1,8 +1,8 @@
 package com.taiwanlife.teamwalk.remote
 
-import com.taiwanlife.teamwalk.remote.response.api.ResponseWrapper
 import com.taiwanlife.teamwalk.remote.service.CssoService
 import retrofit2.Response
+import retrofit2.http.Field
 
 class CssoRepository(
     private val cssoService: CssoService
@@ -23,12 +23,12 @@ class CssoRepository(
         return cssoService.cssoLogin(sysId, applId, applPwd, service)
     }
 
-    suspend fun cssoPatternLogin(
+    suspend fun patternLogin(
         sysId: String,
         userId: String,
         patternPath: String,
-        service: String,
+        service: String
     ): Response<String> {
-        return cssoService.cssoPatternLogin(sysId, userId, patternPath, service)
+        return cssoService.patternLogin(sysId, userId, patternPath, service)
     }
 }

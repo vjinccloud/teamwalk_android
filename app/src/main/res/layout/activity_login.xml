@@ -52,7 +52,7 @@
                 android:gravity="center"
                 android:paddingTop="@dimen/base1"
                 android:paddingBottom="@dimen/base1"
-                android:text="Password"
+                android:text="@string/login_method_password"
                 android:textColor="@color/white" />
 
             <View
@@ -69,7 +69,7 @@
                 android:gravity="center"
                 android:paddingTop="@dimen/base1"
                 android:paddingBottom="@dimen/base1"
-                android:text="Pattern"
+                android:text="@string/login_method_pattern"
                 android:textColor="@color/colorAccent" />
         </LinearLayout>
 
@@ -219,13 +219,21 @@
                                 android:singleLine="true" />
 
 
-                            <android.widget.Button
+<!--                            <android.widget.Button-->
+<!--                                android:id="@+id/login_button_captcha"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_marginStart="8dp"-->
+<!--                                android:background="@drawable/captcha_style"-->
+<!--                                android:drawableEnd="@drawable/reload"-->
+<!--                                android:paddingEnd="8dp" />-->
+
+                            <ImageView
                                 android:id="@+id/login_button_captcha"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="140dp"
+                                android:layout_height="35dp"
                                 android:layout_marginStart="8dp"
-                                android:background="@drawable/captcha_style"
-                                android:drawableEnd="@drawable/reload"
+                                android:scaleType="fitXY"
                                 android:paddingEnd="8dp" />
 
                         </androidx.appcompat.widget.LinearLayoutCompat>

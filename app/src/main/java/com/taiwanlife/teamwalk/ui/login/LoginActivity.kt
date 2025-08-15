@@ -21,6 +21,7 @@ import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityLoginBinding
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
+import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
@@ -45,7 +46,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     private var isRememberMe: Boolean = false
     private var pid: String = ""
     private var ticket: String? = ""
-    private var genText: String = ""
+
+    //    private var genText: String = ""
+    private lateinit var currentCaptchaResult: CaptchaResult
 
     override fun onLastCreateBaseActivity(
         view: View,
@@ -76,6 +79,16 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             setResult(RESULT_OK)
             finish()
         }
+        observeOnLifeCycle(loginViewModel.patternFlow.sharedFlow) { ticketUrl ->
+            val uri = ticketUrl.toUri()
+            ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+
+            if (!TextUtils.isEmpty(ticket)) {
+                // 拿到ticket
+                loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
+            }
+
+        }
 
         isRememberMe =
             SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
@@ -92,7 +105,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
 //        var uuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_UUID, "")
-        var showSecurity = SecuredPreferenceStoreManager.getBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, true)
+        var showSecurity =
+            SecuredPreferenceStoreManager.getBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, true)
         if (showSecurity) {
 //            uuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
 //            SecuredPreferenceStoreManager.simpleEditAndApply(Config.PREF_LOGIN_UUID, uuid)
@@ -185,12 +199,16 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
         viewBinding.loginButtonCaptcha.setOnClickListener {
-            genText = genRandomNumbers()
-            viewBinding.loginButtonCaptcha.text = genText
+//            genText = genRandomNumbers()
+//            viewBinding.loginButtonCaptcha.text = genText
+            currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
+            viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
         }
 
-        genText = genRandomNumbers()
-        viewBinding.loginButtonCaptcha.text = genText
+//        genText = genRandomNumbers()
+//        viewBinding.loginButtonCaptcha.text = genText
+        currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
+        viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
     }
 
     private fun setPatterLock() {
@@ -228,7 +246,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             override fun onProgress(progressPattern: List<PatternLockView.Dot?>?) {}
 
             override fun onComplete(pattern: List<PatternLockView.Dot>) {
-                val fid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
+                val fid = SecuredPreferenceStoreManager.getString(
+                    Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
+                    ""
+                )
                 val currentPid = viewBinding.loginEditTextPasswordPid.text.toString().trim()
                 if (TextUtils.isEmpty(currentPid) || currentPid.length != 10) {
                     viewBinding.loginLayoutPasswordPid.setBackgroundColor(getColor(R.color.colorError))
@@ -256,26 +277,25 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                         pattern.toMutableList(),
                         fid
                     )
-
-                    // 新API 拿Ticket 然後登入取JWT
-                    loginViewModel.getTicket(currentPid, patternPath)
-                    observeOnLifeCycle(
-                        loginViewModel.ticketFlow.sharedFlow,
-                        unSubscribeOnComplete = true
-                    ) { ticketUrl ->
-                        val uri = ticketUrl.toUri()
-                        ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
-
-                        // 以下目前還沒通 打Login
+                    loginViewModel.patternLogin(pid, patternPath)
+//                    // 新API 拿Ticket 然後登入取JWT
+//                    loginViewModel.getTicket(pid, patternPath)
+//                    observeOnLifeCycle(
+//                        loginViewModel.ticketFlow.sharedFlow,
+//                        unSubscribeOnComplete = true
+//                    ) { ticketUrl ->
+//                        val uri = ticketUrl.toUri()
+//                        ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+//
 //                        if (!TextUtils.isEmpty(ticket)) {
 //                            // 拿到ticket
-//                            loginViewModel.patternLogin(currentPid, patternPath)
+//                            loginViewModel.patternLogin(pid, patternPath)
 //                        }
-                        loginViewModel.login(
-                            ticket!!,
-                            Utils.getDeviceId(this@LoginActivity)
-                        )
-                    }
+////                        loginViewModel.login(
+////                            ticket!!,
+////                            Utils.getDeviceId(this@LoginActivity)
+////                        )
+//                    }
                 }
             }
 
@@ -414,14 +434,17 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return
         }
 
-        if (TextUtils.isEmpty(viewBinding.loginEditTextCaptcha.getText().toString())
-            || genText != viewBinding.loginEditTextCaptcha.getText().toString().uppercase()
+        if (TextUtils.isEmpty(viewBinding.loginEditTextCaptcha.text.toString())
+            || currentCaptchaResult.code.uppercase() != viewBinding.loginEditTextCaptcha.text.toString()
+                .uppercase()
         ) {
             viewBinding.loginLayoutPasswordCaptcha.setBackgroundColor(getColor(R.color.colorError))
             viewBinding.loginTextViewWarningCaptcha.visibility = View.VISIBLE
 
-            genText = genRandomNumbers()
-            viewBinding.loginButtonCaptcha.text = genText
+//            genText = genRandomNumbers()
+//            viewBinding.loginButtonCaptcha.text = genText
+            currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
+            viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
             return
         }
         if (viewBinding.loginTextViewWarningPid.isVisible) {
@@ -447,11 +470,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             unSubscribeOnComplete = true
         ) { ticketUrl ->
             val uri = ticketUrl.toUri()
-            ticket = uri.getQueryParameter("ticket")
+            ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
 
             if (!TextUtils.isEmpty(ticket)) {
                 // 拿到ticket
-                loginViewModel.login(ticket!!, Utils.getDeviceId(this))
+                loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
             }
         }
     }
