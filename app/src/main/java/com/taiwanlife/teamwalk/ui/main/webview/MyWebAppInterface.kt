@@ -18,6 +18,7 @@ import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.quoteJS
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
@@ -32,12 +33,16 @@ class MyWebAppInterface(
 ) {
 
     companion object {
-        const val CALLBACK_GET_GRAPHICAL_LOGIN = "graphicalLoginResolver"
-        const val CALLBACK_BINDING_GOOGLE_HEALTH = "bindGoogleHealthConnectResolver"
-        const val CALLBACK_BINDING_GARMIN_HEALTH = "bindGarminHealthResolver"
-        const val CALLBACK_BINDING_FITBIT_HEALTH = "bindFitbitHealthResolver"
-        const val CALLBACK_PUSH_MESSAGE_STATUS = "openNotificationResolver"
-        const val CALLBACK_SYNC_HEALTH_DATA = "syncHealthDataResolver"
+        const val CALLBACK_DEVICE_INFO_RESOLVER = "deviceInfoResolver"
+        const val CALLBACK_JWT_TOKEN_RESOLVER = "jwtTokenResolver"
+        const val CALLBACK_APP_VERSION_RESOLVER = "appVersionResolver"
+        const val CALLBACK_GRAPHICAL_LOGIN_RESOLVER = "graphicalLoginResolver"
+        const val CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER = "bindGoogleHealthConnectResolver"
+        const val CALLBACK_BIND_APPLE_IOS_HEALTH_RESOLVER = "bindAppleiOSHealthResolver"
+        const val CALLBACK_BIND_GARMIN_HEALTH_RESOLVER = "bindGarminHealthResolver"
+        const val CALLBACK_BIND_FITBIT_HEALTH_RESOLVER = "bindFitbitHealthResolver"
+        const val CALLBACK_OPEN_NOTIFICATION_RESOLVER = "openNotificationResolver"
+        const val CALLBACK_SYNC_HEALTH_DATA_RESOLVER = "syncHealthDataResolver"
     }
 
 
@@ -78,7 +83,7 @@ class MyWebAppInterface(
      * 取得裝置相關資訊
      */
     @JavascriptInterface
-    fun getDeviceInfo(): String {
+    fun getDeviceInfo() {
         val deviceInfoModel = DeviceInfoModel(
             appUuid = SecuredPreferenceStoreManager.getString(
                 Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
@@ -87,20 +92,24 @@ class MyWebAppInterface(
             deviceId = Utils.getDeviceId(context),
             pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
         )
-        context.debugToast(getGson().toJson(deviceInfoModel))
-        return getGson().toJson(deviceInfoModel)
+
+        currentWaitingCallbackName = CALLBACK_DEVICE_INFO_RESOLVER
+        sharedEventViewModel.postEvent(getGson().toJson(deviceInfoModel).quoteJS(), EVENT_EXECUTE_JAVASCRIPT_CALLBACK)
     }
 
     /**
      * 取得登入JWT Token資訊
      */
     @JavascriptInterface
-    fun getLoginInfo(): String {
+    fun getLoginInfo() {
         val loginInfoModel = LoginInfoModel(
             jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT_TOKEN, "")
         )
-        context.debugToast(getGson().toJson(loginInfoModel))
-        return getGson().toJson(loginInfoModel)
+
+        Timber.d(getGson().toJson(loginInfoModel))
+
+        currentWaitingCallbackName = CALLBACK_JWT_TOKEN_RESOLVER
+        sharedEventViewModel.postEvent(getGson().toJson(loginInfoModel).quoteJS(), EVENT_EXECUTE_JAVASCRIPT_CALLBACK)
     }
 
     /**
@@ -121,13 +130,13 @@ class MyWebAppInterface(
      * 取得APP版本號
      */
     @JavascriptInterface
-    fun getAppVersion(): String {
+    fun getAppVersion() {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         val version =
             if (!TextUtils.isEmpty(packageInfo.versionName)) packageInfo.versionName!! else ""
 
-        context.debugToast(version)
-        return version
+        currentWaitingCallbackName = CALLBACK_APP_VERSION_RESOLVER
+        sharedEventViewModel.postEvent(version.quoteJS(), EVENT_EXECUTE_JAVASCRIPT_CALLBACK)
     }
 
     /**
@@ -135,7 +144,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun setGraphicalLogin(enable: String) {
-        currentWaitingCallbackName = CALLBACK_GET_GRAPHICAL_LOGIN
+        currentWaitingCallbackName = CALLBACK_GRAPHICAL_LOGIN_RESOLVER
         asyncCallbacks.setGraphicalLogin(enable)
     }
 
@@ -144,7 +153,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun bindingGoogleHealth(enable: String) {
-        currentWaitingCallbackName = CALLBACK_BINDING_GOOGLE_HEALTH
+        currentWaitingCallbackName = CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
         asyncCallbacks.bindingGoogleHealth(enable)
     }
 
@@ -153,7 +162,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun bindingGarminHealth(enable: String) {
-        currentWaitingCallbackName = CALLBACK_BINDING_GARMIN_HEALTH
+        currentWaitingCallbackName = CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
         asyncCallbacks.bindingGarminHealth(enable)
     }
 
@@ -162,7 +171,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun bindingFitbitHealth(enable: String) {
-        currentWaitingCallbackName = CALLBACK_BINDING_FITBIT_HEALTH
+        currentWaitingCallbackName = CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
         asyncCallbacks.bindingFitbitHealth(enable)
     }
 
@@ -171,7 +180,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun setPushMessageStatus(enable: String) {
-        currentWaitingCallbackName = CALLBACK_PUSH_MESSAGE_STATUS
+        currentWaitingCallbackName = CALLBACK_OPEN_NOTIFICATION_RESOLVER
         asyncCallbacks.setPushMessageStatus(enable)
     }
 
@@ -198,7 +207,7 @@ class MyWebAppInterface(
      */
     @JavascriptInterface
     fun syncHealthData() {
-        currentWaitingCallbackName = CALLBACK_SYNC_HEALTH_DATA
+        currentWaitingCallbackName = CALLBACK_SYNC_HEALTH_DATA_RESOLVER
         asyncCallbacks.syncHealthData()
     }
 }
