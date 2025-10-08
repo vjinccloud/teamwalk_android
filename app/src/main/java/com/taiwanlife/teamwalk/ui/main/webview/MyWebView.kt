@@ -2,14 +2,15 @@ package com.taiwanlife.teamwalk.ui.main.webview
 
 import android.content.Context
 import android.util.AttributeSet
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.lifecycle.LifecycleOwner
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
-import com.taiwanlife.teamwalk.utils.quoteJS
 
 class MyWebView : WebView {
     constructor(context: Context) : super(context)
@@ -52,10 +53,32 @@ class MyWebView : WebView {
         // Hide the zoom controls for HONEYCOMB+
         webSettings.displayZoomControls = false
 
+
+        webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+
         // chrome://inspect
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             setWebContentsDebuggingEnabled(true)
         }
+
+        webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                url: String?
+            ): Boolean {
+                url?.let { view?.loadUrl(it) }
+                return true
+            }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                request?.url?.toString()?.let { view?.loadUrl(it) }
+                return true
+            }
+        }
+
 
 //        val webAppInterface = WebAppInterface(this)
 //        addJavascriptInterface(webAppInterface, webAppInterface.appBridgeJsName)
@@ -70,5 +93,13 @@ class MyWebView : WebView {
         )
 
         loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+    }
+
+    fun backIfValid(): Boolean {
+        if (canGoBack() && url != EnvironmentManager.getEnvironmentConfig().webUrl) {
+            goBack()
+            return true
+        }
+        return false
     }
 }

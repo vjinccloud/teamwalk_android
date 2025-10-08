@@ -10,7 +10,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.webkit.CookieManager
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +23,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.MyApplication.Companion.context
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
@@ -57,6 +58,7 @@ import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
 import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import com.taiwanlife.teamwalk.utils.HealthConnectHelper
+import com.taiwanlife.teamwalk.utils.MyNotificationManager
 import com.taiwanlife.teamwalk.utils.PermissionManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
@@ -85,6 +87,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         private const val KEY_PID = "pid"
     }
 
+    private var badgeCount = 0;
+    private lateinit var myNotificationManager: MyNotificationManager
     private val permissionManager = PermissionManager(this)
     private val mainViewModel: MainViewModel by viewModel()
     private val fitbitViewModel: FitbitViewModel by viewModel()
@@ -113,7 +117,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 debugToast(R.string.login_success)
 
                 // 登入完畢 取得使用者資訊
-                mainViewModel.getUserInfo()
+                mainViewModel.getLanding()
 
 
                 // 現在都是打API 這邊不用處理了
@@ -180,6 +184,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     ) {
         // 設置安全Utils
         DeviceUtil.setFlagSecure(this)
+
+        myNotificationManager = MyNotificationManager(this)
 
         if (healthConnectHelper.availableStatusFlow()) {
             val healthConnectClient = HealthConnectClient.getOrCreate(this)
@@ -265,12 +271,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_AUTH, false)
         if (isLogin) {
             // 取得使用者資料
-            mainViewModel.getUserInfo()
+            mainViewModel.getLanding()
         }
     }
 
-    private fun forTest() {
 
+    private fun updateBadge(badgeCount: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val perm = permissionManager.hasPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+            if(perm) {
+                myNotificationManager.updateBadge(badgeCount)
+            } else {
+                permissionManager.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { granted, denied ->
+                    if(granted) {
+                        myNotificationManager.updateBadge(badgeCount)
+                    }
+                }
+            }
+        } else {
+            myNotificationManager.updateBadge(badgeCount)
+        }
+        this.badgeCount = badgeCount
+        viewBinding.updateBadge.text = "${getString(R.string.main_simulate_update_badge)}(${badgeCount})"
+    }
+
+    private fun forTest() {
         viewBinding.dummyData.setOnClickListener {
             if (healthConnectViewModel == null) {
                 toast(R.string.main_health_connect_not_available)
@@ -287,6 +312,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             toLogin()
             return@setOnClickListener
         }
+        viewBinding.clearBadge.setOnClickListener {
+            updateBadge(0)
+        }
+
+        viewBinding.updateBadge.setOnClickListener {
+            updateBadge(badgeCount + 1)
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if(!viewBinding.webView.backIfValid()) {
+                    finish()
+                }
+            }
+        })
     }
 
     private fun checkPermissions() {
@@ -364,14 +404,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 deviceType.value
             )
 
-            if (userInfoResponse.completeOnboarding != null && !userInfoResponse.completeOnboarding) {
-                toOnBoarding(userInfoResponse)
-            }
-
             SecuredPreferenceStoreManager.simpleEditAndApply(
                 Config.SP_USER_INFO,
                 getGson().toJson(userInfoResponse)
             )
+
+            if (userInfoResponse.completeOnboarding != null && !userInfoResponse.completeOnboarding) {
+                toOnBoarding(userInfoResponse)
+            }
+        }
+        observeOnLifeCycle(mainViewModel.landingFlow.sharedFlow) { landingResponse ->
+            // 需要Onboard
+            if (landingResponse.completeOnboarding != null && !landingResponse.completeOnboarding) {
+                mainViewModel.getUserInfo()
+            } else {
+                mainViewModel.getUserInfo()
+            }
+
+
+            viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
         }
     }
 
@@ -423,7 +474,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             ONBOARDING -> {
                 // 新版不會透過webview走到Onboard 如果真的走到了 取得使用者資訊 看是不是真的有需要走初次流程
-                mainViewModel.getUserInfo()
+                mainViewModel.getLanding()
             }
         }
     }
@@ -720,6 +771,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         super.onResume()
 
         securityCheck()
+
+        viewBinding.webView.post {
+            viewBinding.webView.evaluateJavascript(
+                "resumeAPP()",
+                null
+            )
+
+            context.debugToast("resumeAPP()")
+        }
     }
 
     override fun onPostResume() {
@@ -855,6 +915,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun syncHealthData() {
         getHealthConnectData()
+    }
+
+    override fun updatePushCount(notifyCount: Int) {
+        myNotificationManager.updateBadge(notifyCount)
+    }
+
+    override fun logout() {
+        toLogin()
     }
 
     override fun onProviderInstallFailed(errorCode: Int, recoveryIntent: Intent?) {

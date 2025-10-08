@@ -1,10 +1,12 @@
 package com.taiwanlife.teamwalk
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import androidx.core.content.ContextCompat.getSystemService
 import com.taiwanlife.teamwalk.Config.CHANNEL_DESCRIPTION
 import com.taiwanlife.teamwalk.Config.CHANNEL_ID
 import com.taiwanlife.teamwalk.Config.CHANNEL_NAME
@@ -15,8 +17,37 @@ import org.koin.core.context.startKoin
 import timber.log.Timber
 
 class MyApplication: Application() {
+    companion object {
+        @SuppressLint("StaticFieldLeak")
+        lateinit var context: Context
+
+        fun createNotificationChannel(context: Context = MyApplication.context) {
+            // 從 Android 8.0 (API Level 26) 開始，才需要 Notification Channel
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH // 設定通知的重要性
+            ).apply {
+                description = CHANNEL_DESCRIPTION
+                // 其他可選設定：
+                // enableLights(true) // 是否開啟指示燈
+                // lightColor = Color.RED // 指示燈顏色
+                // enableVibration(true) // 是否震動
+                // vibrationPattern = longArrayOf(100, 200, 300, 400, 500) // 自定義震動模式
+            }
+
+            // 取得 NotificationManager 實例
+            val notificationManager: NotificationManager =
+                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            // 註冊通知 Channel
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        context = applicationContext
 
         if(BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
@@ -27,29 +58,6 @@ class MyApplication: Application() {
         }
 
         SecuredPreferenceStore.init(this, DefaultRecoveryHandler())
-        createNotificationChannel()
-    }
-
-    private fun createNotificationChannel() {
-        // 從 Android 8.0 (API Level 26) 開始，才需要 Notification Channel
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_HIGH // 設定通知的重要性
-        ).apply {
-            description = CHANNEL_DESCRIPTION
-            // 其他可選設定：
-            // enableLights(true) // 是否開啟指示燈
-            // lightColor = Color.RED // 指示燈顏色
-            // enableVibration(true) // 是否震動
-            // vibrationPattern = longArrayOf(100, 200, 300, 400, 500) // 自定義震動模式
-        }
-
-        // 取得 NotificationManager 實例
-        val notificationManager: NotificationManager =
-            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        // 註冊通知 Channel
-        notificationManager.createNotificationChannel(channel)
+        createNotificationChannel(this)
     }
 }

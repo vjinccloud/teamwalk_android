@@ -198,12 +198,14 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return@setOnEditorActionListener false
         }
 
-        viewBinding.loginButtonCaptcha.setOnClickListener {
+        val reload = { _:View ->
 //            genText = genRandomNumbers()
 //            viewBinding.loginButtonCaptcha.text = genText
             currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
             viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
         }
+        viewBinding.loginButtonCaptcha.setOnClickListener(reload)
+        viewBinding.loginReloadCaptcha.setOnClickListener(reload)
 
 //        genText = genRandomNumbers()
 //        viewBinding.loginButtonCaptcha.text = genText

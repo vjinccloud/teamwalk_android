@@ -27,9 +27,10 @@ object Config {
     //end region
 
     // region 推播設定參數
-    const val CHANNEL_ID = "default"
-    const val CHANNEL_NAME = "default"
-    const val CHANNEL_DESCRIPTION = "default channel for system wide push notifications"
+    const val CHANNEL_ID = "teamwalk"
+    const val CHANNEL_NAME = "Teamwalk 推播"
+    const val CHANNEL_DESCRIPTION = "用來傳遞 Teamwalk 推播"
+    const val BADGE_NOTIFICATION_ID = 1001
     // end region
 
     // region secured preference 使用的Key值

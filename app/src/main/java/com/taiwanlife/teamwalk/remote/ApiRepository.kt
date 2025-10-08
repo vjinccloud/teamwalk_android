@@ -25,6 +25,7 @@ import com.taiwanlife.teamwalk.remote.response.api.GetMyTeamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetPkSummaryInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetTeamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetTeamPkInfoResponse
+import com.taiwanlife.teamwalk.remote.response.api.LandingResponse
 import com.taiwanlife.teamwalk.remote.response.api.ListTeamPkInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.LoginResponse
 import com.taiwanlife.teamwalk.remote.response.api.MyBadgeInfoResponse
@@ -100,6 +101,13 @@ class ApiRepository(
      */
     suspend fun getUserInfo(): Response<ResponseWrapper<UserInfoResponse>> {
         return apiService.getUserInfo()
+    }
+
+    /**
+     * 取得onboarding資訊
+     */
+    suspend fun getLanding(): Response<ResponseWrapper<LandingResponse>> {
+        return apiService.getLanding()
     }
 
     /**

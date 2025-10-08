@@ -28,17 +28,16 @@ class TWFirebaseMessagingService: FirebaseMessagingService() {
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra(KEY_URL, remoteMessage.getData()["url"])
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            val pendingIntent: PendingIntent?
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pendingIntent = PendingIntent.getActivity(
+            val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.getActivity(
                     this,
                     remoteMessage.getSentTime().toInt(),
                     intent,
                     PendingIntent.FLAG_IMMUTABLE
                 )
             } else {
-                pendingIntent = PendingIntent.getActivity(
+                PendingIntent.getActivity(
                     this,
                     remoteMessage.getSentTime().toInt(),
                     intent,

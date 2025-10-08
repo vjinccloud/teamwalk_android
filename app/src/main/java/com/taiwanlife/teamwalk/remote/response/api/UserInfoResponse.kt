@@ -147,7 +147,7 @@ data class UserInfoResponse(
      * BMI值，由後端直接計算(首頁使用)
      */
     @SerializedName("bmi")
-    val bmi: Int?,
+    val bmi: Float?,
     /**
      * 連續簽到天數(我的頁面使用)
      */

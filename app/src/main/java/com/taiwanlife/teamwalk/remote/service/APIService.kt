@@ -25,6 +25,7 @@ import com.taiwanlife.teamwalk.remote.response.api.GetMyTeamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetPkSummaryInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetTeamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.GetTeamPkInfoResponse
+import com.taiwanlife.teamwalk.remote.response.api.LandingResponse
 import com.taiwanlife.teamwalk.remote.response.api.ListTeamPkInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.LoginResponse
 import com.taiwanlife.teamwalk.remote.response.api.MyBadgeInfoResponse
@@ -68,6 +69,12 @@ interface APIService {
      */
     @GET("user-info")
     suspend fun getUserInfo(): Response<ResponseWrapper<UserInfoResponse>>
+
+    /**
+     * 取得onboarding資訊
+     */
+    @GET("landing")
+    suspend fun getLanding(): Response<ResponseWrapper<LandingResponse>>
 
     /**
      * 同步健康數據
