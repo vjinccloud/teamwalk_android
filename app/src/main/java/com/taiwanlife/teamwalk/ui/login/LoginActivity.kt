@@ -336,13 +336,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         val QUERY_USER_RSP_CODE_USER_NOT_FOUND = "0404"
         val rspCode: String = //cssoUser.getRspCode()
             when (pid.last()) {
-                '1' -> {
-                    QUERY_USER_RSP_CODE_UNAUTHORIZED
-                }
-
-                '4' -> {
-                    QUERY_USER_RSP_CODE_USER_NOT_FOUND
-                }
+//                '1' -> {
+//                    QUERY_USER_RSP_CODE_UNAUTHORIZED
+//                }
+//
+//                '4' -> {
+//                    QUERY_USER_RSP_CODE_USER_NOT_FOUND
+//                }
 
                 else -> {
                     QUERY_USER_RSP_CODE_SUCCESS
