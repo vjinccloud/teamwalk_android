@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.util.Base64
 import android.view.View
-import android.widget.Toast
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.R
@@ -13,7 +12,6 @@ import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityConnectSuccessBinding
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
-import com.taiwanlife.teamwalk.ui.main.HostTypes
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
@@ -45,7 +43,7 @@ class ConnectFitbitSuccessActivity() : BaseActivity<ActivityConnectSuccessBindin
         handleDeepLink(intent)
 
         // 觀察Fitbit Connect 是否成功
-        observeOnLifeCycle(fitbitViewModel.getTokenFlow.sharedFlow, onError = {
+        observeOnLifeCycle(fitbitViewModel.getTokenFlow, onError = {
             toast(R.string.onboard_connect_fail)
             finish()
         }) { fitbitGetTokenResponse ->

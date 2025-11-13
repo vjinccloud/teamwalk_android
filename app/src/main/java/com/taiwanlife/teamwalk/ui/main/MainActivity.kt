@@ -48,6 +48,7 @@ import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_SUCCESS
 import com.taiwanlife.teamwalk.ui.main.HostTypes.ONBOARDING
 import com.taiwanlife.teamwalk.ui.main.HostTypes.USER_INFO
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView
 import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
@@ -74,10 +75,11 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.util.Locale
+import kotlin.random.Random
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
     ProviderInstaller.ProviderInstallListener,
-    MyWebAppInterface.AsyncCallbacks {
+    MyWebAppInterface.AsyncCallbacks, MyWebView.WebviewLoadingCallback {
 
     companion object {
         const val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 4
@@ -253,7 +255,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)
-        viewBinding.webView.setUp(this, this)
+        viewBinding.webView.setUp(this, this, this)
         CelebrusCSAUtil.sessionSharing(this)
 
         // 如果以前分享的圖片還在 刪除
@@ -276,14 +278,38 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
 
+    private fun addNotification() {
+        val random = Random.Default.nextInt()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val perm = permissionManager.hasPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+            )
+            if (perm) {
+                myNotificationManager.addNotification("測試id :$random", random)
+            } else {
+                permissionManager.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { granted, denied ->
+                    if (granted) {
+                        myNotificationManager.addNotification("測試id :$random", random)
+                    }
+                }
+            }
+        } else {
+            myNotificationManager.addNotification("測試id :$random", random)
+        }
+    }
+
     private fun updateBadge(badgeCount: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val perm = permissionManager.hasPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS))
-            if(perm) {
+            val perm = permissionManager.hasPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS)
+            )
+            if (perm) {
                 myNotificationManager.updateBadge(badgeCount)
             } else {
                 permissionManager.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { granted, denied ->
-                    if(granted) {
+                    if (granted) {
                         myNotificationManager.updateBadge(badgeCount)
                     }
                 }
@@ -292,7 +318,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             myNotificationManager.updateBadge(badgeCount)
         }
         this.badgeCount = badgeCount
-        viewBinding.updateBadge.text = "${getString(R.string.main_simulate_update_badge)}(${badgeCount})"
+        viewBinding.updateBadge.text =
+            "${getString(R.string.main_simulate_update_badge)}(${badgeCount})"
     }
 
     private fun forTest() {
@@ -316,13 +343,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             updateBadge(0)
         }
 
-        viewBinding.updateBadge.setOnClickListener {
-            updateBadge(badgeCount + 1)
+        viewBinding.addNotification.setOnClickListener {
+            addNotification()
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if(!viewBinding.webView.backIfValid()) {
+                if (!viewBinding.webView.backIfValid()) {
                     finish()
                 }
             }
@@ -385,7 +412,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun observeApiResultSetUp() {
         // 使用者資訊
-        observeOnLifeCycle(mainViewModel.userInfoFlow.sharedFlow) { userInfoResponse ->
+        observeOnLifeCycle(mainViewModel.userInfoFlow) { userInfoResponse ->
             // 取得使用者資訊 將現在綁定的設備儲存
             var deviceType = NONE
             if (userInfoResponse.bindingAndroid != null && userInfoResponse.bindingAndroid) {
@@ -409,16 +436,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 getGson().toJson(userInfoResponse)
             )
 
-            if (userInfoResponse.completeOnboarding != null && !userInfoResponse.completeOnboarding) {
-                toOnBoarding(userInfoResponse)
-            }
+//            if (userInfoResponse.completeOnboarding != null && !userInfoResponse.completeOnboarding) {
+//                toOnBoarding(userInfoResponse)
+//            }
         }
-        observeOnLifeCycle(mainViewModel.landingFlow.sharedFlow) { landingResponse ->
+        observeOnLifeCycle(mainViewModel.landingFlow) { landingResponse ->
             // 需要Onboard
             if (landingResponse.completeOnboarding != null && !landingResponse.completeOnboarding) {
-                mainViewModel.getUserInfo()
+                toOnBoarding(
+                    landingResponse.getAvailableNickName(),
+                    landingResponse.referrerCode ?: ""
+                )
             } else {
-                mainViewModel.getUserInfo()
+                // 應該不需要呼叫了?
+//                mainViewModel.getUserInfo()
             }
 
 
@@ -518,7 +549,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             )
         )
 
-        if(deviceType == DeviceType.HEALTH_CONNECT) {
+        if (deviceType == DeviceType.HEALTH_CONNECT) {
             lifecycleScope.launch(Dispatchers.Main.immediate) {
                 viewBinding.dummyData.visibility = View.VISIBLE
             }
@@ -619,8 +650,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         toLogin()
     }
 
-    private fun toOnBoarding(userInfoResponse: UserInfoResponse) {
-        val onboardingIntent = PromoteActivity.startPromoteActivity(this, userInfoResponse)
+    private fun toOnBoarding(nickName: String, referrerCode: String) {
+        val onboardingIntent = PromoteActivity.startPromoteActivity(this, nickName, referrerCode)
         startActivity(onboardingIntent)
     }
 
@@ -756,6 +787,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             prefEditor.putString(Config.SP_LOGIN_JWT_TOKEN, "")
         }
 
+        viewBinding.webView.post {
+            viewBinding.webView.loadUrl("about:blank")
+        }
+
         val loginIntent = Intent(this, LoginActivity::class.java)
         loginLauncher.launch(loginIntent)
     }
@@ -774,7 +809,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         viewBinding.webView.post {
             viewBinding.webView.evaluateJavascript(
-                "resumeAPP()",
+                "window.WebAppBridge.resumeAPP()",
                 null
             )
 
@@ -946,5 +981,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun onProviderInstalled() {
         Timber.d("ProviderInstalled")
+    }
+
+    override fun onWebviewPageStarted() {
+        onLoading(true)
+    }
+
+    override fun onWebviewPageFinished() {
+        onLoading(false)
     }
 }

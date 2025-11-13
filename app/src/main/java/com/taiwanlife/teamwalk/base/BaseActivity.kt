@@ -17,10 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.withStarted
 import androidx.viewbinding.ViewBinding
-import com.google.android.material.color.MaterialColors.isColorLight
-import com.google.gson.Gson
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
@@ -29,10 +26,8 @@ import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import timber.log.Timber
 
 abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInflater) -> VB) :
     AppCompatActivity() {
@@ -57,13 +52,21 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      * 有需要的類別自行繼承
      */
     open fun onReceivedEvent(eventName: String?, result: String) {
-        if(eventName == Config.EVENT_NO_TOKEN_TO_LOGIN) {
+        if (eventName == Config.EVENT_NO_TOKEN_TO_LOGIN) {
             lifecycleScope.launch {
                 delay(200)
-                if(!isFinishing && !isDestroyed) {
+                if (!isFinishing && !isDestroyed) {
                     finish()
                 }
             }
+        }
+    }
+
+    open fun onLoading(loading: Boolean) {
+        if (loading) {
+            activityBaseBinding.loadingContainer.visibility = View.VISIBLE
+        } else {
+            activityBaseBinding.loadingContainer.visibility = View.GONE
         }
     }
 
@@ -195,7 +198,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
     }
 
     fun <T> observeOnLifeCycle(
-        sharedFlow: SharedFlow<UiState<T>>,
+        apiFlowClass: ApiFlowClass<T>,
         lifecycleOwner: LifecycleOwner = this,
         lifeCycleState: Lifecycle.State = Lifecycle.State.STARTED,
         onError: (e: Exception) -> Unit = {},
@@ -203,45 +206,60 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         onSuccess: (T) -> Unit,
     ) {
         lifecycleOwner.lifecycleScope.launch {
+            apiFlowClass.getLoadingFlow().collect {
+                onLoading(it)
+            }
+        }
+        lifecycleOwner.lifecycleScope.launch {
             lifecycleOwner.repeatOnLifecycle(lifeCycleState) {
                 val scope = this
-                sharedFlow.collect {
+                apiFlowClass.getFlow().collect {
                     when (it) {
-                        UiState.Loading -> {
-                            //
-                        }
+                        UiState.Idle -> {}
 
                         is UiState.Success<T> -> {
                             onSuccess(it.data)
                             if (unSubscribeOnComplete) {
                                 scope.cancel()
                             }
+                            onLoading(false)
                         }
 
                         is UiState.Error -> {
                             // 如果有需要特別處理才會使用
                             onError(it.e)
-                            if(BuildConfig.DEBUG) {
-                                when(it.e) {
+                            if (BuildConfig.DEBUG) {
+                                when (it.e) {
                                     is ApiException.ResponseHeaderCodeNotSuccessException -> {
-                                        Toast.makeText(this@BaseActivity, it.e.header.message, Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@BaseActivity,
+                                            it.e.header.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
+
                                     is ApiException.ResponseNotSuccessfulException -> {
                                         val errorBody = it.e.response.errorBody()
-                                        Toast.makeText(this@BaseActivity, it.e.code.toString() + " - " + errorBody?.string(), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@BaseActivity,
+                                            it.e.code.toString() + " - " + errorBody?.string(),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                             }
                             if (unSubscribeOnComplete) {
                                 scope.cancel()
                             }
-                            when(it.e) {
+
+                            when (it.e) {
                                 is ApiException.ResponseHeaderCodeNotSuccessException -> {
-                                    if(it.e.header.code == Config.API_CODE_NO_TOKEN) {
+                                    if (it.e.header.code == Config.API_CODE_NO_TOKEN) {
                                         postEvent(Config.EVENT_NO_TOKEN_TO_LOGIN, "")
                                     }
                                 }
                             }
+                            onLoading(false)
                         }
                     }
                 }

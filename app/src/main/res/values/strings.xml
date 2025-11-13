@@ -22,6 +22,7 @@
     <string name="main_not_logged_in">尚未登入</string>
     <string name="main_simulate_clear_badge">清除小紅點</string>
     <string name="main_simulate_update_badge">更新未讀</string>
+    <string name="main_simulate_add_notification">增加推播</string>
     <string name="main_simulate_logout">模擬登出</string>
     <string name="main_simulate_health_connect_fake_data">於Health Connect插入假資料</string>
 

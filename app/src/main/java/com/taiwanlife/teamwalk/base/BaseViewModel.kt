@@ -9,8 +9,13 @@ import com.taiwanlife.teamwalk.remote.ApiException.ResponseHeaderCodeNotSuccessE
 import com.taiwanlife.teamwalk.remote.ApiException.ResponseNotSuccessfulException
 import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.response.api.ResponseWrapper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import timber.log.Timber
@@ -23,11 +28,15 @@ import timber.log.Timber
  * Error -> 錯誤 後續處理和關閉Loading 注意這邊我們有透過errorHandler 處理錯誤了 UI層如果要另外再處理注意不要做重複的工
  */
 sealed class UiState<out T> {
-    object Loading : UiState<Nothing>()
+    object Idle : UiState<Nothing>()
     data class Success<T>(val data: T) : UiState<T>()
     data class Error(val e: Exception) : UiState<Nothing>()
 }
 
+interface ApiFlowClass<T> {
+    fun getFlow(): SharedFlow<UiState<T>>
+    fun getLoadingFlow(): SharedFlow<Boolean>
+}
 
 abstract class BaseViewModel(
     protected val repository: Repository
@@ -36,45 +45,76 @@ abstract class BaseViewModel(
     /**
      * 傳入要呼叫的API function
      */
-    class ApiFlow<T>(private val baseViewModel: BaseViewModel) {
+    class ApiFlow<T>(private val baseViewModel: BaseViewModel) : ApiFlowClass<T> {
+        private val _loadingFlow = MutableSharedFlow<Boolean>(1)
         private val _mutableSharedFlow = MutableSharedFlow<UiState<T>>()
-        val sharedFlow get() = _mutableSharedFlow.asSharedFlow()
 
         fun execute(
+            showStartLoading: Boolean = false,
             errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null,
             executeCall: suspend () -> Response<ResponseWrapper<T>>
         ) {
-            baseViewModel.apiCallAsSharedFlow(_mutableSharedFlow, executeCall, errorHandler)
+            baseViewModel.apiCallAsSharedFlow(
+                showStartLoading,
+                _mutableSharedFlow,
+                _loadingFlow,
+                executeCall,
+                errorHandler
+            )
+        }
+
+        override fun getFlow(): SharedFlow<UiState<T>> {
+            return _mutableSharedFlow.asSharedFlow()
+        }
+
+        override fun getLoadingFlow(): SharedFlow<Boolean> {
+            return _loadingFlow.asSharedFlow()
         }
     }
 
     /**
      * 傳入要呼叫的Raw function
      */
-    class RawFlow<T>(private val baseViewModel: BaseViewModel) {
+    class RawFlow<T>(private val baseViewModel: BaseViewModel) : ApiFlowClass<T> {
+        private val _loadingFlow = MutableSharedFlow<Boolean>(1)
         private val _mutableSharedFlow = MutableSharedFlow<UiState<T>>()
-        val sharedFlow get() = _mutableSharedFlow.asSharedFlow()
 
         fun execute(
             errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null,
             executeCall: suspend () -> Response<T>
         ) {
-            baseViewModel.rawCallAsSharedFlow(_mutableSharedFlow, executeCall, errorHandler)
+            baseViewModel.rawCallAsSharedFlow(false, _mutableSharedFlow, _loadingFlow, executeCall, errorHandler)
+        }
+
+        override fun getFlow(): SharedFlow<UiState<T>> {
+            return _mutableSharedFlow.asSharedFlow()
+        }
+
+        override fun getLoadingFlow(): SharedFlow<Boolean> {
+            return _loadingFlow.asSharedFlow()
         }
     }
 
     /**
      * 傳入要呼叫的CSSO function
      */
-    class CSSOFlow(private val baseViewModel: BaseViewModel) {
+    class CSSOFlow(private val baseViewModel: BaseViewModel) : ApiFlowClass<String> {
+        private val _loadingFlow = MutableSharedFlow<Boolean>(1)
         private val _mutableSharedFlow = MutableSharedFlow<UiState<String>>()
-        val sharedFlow get() = _mutableSharedFlow.asSharedFlow()
 
         fun execute(
             errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null,
             executeCall: suspend () -> Response<String>
         ) {
-            baseViewModel.cssoCallAsSharedFlow(_mutableSharedFlow, executeCall, errorHandler)
+            baseViewModel.cssoCallAsSharedFlow(false, _mutableSharedFlow, _loadingFlow, executeCall, errorHandler)
+        }
+
+        override fun getFlow(): SharedFlow<UiState<String>> {
+            return _mutableSharedFlow.asSharedFlow()
+        }
+
+        override fun getLoadingFlow(): SharedFlow<Boolean> {
+            return _loadingFlow.asSharedFlow()
         }
     }
 
@@ -83,7 +123,9 @@ abstract class BaseViewModel(
      * 如果傳入errorHandler 則這次呼叫API的錯誤會自行處理 會將default也傳入 方便在處理完自己需要的錯誤後 其他丟回給Default
      */
     private fun <T> apiCallAsSharedFlow(
+        showStartLoading: Boolean = false,
         mutableSharedFlow: MutableSharedFlow<UiState<T>>,
+        loadingFlow: MutableSharedFlow<Boolean>,
         apiFunction: suspend () -> Response<ResponseWrapper<T>>,
         errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null
     ) {
@@ -95,8 +137,10 @@ abstract class BaseViewModel(
             }
         }
         viewModelScope.launch {
-            mutableSharedFlow.emit(UiState.Loading)
             try {
+                if(showStartLoading) {
+                    loadingFlow.emit(true)
+                }
                 val response = apiFunction()
                 // 看API是不是[200, 300)
                 if (response.isSuccessful) {
@@ -132,12 +176,16 @@ abstract class BaseViewModel(
             } catch (e: Exception) {
                 processError(e)
                 mutableSharedFlow.emit(UiState.Error(e))
+            } finally {
+                loadingFlow.emit(false)
             }
         }
     }
 
     private fun <T> rawCallAsSharedFlow(
+        showStartLoading: Boolean = false,
         mutableSharedFlow: MutableSharedFlow<UiState<T>>,
+        loadingFlow: MutableSharedFlow<Boolean>,
         apiFunction: suspend () -> Response<T>,
         errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null
     ) {
@@ -149,8 +197,10 @@ abstract class BaseViewModel(
             }
         }
         viewModelScope.launch {
-            mutableSharedFlow.emit(UiState.Loading)
             try {
+                if(showStartLoading) {
+                    loadingFlow.emit(true)
+                }
                 val response = apiFunction.invoke()
                 if (response.isSuccessful) {
                     val body = response.body()
@@ -171,12 +221,16 @@ abstract class BaseViewModel(
             } catch (e: Exception) {
                 processError(e)
                 mutableSharedFlow.emit(UiState.Error(e))
+            } finally {
+                loadingFlow.emit(false)
             }
         }
     }
 
     private fun cssoCallAsSharedFlow(
+        showStartLoading: Boolean = false,
         mutableSharedFlow: MutableSharedFlow<UiState<String>>,
+        loadingFlow: MutableSharedFlow<Boolean>,
         apiFunction: suspend () -> Response<String>,
         errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null
     ) {
@@ -188,8 +242,10 @@ abstract class BaseViewModel(
             }
         }
         viewModelScope.launch {
-            mutableSharedFlow.emit(UiState.Loading)
             try {
+                if(showStartLoading) {
+                    loadingFlow.emit(true)
+                }
                 val response = apiFunction.invoke()
                 // CSSO 比較特別 如果成功HttpCode 會是302 並且將我們要的東西放在Header的location
                 if (response.code() == 302) {
@@ -211,6 +267,8 @@ abstract class BaseViewModel(
             } catch (e: Exception) {
                 processError(e)
                 mutableSharedFlow.emit(UiState.Error(e))
+            } finally {
+                loadingFlow.emit(false)
             }
         }
     }

@@ -22,20 +22,20 @@ class PromoteActivity :
     OnBoardingActivity<ActivityPromoteBinding>({ ActivityPromoteBinding.inflate(it) }) {
 
     companion object {
-        fun startPromoteActivity(context: Context, userInfoResponse: UserInfoResponse): Intent {
-            val bindingType = if (userInfoResponse.bindingFibit == true) {
-                DeviceType.FITBIT.value
-            } else if (userInfoResponse.bindingGarmin == true) {
-                DeviceType.GARMIN.value
-            } else if (userInfoResponse.bindingAndroid == true) {
-                DeviceType.HEALTH_CONNECT.value
-            } else {
-                null
-            }
+        fun startPromoteActivity(context: Context, nickName: String, referrerCode: String): Intent {
+//            val bindingType = if (userInfoResponse.bindingFibit == true) {
+//                DeviceType.FITBIT.value
+//            } else if (userInfoResponse.bindingGarmin == true) {
+//                DeviceType.GARMIN.value
+//            } else if (userInfoResponse.bindingAndroid == true) {
+//                DeviceType.HEALTH_CONNECT.value
+//            } else {
+//                null
+//            }
             val userInfo = UserInfo(
-                referrerCode = userInfoResponse.referrerCode ?: "",
-                nickname = userInfoResponse.getAvailableNickName(),
-                bindingType = bindingType
+                referrerCode = referrerCode,
+                nickname = nickName,
+                bindingType = null
             )
 
             val onboardingIntent = Intent(context, PromoteActivity::class.java)

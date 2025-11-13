@@ -1,6 +1,7 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -11,6 +12,7 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
+import timber.log.Timber
 
 class MyWebView : WebView {
     constructor(context: Context) : super(context)
@@ -35,7 +37,12 @@ class MyWebView : WebView {
         privateBrowsing: Boolean
     ) : super(context, attrs, defStyleAttr, privateBrowsing)
 
-    fun setUp(lifecycleOwner: LifecycleOwner, asyncCallbacks: AsyncCallbacks) {
+    interface WebviewLoadingCallback {
+        fun onWebviewPageStarted()
+        fun onWebviewPageFinished()
+    }
+
+    fun setUp(lifecycleOwner: LifecycleOwner, webviewLoadingCallback: WebviewLoadingCallback, asyncCallbacks: AsyncCallbacks) {
         val webSettings: WebSettings = settings
         webSettings.setUserAgentString(webSettings.userAgentString + "/env=taiwanlife_teamwalk_app")
         webSettings.javaScriptEnabled = true
@@ -77,6 +84,23 @@ class MyWebView : WebView {
                 request?.url?.toString()?.let { view?.loadUrl(it) }
                 return true
             }
+
+            override fun onPageStarted(
+                view: WebView?,
+                url: String?,
+                favicon: Bitmap?
+            ) {
+                super.onPageStarted(view, url, favicon)
+                Timber.d("Start loading $url")
+                webviewLoadingCallback.onWebviewPageStarted()
+
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                Timber.d("Finish loading $url")
+                webviewLoadingCallback.onWebviewPageFinished()
+            }
         }
 
 
@@ -92,7 +116,7 @@ class MyWebView : WebView {
             ), Config.JAVASCRIPT_BRIDGE_NAME
         )
 
-        loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+//        loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
     }
 
     fun backIfValid(): Boolean {

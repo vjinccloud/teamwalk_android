@@ -16,7 +16,7 @@ class MainViewModel(repository: Repository) : BaseViewModel(repository) {
     }
 
     fun getLanding() {
-        landingFlow.execute {
+        landingFlow.execute(true) {
             repository.api.getLanding()
         }
     }

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Toast
 import androidx.viewbinding.ViewBinding
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -34,7 +33,7 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
         }
 
         OnBoardingActivityManage.add(this)
-        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow.sharedFlow) {
+        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
             debugToast(R.string.onboarding_connect_done)
 
             // 最後關閉所有頁面

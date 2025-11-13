@@ -10,7 +10,6 @@ import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -21,7 +20,6 @@ import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityLoginBinding
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
-import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
@@ -56,7 +54,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     ) {
         DeviceUtil.setFlagSecure(this)
 
-        observeOnLifeCycle(loginViewModel.loginFlow.sharedFlow) { loginResponse ->
+        observeOnLifeCycle(loginViewModel.loginFlow) { loginResponse ->
             SecuredPreferenceStoreManager.editAndApply {
                 it.putBoolean(Config.SP_LOGIN_AUTH, true)
 //                it.putBoolean(Config.PREF_LOGIN_AUTH, true)
@@ -79,7 +77,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             setResult(RESULT_OK)
             finish()
         }
-        observeOnLifeCycle(loginViewModel.patternFlow.sharedFlow) { ticketUrl ->
+        observeOnLifeCycle(loginViewModel.patternFlow) { ticketUrl ->
             val uri = ticketUrl.toUri()
             ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
 
@@ -468,7 +466,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         // 新API 拿Ticket 然後登入取JWT
         loginViewModel.getTicket(pid, viewBinding.loginEditTextPassword.text.toString().trim())
         observeOnLifeCycle(
-            loginViewModel.ticketFlow.sharedFlow,
+            loginViewModel.ticketFlow,
             unSubscribeOnComplete = true
         ) { ticketUrl ->
             val uri = ticketUrl.toUri()

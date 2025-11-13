@@ -196,7 +196,7 @@ class BindingManager(
     private fun startGarminProcess() {
         val authorization = GarminHelper.getGarminAuthorizationForAuthCode()
         baseActivity.observeOnLifeCycle(
-            garminViewModel.getAuthCodeFlow.sharedFlow,
+            garminViewModel.getAuthCodeFlow,
             unSubscribeOnComplete = true,
             onError = {
                 baseActivity.toast(R.string.onboard_connect_fail)

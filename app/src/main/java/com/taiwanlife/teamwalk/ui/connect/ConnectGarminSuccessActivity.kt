@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
-import android.widget.Toast
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -13,7 +12,6 @@ import com.taiwanlife.teamwalk.databinding.ActivityConnectSuccessBinding
 import com.taiwanlife.teamwalk.remote.GarminHelper
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
-import com.taiwanlife.teamwalk.ui.main.HostTypes
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.getGson
@@ -40,7 +38,7 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
         handleDeepLink(intent)
 
         // 觀察呼叫Garmin getToken的結果
-        observeOnLifeCycle(garminViewModel.getTokenFlow.sharedFlow, onError = {
+        observeOnLifeCycle(garminViewModel.getTokenFlow, onError = {
             toast(R.string.onboard_connect_fail)
             finish()
         }) { response ->
