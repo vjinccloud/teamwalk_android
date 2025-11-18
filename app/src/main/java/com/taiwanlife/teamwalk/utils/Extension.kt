@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.StepsRecord
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.taiwanlife.teamwalk.BuildConfig
+import com.taiwanlife.teamwalk.Config.SHOW_DEBUG_TOAST
 import com.taiwanlife.teamwalk.remote.adapter.InstantAdapter
 import com.taiwanlife.teamwalk.remote.adapter.ZoneOffsetAdapter
 import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
@@ -43,7 +44,7 @@ fun getGson(): Gson {
  * 只有在Debug模式會出現的Toast
  */
 fun Context.debugToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-    if (BuildConfig.DEBUG) {
+    if (BuildConfig.DEBUG && SHOW_DEBUG_TOAST) {
         toast(message, duration)
     }
 }
@@ -52,7 +53,7 @@ fun Context.debugToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
  * 只有在Debug模式會出現的Toast
  */
 fun Context.debugToast(@StringRes stringId: Int, duration: Int = Toast.LENGTH_SHORT) {
-    if (BuildConfig.DEBUG) {
+    if (BuildConfig.DEBUG && SHOW_DEBUG_TOAST) {
         toast(stringId, duration)
     }
 }
