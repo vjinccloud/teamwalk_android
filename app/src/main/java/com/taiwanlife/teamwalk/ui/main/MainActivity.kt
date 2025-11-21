@@ -20,6 +20,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
@@ -32,6 +33,7 @@ import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
@@ -179,6 +181,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 }
             }
         }
+
+
+    private var tempFileData: String? = null
+    private var tempFileName: String? = null
+    private val createDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("*/*")
+    ) { uri ->
+        if (uri != null) {
+            if (tempFileData == null || tempFileName == null) return@registerForActivityResult
+
+            mainViewModel.startToWriteFile(contentResolver, uri, tempFileName!!) {
+                tempFileData = null
+                tempFileName = null
+            }
+        }
+    }
 
     override fun onLastCreateBaseActivity(
         view: View,
@@ -400,7 +418,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     getString(R.string.main_permission_rationale),
                     false,
                     true,
-                    getString(R.string.confirm),
+                    getString(R.string.confirm1),
                     {
                         requestPermissionFunction()
                     })
@@ -541,15 +559,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun sameDeviceCallback(deviceType: DeviceType) {
-        toast(
-            String.format(
-                Locale.getDefault(),
-                getString(R.string.main_binding_same_device),
-                deviceType.displayName
-            )
-        )
+//        toast(
+//            String.format(
+//                Locale.getDefault(),
+//                getString(R.string.main_binding_same_device),
+//                deviceType.displayName
+//            )
+//        )
 
-        if (deviceType == DeviceType.HEALTH_CONNECT) {
+        if (deviceType == HEALTH_CONNECT) {
             lifecycleScope.launch(Dispatchers.Main.immediate) {
                 viewBinding.dummyData.visibility = View.VISIBLE
             }
@@ -557,6 +575,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // 如果有需要透過JS回傳綁定結果
         postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
+
+        if (deviceType != NONE) {
+            CommonDialog(this).apply {
+                oneButtonInit(
+                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = getString(R.string.ok)
+                )
+            }.show()
+        }
     }
 
 
@@ -565,7 +594,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
-
         lifecycleScope.launch(Dispatchers.Main.immediate) {
             viewBinding.dummyData.visibility = View.GONE
         }
@@ -605,6 +633,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             }
 
             NONE -> {}
+        }
+
+        if (deviceType != NONE) {
+            CommonDialog(this).apply {
+                oneButtonInit(
+                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = getString(R.string.ok)
+                )
+            }.show()
         }
     }
 
@@ -864,6 +903,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             healthConnectViewModel.getAllData { sleepData, stepsData ->
                 val syncHealthDataModel = SyncHealthDataModel(stepsData, sleepData)
 
+//                val json = Gson().toJson(syncHealthDataModel)
+//                Timber.d(json)
+
                 // 如果有需要透過JS回傳推播設定結果
                 postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(syncHealthDataModel))
             }
@@ -936,7 +978,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     getString(R.string.notification_permission_rationale),
                     false,
                     true,
-                    getString(R.string.confirm), {
+                    getString(R.string.confirm1), {
                         requestPermissionFunction()
                     }
                 )
@@ -959,6 +1001,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun logout() {
         toLogin()
     }
+
+    override fun saveDataToFile(data: String, fileName: String) {
+        tempFileData = data
+        tempFileName = fileName
+
+        createDocumentLauncher.launch(fileName)
+    }
+
 
     override fun onProviderInstallFailed(errorCode: Int, recoveryIntent: Intent?) {
         GoogleApiAvailability.getInstance().apply {

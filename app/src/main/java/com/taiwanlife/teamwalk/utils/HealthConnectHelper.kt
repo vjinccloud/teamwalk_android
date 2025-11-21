@@ -74,7 +74,7 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
                     context.getString(R.string.main_health_connect_permission_rationale),
                     false,
                     true,
-                    context.getString(R.string.confirm), {
+                    context.getString(R.string.confirm1), {
                         requestPermissionFunction(permissionGratedCallback)
                     }
                 )

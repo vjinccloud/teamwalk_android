@@ -9,8 +9,11 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
+import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityConnectBinding
+import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
@@ -24,7 +27,11 @@ import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import com.taiwanlife.teamwalk.utils.HealthConnectHelper
 import com.taiwanlife.teamwalk.utils.debugToast
+import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.quoteJS
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ConnectActivity :
@@ -47,7 +54,7 @@ class ConnectActivity :
             garminViewModel,
             fitbitViewModel,
             healthConnectHelper,
-            {},
+            ::sameDeviceCallback,
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
@@ -95,6 +102,21 @@ class ConnectActivity :
         setCheckBoxAndNext()
     }
 
+    private fun sameDeviceCallback(deviceType: DeviceType) {
+        if (deviceType != NONE) {
+            CommonDialog(this).apply {
+                oneButtonInit(
+                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = getString(R.string.ok)
+                )
+            }.show()
+        }
+
+        setCheckBoxAndNext()
+    }
+
     private fun bindingRemoved(deviceType: DeviceType) {
         debugToast("${deviceType.displayName} removed")
         userInfo = userInfo.copy(
@@ -106,7 +128,6 @@ class ConnectActivity :
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
-        debugToast("${deviceType.displayName} bind success")
 
         when (deviceType) {
             HEALTH_CONNECT -> {
@@ -148,6 +169,17 @@ class ConnectActivity :
             }
         }
 
+        if (deviceType != NONE) {
+            CommonDialog(this).apply {
+                oneButtonInit(
+                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = getString(R.string.ok)
+                )
+            }.show()
+        }
+
         setCheckBoxAndNext()
     }
 
@@ -180,7 +212,7 @@ class ConnectActivity :
             }
         }
 
-        viewBinding.onboardingNextButton.text = getString(R.string.onboarding_connect_next)
+        viewBinding.onboardingNextButton.text = getString(R.string.next_step)
 
         when (currentDeviceType) {
             HEALTH_CONNECT -> {
@@ -222,7 +254,7 @@ class ConnectActivity :
 
             //设置正面按钮
             builder.setPositiveButton(
-                getString(R.string.ok),
+                getString(R.string.confirm2),
                 object : DialogInterface.OnClickListener {
                     override fun onClick(dialog: DialogInterface?, which: Int) {
                     }

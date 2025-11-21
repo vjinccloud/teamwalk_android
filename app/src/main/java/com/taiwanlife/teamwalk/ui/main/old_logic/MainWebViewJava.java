@@ -438,7 +438,7 @@ public class MainWebViewJava extends WebView {
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
             AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                     .setMessage(message)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    .setPositiveButton(R.string.confirm2, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             result.confirm();
@@ -455,7 +455,7 @@ public class MainWebViewJava extends WebView {
 
             AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                     .setMessage(message)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    .setPositiveButton(R.string.confirm2, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             result.confirm();

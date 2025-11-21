@@ -67,7 +67,7 @@ class PromoteActivity :
         })
 
         viewBinding.onboardingNextButton.setOnClickListener {
-            if (!TextUtils.isEmpty(userInfo.referrerCode) && userInfo.referrerCode!!.length < 8) {
+            if (!TextUtils.isEmpty(userInfo.referrerCode) && userInfo.referrerCode!!.length < 10) {
                 toast(R.string.onboard_promote_msg)
                 return@setOnClickListener
             }

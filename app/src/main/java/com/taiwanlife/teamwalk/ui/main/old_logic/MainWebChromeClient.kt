@@ -70,7 +70,7 @@ class MainWebChromeClient(
     ): Boolean {
         val alertDialog: AlertDialog = AlertDialog.Builder(context)
             .setMessage(message)
-            .setPositiveButton(R.string.ok, object : DialogInterface.OnClickListener {
+            .setPositiveButton(R.string.confirm2, object : DialogInterface.OnClickListener {
                 override fun onClick(dialogInterface: DialogInterface?, i: Int) {
                     result.confirm()
                 }
@@ -89,7 +89,7 @@ class MainWebChromeClient(
     ): Boolean {
         val alertDialog: AlertDialog = AlertDialog.Builder(context)
             .setMessage(message)
-            .setPositiveButton(R.string.ok, object : DialogInterface.OnClickListener {
+            .setPositiveButton(R.string.confirm2, object : DialogInterface.OnClickListener {
                 override fun onClick(dialogInterface: DialogInterface?, i: Int) {
                     result.confirm()
                 }

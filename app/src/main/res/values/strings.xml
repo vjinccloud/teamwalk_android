@@ -2,7 +2,8 @@
     <string name="app_name">TeamWalk</string>
     
     <string name="login_timeout_for_password_change_message">提醒您：因已持續登入一段時間，需重新登入才能變更密碼</string>
-    <string name="confirm">確定</string>
+    <string name="confirm1">確定</string>
+    <string name="ok">OK</string>
 
     <string name="login_no_ticket">未取得登入許可</string>
     <string name="login_success">你已登入</string>
@@ -64,6 +65,9 @@
     <string name="binding_change_health_connect_confirm">是</string>
     <string name="binding_change_health_connect_cancel">否，解除綁定就好</string>
 
+    <string name="binding_success_title">綁定成功</string>
+    <string name="binding_success_body">設備綁定成功</string>
+
     <string name="test">teamwalkdebug</string>
 
     <!--  加入原本的String  -->
@@ -83,8 +87,8 @@
 
     <string name="login_pattern_stealth_mode">隱藏圖形軌跡</string>
     <string name="login_pattern_normal_mode">顯示圖形軌跡</string>
-    <string name="login_pattern_lt_six_dots">少於6個點</string>
-    <string name="login_pattern_bt_dots">多於16個點</string>
+    <string name="login_pattern_lt_six_dots">圖形少於6點</string>
+    <string name="login_pattern_bt_dots">圖形多於16點</string>
 
     <string name="login_alert_user_unauthorized_title">你還沒被授權</string>
     <string name="login_alert_user_unauthorized_body">你的帳號還未被授權登入!</string>
@@ -141,7 +145,7 @@
 
     <string name="next_step">下一步</string>
     <string name="cancel">取消</string>
-    <string name="ok">確認</string>
+    <string name="confirm2">確認</string>
     <string name="setup_fail">設定失敗</string>
     <string name="setup_fail_msg">請重新登入後再重新操作</string>
     <string name="change_success">設定圖形登入成功</string>

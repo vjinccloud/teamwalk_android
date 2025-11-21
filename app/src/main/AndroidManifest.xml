@@ -39,8 +39,6 @@
         android:name="android.permission.ACTIVITY_RECOGNITION"
         android:minSdkVersion="30" />
 
-    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

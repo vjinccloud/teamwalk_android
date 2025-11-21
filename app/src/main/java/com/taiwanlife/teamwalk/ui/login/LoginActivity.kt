@@ -115,7 +115,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 image = R.drawable.alert_1,
                 showButtons = true,
                 canceledOnTouchOutside = true,
-                text = getString(R.string.ok),
+                text = getString(R.string.confirm2),
                 onClick = {
                     SecuredPreferenceStoreManager.editAndApply {
                         it.putBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, false)

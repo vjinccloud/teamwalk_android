@@ -104,13 +104,14 @@ class HealthConnectViewModel(
 
                 val stepsRecords = mutableListOf<StepsRecord>()
                 val now = Instant.now()
+                val startTime = now.minus(20, ChronoUnit.MINUTES)
+                val endTime = now.minus(10, ChronoUnit.MINUTES)
 
-                for (i in 1 until 31) {
-                    val dayStart =
-                        now.minus(i.toLong(), ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS)
-                    val stepsStartTime = dayStart.plus(8, ChronoUnit.HOURS)
-                    val stepsEndTime = dayStart.plus(20, ChronoUnit.HOURS)
-                    val stepsCount = Random.Default.nextLong(3000, 15000)
+                for (i in 0 until 31) {
+                    val stepsStartTime = startTime.minus(i.toLong(), ChronoUnit.DAYS)
+                    val stepsEndTime = endTime.minus(i.toLong(), ChronoUnit.DAYS)
+
+                    val stepsCount = Random.Default.nextLong(1000, 15000)
 
                     val record = StepsRecord(
                         count = stepsCount,
@@ -130,12 +131,9 @@ class HealthConnectViewModel(
 
                 val sleepRecords = mutableListOf<SleepSessionRecord>()
 
-                for (i in 1 until 31) {
-                    val dayStart =
-                        now.minus(i.toLong(), ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS)
-                    val sleepStartTime = dayStart.plus(22, ChronoUnit.HOURS)
-                    val sleepEndTime =
-                        sleepStartTime.plus(Random.Default.nextLong(6, 9), ChronoUnit.HOURS)
+                for (i in 0 until 31) {
+                    val sleepStartTime = startTime.minus(i.toLong(), ChronoUnit.DAYS)
+                    val sleepEndTime = endTime.minus(i.toLong(), ChronoUnit.DAYS)
 
                     val record = SleepSessionRecord(
                         startTime = sleepStartTime,

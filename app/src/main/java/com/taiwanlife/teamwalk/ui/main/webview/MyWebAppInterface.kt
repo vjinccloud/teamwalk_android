@@ -9,7 +9,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
@@ -57,6 +56,8 @@ class MyWebAppInterface(
         fun syncHealthData()
         fun updatePushCount(notifyCount: Int)
         fun logout()
+
+        fun saveDataToFile(data: String, fileName: String)
     }
 
     private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
@@ -209,19 +210,21 @@ class MyWebAppInterface(
     @JavascriptInterface
     fun share(shareText: String) {
         try {
-            if(shareText == "undefined") {
+            if (shareText == "undefined") {
                 context.debugToast("分享字串 $shareText")
                 return
             }
 
             val shareContentModel = getGson().fromJson(shareText, ShareContentModel::class.java)
-            when(shareContentModel.status) {
+            when (shareContentModel.status) {
                 "TEXT" -> {
                     shareText(shareContentModel.message)
                 }
+
                 "IMAGE" -> {
                     Utils.shareBase64ImageSecure(context, shareContentModel.message)
                 }
+
                 else -> {
                     context.debugToast("content-type  格式錯誤 使用舊分享")
                     shareText(shareText)
@@ -260,7 +263,7 @@ class MyWebAppInterface(
     @JavascriptInterface
     fun updatePushCount(notifyCountString: String) {
         context.debugToast("收到未讀 - $notifyCountString")
-        if(TextUtils.isDigitsOnly(notifyCountString)) {
+        if (TextUtils.isDigitsOnly(notifyCountString)) {
             val notifyCount = notifyCountString.toInt()
             asyncCallbacks.updatePushCount(notifyCount)
         }
@@ -272,6 +275,11 @@ class MyWebAppInterface(
     @JavascriptInterface
     fun logout() {
         asyncCallbacks.logout()
+    }
+
+    @JavascriptInterface
+    fun saveDataToFile(data: String, fileName: String) {
+        asyncCallbacks.saveDataToFile(data, fileName)
     }
 }
 

@@ -87,7 +87,7 @@ class CSSOWebViewActivity :
                     message,
                     false,
                     true,
-                    getString(R.string.ok), {
+                    getString(R.string.confirm2), {
                         result.confirm()
                     })
                 return true
@@ -104,7 +104,7 @@ class CSSOWebViewActivity :
                     message,
                     false,
                     true,
-                    getString(R.string.ok), {
+                    getString(R.string.confirm2), {
                         result.confirm()
                     },
                     getString(R.string.cancel), {
