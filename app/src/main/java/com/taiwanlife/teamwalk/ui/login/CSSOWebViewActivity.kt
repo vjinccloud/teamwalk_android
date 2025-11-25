@@ -21,6 +21,7 @@ import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
+import androidx.core.net.toUri
 
 class CSSOWebViewActivity :
     BaseActivity<ActivityCssoWebviewBinding>({ ActivityCssoWebviewBinding.inflate(it) }) {
@@ -204,9 +205,9 @@ class CSSOWebViewActivity :
         ): Boolean {
 //            Log.d(TAG, request.getUrl().toString());
 
-            val cssoURL = Uri.parse(getEnvironmentConfig().cssoUrl)
-            if (TextUtils.equals(cssoURL.getHost(), request.getUrl().getHost())) {
-                if (TextUtils.equals("/csso/mobileIndex", request.getUrl().getPath())) {
+            val cssoURL = getEnvironmentConfig().cssoUrl.toUri()
+            if (TextUtils.equals(cssoURL.host,  request.url.host)) {
+                if (TextUtils.equals("/csso/mobileIndex", request.url.path)) {
                     if (context is Activity) {
                         context.finish()
                     }
@@ -216,11 +217,11 @@ class CSSOWebViewActivity :
                 return false
             }
 
-            if (request.getUrl().getHost()!!.contains("bid.g.doubleclick.net")) {
+            if (request.url.host!!.contains("bid.g.doubleclick.net")) {
                 return false
             }
 
-            val intent = Intent(Intent.ACTION_VIEW, request.getUrl())
+            val intent = Intent(Intent.ACTION_VIEW, request.url)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             return true

@@ -86,7 +86,7 @@ object Config {
     // CSSO URL
     val variableCssoUrl = EnvironmentVariable(
         release = "https://csso.taiwanlife.com/csso/",
-        debug = "https://cssouat.taiwanlife.com/csso/",
+        debug = "https://demo.mutron.com.tw/teamwalk-fe-api/",
         sit = "https://cssouat.taiwanlife.com/csso/",
         uat = "https://cssouat.taiwanlife.com/csso/"
     )

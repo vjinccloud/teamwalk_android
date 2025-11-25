@@ -7,6 +7,13 @@
     android:background="@drawable/login_bg_style"
     tools:context=".ui.login.LoginActivity">
 
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -220,22 +227,22 @@
                                 android:singleLine="true" />
 
 
-<!--                            <android.widget.Button-->
-<!--                                android:id="@+id/login_button_captcha"-->
-<!--                                android:layout_width="wrap_content"-->
-<!--                                android:layout_height="wrap_content"-->
-<!--                                android:layout_marginStart="8dp"-->
-<!--                                android:background="@drawable/captcha_style"-->
-<!--                                android:drawableEnd="@drawable/reload"-->
-<!--                                android:paddingEnd="8dp" />-->
+                            <!--                            <android.widget.Button-->
+                            <!--                                android:id="@+id/login_button_captcha"-->
+                            <!--                                android:layout_width="wrap_content"-->
+                            <!--                                android:layout_height="wrap_content"-->
+                            <!--                                android:layout_marginStart="8dp"-->
+                            <!--                                android:background="@drawable/captcha_style"-->
+                            <!--                                android:drawableEnd="@drawable/reload"-->
+                            <!--                                android:paddingEnd="8dp" />-->
 
                             <ImageView
                                 android:id="@+id/login_button_captcha"
                                 android:layout_width="140dp"
                                 android:layout_height="35dp"
                                 android:layout_marginStart="8dp"
-                                android:scaleType="fitXY"
-                                android:paddingEnd="8dp" />
+                                android:paddingEnd="8dp"
+                                android:scaleType="fitXY" />
 
                             <ImageView
                                 android:id="@+id/login_reload_captcha"
@@ -243,14 +250,14 @@
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/reload" />
 
-<!--                            <Button-->
-<!--                                android:id="@+id/login_button_captcha"-->
-<!--                                android:layout_width="wrap_content"-->
-<!--                                android:layout_height="wrap_content"-->
-<!--                                android:layout_marginStart="8dp"-->
-<!--                                android:paddingEnd="8dp"-->
-<!--                                android:background="@drawable/captcha_style"-->
-<!--                                android:drawableEnd="@drawable/reload" />-->
+                            <!--                            <Button-->
+                            <!--                                android:id="@+id/login_button_captcha"-->
+                            <!--                                android:layout_width="wrap_content"-->
+                            <!--                                android:layout_height="wrap_content"-->
+                            <!--                                android:layout_marginStart="8dp"-->
+                            <!--                                android:paddingEnd="8dp"-->
+                            <!--                                android:background="@drawable/captcha_style"-->
+                            <!--                                android:drawableEnd="@drawable/reload" />-->
 
                         </androidx.appcompat.widget.LinearLayoutCompat>
 

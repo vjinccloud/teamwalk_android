@@ -55,7 +55,7 @@ val appModule = module {
     // 建立屬於CSSO的Retrofit
     single<Retrofit>(named("csso")) {
         Retrofit.Builder()
-            .baseUrl(EnvironmentManager.getEnvironmentConfig().apiUrl)
+            .baseUrl(EnvironmentManager.getEnvironmentConfig().cssoUrl)
             .client(get<OkHttpClient>())
             .addConverterFactory(GsonConverterFactory.create(get()))
             .build()

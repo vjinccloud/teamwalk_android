@@ -1,5 +1,7 @@
 package com.taiwanlife.teamwalk.ui.login
 
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.text.InputType
 import android.text.SpannableString
@@ -9,13 +11,17 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.listener.PatternLockViewListener
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityLoginBinding
@@ -44,13 +50,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     private var isRememberMe: Boolean = false
     private var pid: String = ""
     private var ticket: String? = ""
+    private var ticketCallback: (ticket: String) -> Unit = {}
 
     //    private var genText: String = ""
     private lateinit var currentCaptchaResult: CaptchaResult
 
     override fun onLastCreateBaseActivity(
-        view: View,
-        savedInstanceState: Bundle?
+        view: View, savedInstanceState: Bundle?
     ) {
         DeviceUtil.setFlagSecure(this)
 
@@ -88,11 +94,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         }
 
-        isRememberMe =
-            SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
+        isRememberMe = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
         pid = if (isRememberMe) SecuredPreferenceStoreManager.getString(
-            Config.SP_LOGIN_PID,
-            ""
+            Config.SP_LOGIN_PID, ""
         ) else ""
 
         try {
@@ -120,11 +124,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     SecuredPreferenceStoreManager.editAndApply {
                         it.putBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, false)
                     }
-                }
-            )
+                })
             commonDialog.show()
         }
 
+        setWebview()
         setPidUI()
         setPasswordUI()
         setCaptcha()
@@ -148,9 +152,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
         // 註冊
         setSpannable(
-            viewBinding.loginSignupTextView,
-            getString(R.string.sign_up),
-            R.color.colorLinkText
+            viewBinding.loginSignupTextView, getString(R.string.sign_up), R.color.colorLinkText
         ) {
             toRegister()
         }
@@ -164,12 +166,49 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setWebview() {
+        val webSettings = viewBinding.webview.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+
+
+        // Use WideViewport and Zoom out if there is no viewport defined
+        webSettings.useWideViewPort = true
+        webSettings.loadWithOverviewMode = true
+
+
+        // Enable pinch to zoom without the zoom buttons
+        webSettings.builtInZoomControls = false
+
+        // Hide the zoom controls for HONEYCOMB+
+        webSettings.displayZoomControls = false
+
+        viewBinding.webview.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(
+                view: WebView?, url: String?, favicon: Bitmap?
+            ) {
+                if (!url.isNullOrEmpty()) {
+                    val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
+                    if (!ticket.isNullOrEmpty()) {
+                        ticketCallback(ticket)
+                        viewBinding.webview.loadUrl("about:blank")
+                        return
+                    }
+                }
+
+                super.onPageStarted(view, url, favicon)
+            }
+        }
+        ticketCallback = { ticket ->
+            loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
+        }
+    }
+
     private fun setPidUI() {
         viewBinding.loginEditTextPasswordPid.addTextChangedListener(
             PidTextWatcher(
-                viewBinding.loginEditTextPasswordPid,
-                pid,
-                ::validPid
+                viewBinding.loginEditTextPasswordPid, pid, ::validPid
             )
         )
     }
@@ -196,7 +235,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return@setOnEditorActionListener false
         }
 
-        val reload = { _:View ->
+        val reload = { _: View ->
 //            genText = genRandomNumbers()
 //            viewBinding.loginButtonCaptcha.text = genText
             currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
@@ -221,19 +260,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 !viewBinding.loginPatternLockView.isInStealthMode
             if (viewBinding.loginPatternLockView.isInStealthMode) {
                 viewBinding.loginPatternToggleStealthModeButton.setCompoundDrawablesWithIntrinsicBounds(
-                    0,
-                    0,
-                    R.drawable.visibility,
-                    0
+                    0, 0, R.drawable.visibility, 0
                 )
                 viewBinding.loginPatternToggleStealthModeButton.text =
                     getString(R.string.login_pattern_normal_mode)
             } else {
                 viewBinding.loginPatternToggleStealthModeButton.setCompoundDrawablesWithIntrinsicBounds(
-                    0,
-                    0,
-                    R.drawable.visibility_off,
-                    0
+                    0, 0, R.drawable.visibility_off, 0
                 )
                 viewBinding.loginPatternToggleStealthModeButton.text =
                     getString(R.string.login_pattern_stealth_mode)
@@ -247,8 +280,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             override fun onComplete(pattern: List<PatternLockView.Dot>) {
                 val fid = SecuredPreferenceStoreManager.getString(
-                    Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
-                    ""
+                    Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, ""
                 )
                 val currentPid = viewBinding.loginEditTextPasswordPid.text.toString().trim()
                 if (TextUtils.isEmpty(currentPid) || currentPid.length != 10) {
@@ -273,9 +305,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     }
 
                     val patternPath = Utils.patternToSha256(
-                        viewBinding.loginPatternLockView,
-                        pattern.toMutableList(),
-                        fid
+                        viewBinding.loginPatternLockView, pattern.toMutableList(), fid
                     )
                     loginViewModel.patternLogin(pid, patternPath)
 //                    // 新API 拿Ticket 然後登入取JWT
@@ -353,8 +383,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             val patternLockStatus = "Y" //cssoUser.getPatternLockStatus()
             if (TextUtils.equals(patternLockStatus, "Y") || TextUtils.equals(
-                    patternLockStatus,
-                    "O"
+                    patternLockStatus, "O"
                 )
             ) {
 //                SecuredPreferenceStoreManager.editAndApply { editor ->
@@ -363,8 +392,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 viewBinding.loginPatternLockView.isInputEnabled = true
             }
             if (TextUtils.equals(patternLockStatus, "N") || TextUtils.equals(
-                    patternLockStatus,
-                    "E"
+                    patternLockStatus, "E"
                 )
             ) {
 //                SecuredPreferenceStoreManager.editAndApply { editor ->
@@ -411,18 +439,14 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 positiveOnClick = {
                     toRegister()
                 },
-                negativeOnClick = {}
-            )
+                negativeOnClick = {})
             alert.show()
         }
     }
 
 
     private fun login() {
-        if (TextUtils.isEmpty(viewBinding.loginEditTextPasswordPid.text.toString()) ||
-            viewBinding.loginEditTextPasswordPid.text
-                .toString().length != 10
-        ) {
+        if (TextUtils.isEmpty(viewBinding.loginEditTextPasswordPid.text.toString()) || viewBinding.loginEditTextPasswordPid.text.toString().length != 10) {
             viewBinding.loginLayoutPasswordPid.setBackgroundColor(getColor(R.color.colorError))
             viewBinding.loginTextViewWarningPid.visibility = View.VISIBLE
             return
@@ -434,8 +458,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return
         }
 
-        if (TextUtils.isEmpty(viewBinding.loginEditTextCaptcha.text.toString())
-            || currentCaptchaResult.code.uppercase() != viewBinding.loginEditTextCaptcha.text.toString()
+        if (TextUtils.isEmpty(viewBinding.loginEditTextCaptcha.text.toString()) || currentCaptchaResult.code.uppercase() != viewBinding.loginEditTextCaptcha.text.toString()
                 .uppercase()
         ) {
             viewBinding.loginLayoutPasswordCaptcha.setBackgroundColor(getColor(R.color.colorError))
@@ -451,32 +474,48 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return
         }
 
-        // 這段換成新的API
-//        val loginURL: String = EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"
-//        val loginParams = "SYS_ID=teamwalk" + "&" +
-//                "appl_id=" + pid + "&" +
-//                "appl_pwd=" + viewBinding.loginEditTextPassword.getText().toString() + "&" +
-//                "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
+        when (BuildConfig.BUILD_TYPE) {
+            "debug" -> {
+                // 用網頁打比照舊版 等同下面註解的API
+                getTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
+                // 新API 拿Ticket 然後登入取JWT
+//                loginViewModel.getTicket(
+//                    pid,
+//                    viewBinding.loginEditTextPassword.text.toString().trim()
+//                )
+//                observeOnLifeCycle(
+//                    loginViewModel.ticketFlow, unSubscribeOnComplete = true, onError = {
+//                        getTicketFromWebview()
+//                    }
+//                ) { ticketUrl ->
+//                    val uri = ticketUrl.toUri()
+//                    ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+//
+//                    if (!TextUtils.isEmpty(ticket)) {
+//                        // 拿到ticket
+//                        loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
+//                    }
+//                }
+            }
+
+            else -> {
+                getTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
+            }
+        }
 //
 //        val signInIntent = Intent()
 //        signInIntent.putExtra("pid", pid)
 //        signInIntent.putExtra("url", loginURL)
 //        signInIntent.putExtra("params", loginParams)
 
-        // 新API 拿Ticket 然後登入取JWT
-        loginViewModel.getTicket(pid, viewBinding.loginEditTextPassword.text.toString().trim())
-        observeOnLifeCycle(
-            loginViewModel.ticketFlow,
-            unSubscribeOnComplete = true
-        ) { ticketUrl ->
-            val uri = ticketUrl.toUri()
-            ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+    }
 
-            if (!TextUtils.isEmpty(ticket)) {
-                // 拿到ticket
-                loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
-            }
-        }
+    private fun getTicketFromWebview(loginURL: String) {
+        val loginParams =
+            "SYS_ID=teamwalk&appl_id=$pid&appl_pwd=" + viewBinding.loginEditTextPassword.text
+                .toString() + "&" + "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
+
+        viewBinding.webview.postUrl(loginURL, loginParams.toByteArray())
     }
 
     private fun tabSettings() {

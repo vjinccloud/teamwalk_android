@@ -9,11 +9,11 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.util.Base64
+import android.util.Patterns
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.PatternLockView.Dot
 import timber.log.Timber
@@ -241,7 +241,8 @@ object Utils {
 
             FileOutputStream(outFile).use { fos ->
                 if (bitmap != null) {
-                    val format = if (ext == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+                    val format =
+                        if (ext == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
                     bitmap.compress(format, 100, fos)
                 } else {
                     // fallback: 如果不能 decode 成 bitmap，就直接把原 bytes 寫入（適用於已是 png/jpg bytes）
@@ -267,12 +268,20 @@ object Utils {
 
             val chooser = Intent.createChooser(sendIntent, "分享圖片")
 
-            val resInfoList = context.packageManager.queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            val resInfoList = context.packageManager.queryIntentActivities(
+                sendIntent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            )
             resInfoList.forEach { resolveInfo ->
                 val packageName = resolveInfo.activityInfo.packageName
                 try {
-                    context.grantUriPermission(packageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                } catch (_: Exception) { /* ignore */ }
+                    context.grantUriPermission(
+                        packageName,
+                        imageUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (_: Exception) { /* ignore */
+                }
             }
 
             context.startActivity(chooser)
@@ -289,5 +298,25 @@ object Utils {
 
             context.debugToast("分享圖片失敗")
         }
+    }
+
+    fun extractTicketFromUrl(urlString: String, paramName: String): String? {
+        try {
+            val uri = urlString.toUri()
+
+            if (uri.isHierarchical && uri.query != null) {
+
+                val ticketValue = uri.getQueryParameter(paramName)
+
+                // 檢查取出的值是否非空且非空白
+                if (!ticketValue.isNullOrEmpty()) {
+                    // Timber.d("URL_CHECK", "Found ticket: $ticketValue")
+                    return ticketValue
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 }
