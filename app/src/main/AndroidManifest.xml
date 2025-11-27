@@ -158,10 +158,12 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".ui.login.CSSOWebViewActivity"
             android:configChanges="orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait" />
         <activity
             android:name=".ui.onboarding.PromoteActivity"

@@ -1,15 +1,19 @@
 package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
+import android.app.Activity
 import android.app.ComponentCaller
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.health.connect.client.HealthConnectClient
@@ -198,6 +202,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
     }
 
+    private var filePathCallback: ValueCallback<Array<Uri>>? = null
+    private val fileChooserLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val uris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+                filePathCallback?.onReceiveValue(uris)
+            } else {
+                filePathCallback?.onReceiveValue(null)
+            }
+            filePathCallback = null
+        }
+
     override fun onLastCreateBaseActivity(
         view: View,
         savedInstanceState: Bundle?
@@ -273,7 +290,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)
-        viewBinding.webView.setUp(this, this, this)
+        viewBinding.webView.setUp(this, this, this) { filePathCallback, fileChooserParams ->
+            this@MainActivity.filePathCallback?.onReceiveValue(null)
+            this@MainActivity.filePathCallback = filePathCallback
+
+            val intent = fileChooserParams.createIntent()
+            fileChooserLauncher.launch(intent)
+        }
+
         CelebrusCSAUtil.sessionSharing(this)
 
         // 如果以前分享的圖片還在 刪除
