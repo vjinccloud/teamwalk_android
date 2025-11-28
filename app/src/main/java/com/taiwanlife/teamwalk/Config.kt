@@ -130,8 +130,8 @@ object Config {
 //        debug = "http://teamwork-frontend.bestamina.net:8080/frontend/",
         debug = "https://demo.mutron.com.tw/teamwalk/bridge",
         sit = "http://10.1.242.55:9080/frontend/",
-//        uat = "https://teamwalkuat.taiwanlife.com/frontend/",
-        uat = "https://demo.mutron.com.tw/teamwalk/bridge",
+//        uat = "https://demo.mutron.com.tw/teamwalk/bridge",
+        uat = "https://teamwalk2uat.taiwanlife.com/bridge",
     )
 
     // Origin
