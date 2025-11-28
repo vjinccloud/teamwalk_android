@@ -78,8 +78,8 @@ fun Context.toast(@StringRes stringId: Int, duration: Int = Toast.LENGTH_SHORT) 
 fun SleepSessionRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     val zoneId =
         endZoneOffset?.let { ZoneOffset.ofTotalSeconds(it.totalSeconds) } ?: ZoneId.of("UTC")
-//    val startMillis = startTime.toEpochMilli().toString()
-//    val endMillis = endTime.toEpochMilli().toString()
+    val startSeconds = startTime.epochSecond.toString()
+    val endSeconds = endTime.epochSecond.toString()
 
     val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withLocale(Locale.US)
         .withZone(ZoneId.of("UTC"))
@@ -89,8 +89,8 @@ fun SleepSessionRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     val duration = (Duration.between(startTime, endTime).toMillis() / 1000) // 總睡眠時間（秒）
 
     return TeamWalkRecordModel(
-        startTimestamp = utcFormatter.format(startTime),
-        endTimestamp = utcFormatter.format(endTime),
+        startTimestamp = startSeconds,
+        endTimestamp = endSeconds,
         utcDate = utcFormatter.format(startTime),
         localDate = localFormatter.format(startTime),
         data = duration
@@ -103,8 +103,8 @@ fun SleepSessionRecord.toTeamWalkRecord(): TeamWalkRecordModel {
 fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
     val zoneId = endZoneOffset?.let { ZoneId.ofOffset("UTC", it) } ?: ZoneId.of("UTC")
 
-//    val startMillis = startTime.toEpochMilli()
-//    val endMillis = endTime.toEpochMilli()
+    val startSeconds = startTime.epochSecond.toString()
+    val endSeconds = endTime.epochSecond.toString()
 
     val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
         .withLocale(Locale.US)
@@ -115,8 +115,8 @@ fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
         .withZone(zoneId)
 
     return TeamWalkRecordModel(
-        startTimestamp = utcFormatter.format(startTime),
-        endTimestamp = utcFormatter.format(endTime),
+        startTimestamp = startSeconds,
+        endTimestamp = endSeconds,
         utcDate = utcFormatter.format(startTime),
         localDate = localFormatter.format(startTime),
         data = count // 使用者的步數
