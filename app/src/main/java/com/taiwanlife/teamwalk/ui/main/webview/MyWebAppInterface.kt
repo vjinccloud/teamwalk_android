@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
+import android.R.attr.data
 import android.content.Context
 import android.content.Intent
 import android.text.TextUtils
@@ -278,8 +279,14 @@ class MyWebAppInterface(
     }
 
     @JavascriptInterface
-    fun saveDataToFile(data: String, fileName: String) {
-        asyncCallbacks.saveDataToFile(data, fileName)
+    fun saveDataToFile(result: String) {
+        try {
+            val saveDataToFileModel = getGson().fromJson(result, SaveDataToFileModel::class.java)
+            asyncCallbacks.saveDataToFile(saveDataToFileModel.data, saveDataToFileModel.fileName)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            context.debugToast("解析 saveDataToFile 錯誤 - $result")
+        }
     }
 }
 
@@ -288,4 +295,11 @@ data class ShareContentModel(
     val status: String,
     @SerializedName("msg")
     val message: String
+)
+
+data class SaveDataToFileModel(
+    @SerializedName("data")
+    val data: String,
+    @SerializedName("fileName")
+    val fileName: String
 )
