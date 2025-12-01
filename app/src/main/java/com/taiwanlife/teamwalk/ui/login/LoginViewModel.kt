@@ -40,6 +40,6 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
             SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
         val pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
 
-        loginFlow.execute { repository.api.login(userId, ticket, "teamwalk", appUuid, deviceId, pushId) }
+        loginFlow.execute { repository.api.login(userId, ticket, "teamwalk${BuildConfig.BUILD_TYPE}", appUuid, deviceId, pushId) }
     }
 }

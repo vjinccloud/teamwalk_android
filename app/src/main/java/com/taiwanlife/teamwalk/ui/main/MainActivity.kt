@@ -257,6 +257,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         )
                     } else {
                         Timber.d("Fetching FCM registration token failed")
+                        Timber.d(task.exception?.message)
                     }
                 }
         } catch (e: Exception) {

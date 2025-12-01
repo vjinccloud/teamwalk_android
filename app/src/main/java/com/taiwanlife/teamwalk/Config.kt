@@ -120,7 +120,7 @@ object Config {
         release = "https://teamwalk.taiwanlife.com/frontend/api/",
         debug = "https://demo.mutron.com.tw/teamwalk-fe-api/",
         sit = "http://10.1.242.55:9080/frontend/api/",
-        uat = "https://demo.mutron.com.tw/teamwalk-fe-api/"
+        uat = "https://teamwalk2uat.taiwanlife.com/teamwalk-fe-api/"
 //        uat = "https://teamwalkuat.taiwanlife.com/frontend/api/"
     )
 

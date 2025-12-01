@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.util.AttributeSet
+import android.webkit.JsResult
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -15,6 +16,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.LifecycleOwner
 import com.taiwanlife.teamwalk.BuildConfig
@@ -134,6 +136,50 @@ class MyWebView : WebView {
             ): Boolean {
 
                 fileChooserCallback(filePathCallback, fileChooserParams)
+                return true
+            }
+
+            @Override
+            override fun onJsAlert(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(context)
+                    .setMessage(message)
+                    .setPositiveButton(
+                        R.string.ok
+                    ) { dialog, which ->
+                        result.confirm()
+                    }
+                    .setCancelable(false)
+                    .show()
+
+                return true
+//                return super.onJsAlert(view, url, message, result)
+            }
+
+            @Override
+            override fun onJsConfirm(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(context)
+                    .setMessage(message)
+                    .setPositiveButton(
+                        R.string.ok
+                    ) { dialog, which ->
+                        result.confirm()
+                    }
+                    .setNegativeButton(R.string.cancel) { dialog, which ->
+                        result.cancel()
+                    }
+                    .setCancelable(false)
+                    .show()
+
                 return true
             }
         }

@@ -1,6 +1,7 @@
 package com.taiwanlife.teamwalk.ui.login
 
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.text.InputType
@@ -11,9 +12,12 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -200,6 +204,50 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 super.onPageStarted(view, url, favicon)
             }
         }
+        viewBinding.webview.webChromeClient = object : WebChromeClient() {
+            @Override
+            override fun onJsAlert(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(this@LoginActivity)
+                    .setMessage(message)
+                    .setPositiveButton(
+                        R.string.ok
+                    ) { dialog, which ->
+                        result.confirm()
+                    }
+                    .setCancelable(false)
+                    .show()
+
+                return true
+            }
+
+            @Override
+            override fun onJsConfirm(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(this@LoginActivity)
+                    .setMessage(message)
+                    .setPositiveButton(
+                        R.string.ok
+                    ) { dialog, which ->
+                        result.confirm()
+                    }
+                    .setNegativeButton(R.string.cancel) { dialog, which ->
+                        result.cancel()
+                    }
+                    .setCancelable(false)
+                    .show()
+
+                return true
+            }
+        }
         ticketCallback = { ticket ->
             loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
         }
@@ -307,7 +355,25 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     val patternPath = Utils.patternToSha256(
                         viewBinding.loginPatternLockView, pattern.toMutableList(), fid
                     )
-                    loginViewModel.patternLogin(pid, patternPath)
+                    when (BuildConfig.BUILD_TYPE) {
+                        "debug" -> {
+                            // 用網頁打比照舊版 等同下面註解的API
+                            getPatternTicketFromWebview(
+                                pattern,
+                                fid,
+                                EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso"
+                            )
+                        }
+
+                        else -> {
+                            getPatternTicketFromWebview(
+                                pattern,
+                                fid,
+                                EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"
+                            )
+                        }
+                    }
+//                    loginViewModel.patternLogin(pid, patternPath)
 //                    // 新API 拿Ticket 然後登入取JWT
 //                    loginViewModel.getTicket(pid, patternPath)
 //                    observeOnLifeCycle(
@@ -477,7 +543,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         when (BuildConfig.BUILD_TYPE) {
             "debug" -> {
                 // 用網頁打比照舊版 等同下面註解的API
-                getTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
+                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
                 // 新API 拿Ticket 然後登入取JWT
 //                loginViewModel.getTicket(
 //                    pid,
@@ -499,7 +565,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
 
             else -> {
-                getTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
+                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
             }
         }
 //
@@ -510,10 +576,24 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     }
 
-    private fun getTicketFromWebview(loginURL: String) {
+    private fun getPWTicketFromWebview(loginURL: String) {
         val loginParams =
             "SYS_ID=teamwalk&appl_id=$pid&appl_pwd=" + viewBinding.loginEditTextPassword.text
                 .toString() + "&" + "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
+
+        viewBinding.webview.postUrl(loginURL, loginParams.toByteArray())
+    }
+
+    private fun getPatternTicketFromWebview(
+        pattern: List<PatternLockView.Dot>,
+        fid: String,
+        loginURL: String
+    ) {
+        val patternPath = Utils.patternToSha256(
+            viewBinding.loginPatternLockView, pattern.toMutableList(), fid
+        )
+        val loginParams =
+            "SYS_ID=teamwalk&userId=$pid&pattern_path=" + patternPath + "&" + "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
 
         viewBinding.webview.postUrl(loginURL, loginParams.toByteArray())
     }
