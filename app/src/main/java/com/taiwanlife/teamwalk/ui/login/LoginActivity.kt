@@ -140,6 +140,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         viewBinding.loginButton.setOnClickListener {
             login()
         }
+//        viewBinding.loginEditTextPasswordPid.setText("A127393470")
+//        viewBinding.loginEditTextPassword.setText("7377Titan")
+
 
         tabSettings()
         // API 流程
@@ -192,6 +195,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             override fun onPageStarted(
                 view: WebView?, url: String?, favicon: Bitmap?
             ) {
+                viewBinding.url.text = url ?: ""
                 if (!url.isNullOrEmpty()) {
                     val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
                     if (!ticket.isNullOrEmpty()) {
@@ -288,14 +292,15 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //            viewBinding.loginButtonCaptcha.text = genText
             currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
             viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
+//            viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
         }
         viewBinding.loginButtonCaptcha.setOnClickListener(reload)
-        viewBinding.loginReloadCaptcha.setOnClickListener(reload)
 
 //        genText = genRandomNumbers()
 //        viewBinding.loginButtonCaptcha.text = genText
         currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
         viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
+//        viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
     }
 
     private fun setPatterLock() {

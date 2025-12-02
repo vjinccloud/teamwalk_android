@@ -37,6 +37,8 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
 
+            // APP 名稱
+            resValue("string", "app_name", "DebugTeamWalk")
             // 綁定成功時的domain(scheme)
             resValue("string", "redirect_scheme", "teamwalkdebug")
 
@@ -53,6 +55,8 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
 
+            // APP 名稱
+            resValue("string", "app_name", "SITTeamWalk")
             // 綁定成功時的domain(scheme)
             resValue("string", "redirect_scheme", "teamwalksit")
 
@@ -69,6 +73,8 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
 
+            // APP 名稱
+            resValue("string", "app_name", "UATTeamWalk")
             // 綁定成功時的domain(scheme)
             resValue("string", "redirect_scheme", "teamwalkuat")
 
@@ -84,6 +90,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // APP 名稱
+            resValue("string", "app_name", "TeamWalk")
             // 綁定成功時的domain(scheme)
             resValue("string", "redirect_scheme", "teamwalk")
 

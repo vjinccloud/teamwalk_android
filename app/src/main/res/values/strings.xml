@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TeamWalk</string>
+<!--    <string name="app_name">TeamWalk</string>-->
     
     <string name="login_timeout_for_password_change_message">提醒您：因已持續登入一段時間，需重新登入才能變更密碼</string>
     <string name="confirm1">確定</string>
