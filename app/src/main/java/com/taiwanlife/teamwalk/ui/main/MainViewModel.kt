@@ -4,10 +4,13 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Base64
 import androidx.lifecycle.viewModelScope
+import com.taiwanlife.teamwalk.BuildConfig
+import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.base.BaseViewModel
 import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.response.api.LandingResponse
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

@@ -66,7 +66,7 @@ object Config {
     const val SP_FIREBASE_INSTALLATIONS_UNIQUE_ID = "SP_FIREBASE_INSTALLATIONS_UNIQUE_ID"
 
     const val SP_LOGIN_JWT_TOKEN = "SP_LOGIN_JWT_TOKEN"
-    const val SP_LOGIN_PID = "SP_LOGIN_PID"
+    const val SP_LOGIN_REMEMBER_PID = "SP_LOGIN_REMEMBER_PID"
     const val SP_LOGIN_AUTH = "SP_LOGIN_AUTH"
     const val SP_LOGIN_REMEMBER_ME = "SP_LOGIN_REMEMBER_ME"
     const val SP_LOGIN_SEGMENT_CONTROL_POS = "SP_LOGIN_SEGMENT_CONTROL_POS"
@@ -79,6 +79,10 @@ object Config {
 
     const val SP_USER_INFO = "SP_USER_INFO"
     const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
+
+    // 在Cookie內部 用來跟CSSO使用
+    const val SP_CASTGC = "SP_CASTGC"
+    const val SP_PID = "SP_PID"
     // end region
 
     // region 根據不同的Build Types 有不同的環境變數

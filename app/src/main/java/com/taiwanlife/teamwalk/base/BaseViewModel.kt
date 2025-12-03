@@ -8,6 +8,7 @@ import com.taiwanlife.teamwalk.remote.ApiException.ResponseBodyEmptyException
 import com.taiwanlife.teamwalk.remote.ApiException.ResponseHeaderCodeNotSuccessException
 import com.taiwanlife.teamwalk.remote.ApiException.ResponseNotSuccessfulException
 import com.taiwanlife.teamwalk.remote.Repository
+import com.taiwanlife.teamwalk.remote.response.CSSOResponse
 import com.taiwanlife.teamwalk.remote.response.api.ResponseWrapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -83,7 +84,13 @@ abstract class BaseViewModel(
             errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null,
             executeCall: suspend () -> Response<T>
         ) {
-            baseViewModel.rawCallAsSharedFlow(false, _mutableSharedFlow, _loadingFlow, executeCall, errorHandler)
+            baseViewModel.rawCallAsSharedFlow(
+                false,
+                _mutableSharedFlow,
+                _loadingFlow,
+                executeCall,
+                errorHandler
+            )
         }
 
         override fun getFlow(): SharedFlow<UiState<T>> {
@@ -98,18 +105,24 @@ abstract class BaseViewModel(
     /**
      * 傳入要呼叫的CSSO function
      */
-    class CSSOFlow(private val baseViewModel: BaseViewModel) : ApiFlowClass<String> {
+    class CSSOFlow<T>(private val baseViewModel: BaseViewModel) : ApiFlowClass<T> {
         private val _loadingFlow = MutableSharedFlow<Boolean>(1)
-        private val _mutableSharedFlow = MutableSharedFlow<UiState<String>>()
+        private val _mutableSharedFlow = MutableSharedFlow<UiState<T>>()
 
         fun execute(
             errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null,
-            executeCall: suspend () -> Response<String>
+            executeCall: suspend () -> Response<T>
         ) {
-            baseViewModel.cssoCallAsSharedFlow(false, _mutableSharedFlow, _loadingFlow, executeCall, errorHandler)
+            baseViewModel.cssoCallAsSharedFlow(
+                false,
+                _mutableSharedFlow,
+                _loadingFlow,
+                executeCall,
+                errorHandler
+            )
         }
 
-        override fun getFlow(): SharedFlow<UiState<String>> {
+        override fun getFlow(): SharedFlow<UiState<T>> {
             return _mutableSharedFlow.asSharedFlow()
         }
 
@@ -138,7 +151,7 @@ abstract class BaseViewModel(
         }
         viewModelScope.launch {
             try {
-                if(showStartLoading) {
+                if (showStartLoading) {
                     loadingFlow.emit(true)
                 }
                 val response = apiFunction()
@@ -198,7 +211,7 @@ abstract class BaseViewModel(
         }
         viewModelScope.launch {
             try {
-                if(showStartLoading) {
+                if (showStartLoading) {
                     loadingFlow.emit(true)
                 }
                 val response = apiFunction.invoke()
@@ -227,11 +240,11 @@ abstract class BaseViewModel(
         }
     }
 
-    private fun cssoCallAsSharedFlow(
+    private fun <T> cssoCallAsSharedFlow(
         showStartLoading: Boolean = false,
-        mutableSharedFlow: MutableSharedFlow<UiState<String>>,
+        mutableSharedFlow: MutableSharedFlow<UiState<T>>,
         loadingFlow: MutableSharedFlow<Boolean>,
-        apiFunction: suspend () -> Response<String>,
+        apiFunction: suspend () -> Response<T>,
         errorHandler: ((e: Exception, defaultErrorHandler: (e: Exception) -> Unit) -> Unit)? = null
     ) {
         val processError = { e: Exception ->
@@ -243,17 +256,16 @@ abstract class BaseViewModel(
         }
         viewModelScope.launch {
             try {
-                if(showStartLoading) {
+                if (showStartLoading) {
                     loadingFlow.emit(true)
                 }
                 val response = apiFunction.invoke()
-                // CSSO 比較特別 如果成功HttpCode 會是302 並且將我們要的東西放在Header的location
-                if (response.code() == 302) {
-                    val location = response.headers()[Config.API_CSSO_HEADER_LOCATION]
-                    if (!TextUtils.isEmpty(location)) {
-                        mutableSharedFlow.emit(UiState.Success(location!!))
+                if (response.isSuccessful) {
+                    val cssoResponse = response.body()
+                    if (cssoResponse != null) {
+                        mutableSharedFlow.emit(UiState.Success(cssoResponse))
                     } else {
-                        // location 是空的
+                        // 是空的
                         val e = ResponseBodyEmptyException(response)
                         processError(e)
                         mutableSharedFlow.emit(UiState.Error(e))
@@ -264,6 +276,23 @@ abstract class BaseViewModel(
                     processError(e)
                     mutableSharedFlow.emit(UiState.Error(e))
                 }
+                // CSSO 比較特別 如果成功HttpCode 會是302 並且將我們要的東西放在Header的location
+//                if (response.code() == 302) {
+//                    val location = response.headers()[Config.API_CSSO_HEADER_LOCATION]
+//                    if (!TextUtils.isEmpty(location)) {
+//                        mutableSharedFlow.emit(UiState.Success(location!!))
+//                    } else {
+//                        // location 是空的
+//                        val e = ResponseBodyEmptyException(response)
+//                        processError(e)
+//                        mutableSharedFlow.emit(UiState.Error(e))
+//                    }
+//                } else {
+//                    // HttpCode不是 302 通常代表錯誤
+//                    val e = ResponseNotSuccessfulException(response, response.code())
+//                    processError(e)
+//                    mutableSharedFlow.emit(UiState.Error(e))
+//                }
             } catch (e: Exception) {
                 processError(e)
                 mutableSharedFlow.emit(UiState.Error(e))

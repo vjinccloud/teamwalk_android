@@ -20,6 +20,13 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/test_csso"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="CSSO測試" />
+
+            <TextView
                 android:id="@+id/clearBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

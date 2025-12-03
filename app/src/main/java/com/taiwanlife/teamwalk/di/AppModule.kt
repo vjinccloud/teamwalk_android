@@ -11,6 +11,7 @@ import com.taiwanlife.teamwalk.remote.service.APIService
 import com.taiwanlife.teamwalk.remote.service.CssoService
 import com.taiwanlife.teamwalk.remote.service.FitBitService
 import com.taiwanlife.teamwalk.remote.service.GarminService
+import com.taiwanlife.teamwalk.test.TestViewModel
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.login.LoginViewModel
@@ -108,4 +109,5 @@ val appModule = module {
     viewModelOf(::FitbitViewModel)
     viewModelOf(::LoginViewModel)
     viewModelOf(::OnBoardingViewModel)
+    viewModelOf(::TestViewModel)
 }

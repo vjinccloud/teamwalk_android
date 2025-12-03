@@ -1,7 +1,6 @@
 package com.taiwanlife.teamwalk.ui.login
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.text.InputType
@@ -12,6 +11,7 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.webkit.CookieManager
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -73,10 +73,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
                 if (isRememberMe) {
 //                    it.putString(Config.PREF_LOGIN_PID, pid)
-                    it.putString(Config.SP_LOGIN_PID, pid)
+                    it.putString(Config.SP_LOGIN_REMEMBER_PID, pid)
                 } else {
 //                    it.putString(Config.PREF_LOGIN_PID, "")
-                    it.putString(Config.SP_LOGIN_PID, "")
+                    it.putString(Config.SP_LOGIN_REMEMBER_PID, "")
                 }
 
                 loginResponse.let { loginResponse ->
@@ -87,20 +87,20 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             setResult(RESULT_OK)
             finish()
         }
-        observeOnLifeCycle(loginViewModel.patternFlow) { ticketUrl ->
-            val uri = ticketUrl.toUri()
-            ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
-
-            if (!TextUtils.isEmpty(ticket)) {
-                // 拿到ticket
-                loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
-            }
-
-        }
+//        observeOnLifeCycle(loginViewModel.patternFlow) { ticketUrl ->
+//            val uri = ticketUrl.toUri()
+//            ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
+//
+//            if (!TextUtils.isEmpty(ticket)) {
+//                // 拿到ticket
+//                loginViewModel.login(pid, ticket!!, Utils.getDeviceId(this))
+//            }
+//
+//        }
 
         isRememberMe = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
         pid = if (isRememberMe) SecuredPreferenceStoreManager.getString(
-            Config.SP_LOGIN_PID, ""
+            Config.SP_LOGIN_REMEMBER_PID, ""
         ) else ""
 
         try {
@@ -141,7 +141,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             login()
         }
 //        viewBinding.loginEditTextPasswordPid.setText("A127393470")
-//        viewBinding.loginEditTextPassword.setText("7377Titan")
+//        viewBinding.loginEditTextPassword.setText("Titan123")
+        viewBinding.loginEditTextPasswordPid.setText("X188015300")
+        viewBinding.loginEditTextPassword.setText("123a456A")
 
 
         tabSettings()
@@ -253,8 +255,20 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
         }
         ticketCallback = { ticket ->
+            CookieManager.getInstance().getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")?.let { cookieString ->
+                extractCastgcValueSplit(cookieString) ?.let {
+                    SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, it)
+                }
+            }
+
             loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
         }
+    }
+
+    private fun extractCastgcValueSplit(input: String): String? {
+        val parts = input.split(';')
+        val castgcEntry = parts.find { it.trim().startsWith("CASTGC=") }
+        return castgcEntry?.substringAfter("CASTGC=")?.trim()
     }
 
     private fun setPidUI() {
@@ -300,7 +314,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //        viewBinding.loginButtonCaptcha.text = genText
         currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
         viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
-//        viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
+        viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
     }
 
     private fun setPatterLock() {
@@ -357,9 +371,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                         return
                     }
 
-                    val patternPath = Utils.patternToSha256(
-                        viewBinding.loginPatternLockView, pattern.toMutableList(), fid
-                    )
                     when (BuildConfig.BUILD_TYPE) {
                         "debug" -> {
                             // 用網頁打比照舊版 等同下面註解的API
@@ -374,7 +385,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                             getPatternTicketFromWebview(
                                 pattern,
                                 fid,
-                                EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"
+                                EnvironmentManager.getEnvironmentConfig().cssoUrl + "patternLogin"
                             )
                         }
                     }

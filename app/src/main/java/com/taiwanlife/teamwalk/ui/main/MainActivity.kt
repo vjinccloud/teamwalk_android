@@ -18,6 +18,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.lifecycleScope
+import com.andrognito.patternlockview.PatternLockView
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
@@ -37,6 +38,7 @@ import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import com.taiwanlife.teamwalk.test.TestActivity
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
@@ -366,6 +368,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun forTest() {
+        viewBinding.testCsso.setOnClickListener {
+            startActivity(Intent(this, TestActivity::class.java))
+        }
         viewBinding.dummyData.setOnClickListener {
             if (healthConnectViewModel == null) {
                 toast(R.string.main_health_connect_not_available)

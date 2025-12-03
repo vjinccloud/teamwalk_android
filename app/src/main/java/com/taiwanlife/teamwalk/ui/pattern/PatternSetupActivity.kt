@@ -111,7 +111,7 @@ class PatternSetupActivity :
 
     private fun callSetPatternApi(newPattern: String) {
         val url = EnvironmentManager.getEnvironmentConfig().cssoUrl + "rest/setPatternLock"
-        val userName = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_PID, "")
+        val userName = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_REMEMBER_PID, "")
 
         //TODO 設定PatternLock 目前無API
         // 模擬API結果成功

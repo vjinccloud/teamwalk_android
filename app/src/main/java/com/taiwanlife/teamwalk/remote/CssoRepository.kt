@@ -1,5 +1,8 @@
 package com.taiwanlife.teamwalk.remote
 
+import com.taiwanlife.teamwalk.remote.request.DisablePatternRequest
+import com.taiwanlife.teamwalk.remote.request.PatternRequest
+import com.taiwanlife.teamwalk.remote.response.CSSOResponse
 import com.taiwanlife.teamwalk.remote.service.CssoService
 import retrofit2.Response
 import retrofit2.http.Field
@@ -30,5 +33,15 @@ class CssoRepository(
         service: String
     ): Response<String> {
         return cssoService.patternLogin(sysId, userId, patternPath, service)
+    }
+
+    suspend fun setPatternLock(castgc: String, userName: String, origPattern: String, newPattern: String): Response<CSSOResponse> {
+        return cssoService.setPatternLock("CASTGC=$castgc",
+            PatternRequest(userName, newPattern, origPattern)
+        )
+    }
+
+    suspend fun disablePatternLock(pid: String): Response<CSSOResponse> {
+        return cssoService.disablePatternLock(DisablePatternRequest(pid))
     }
 }

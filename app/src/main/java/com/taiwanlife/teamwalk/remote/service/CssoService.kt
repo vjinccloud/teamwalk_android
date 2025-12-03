@@ -1,9 +1,14 @@
 package com.taiwanlife.teamwalk.remote.service
 
+import com.taiwanlife.teamwalk.remote.request.DisablePatternRequest
+import com.taiwanlife.teamwalk.remote.request.PatternRequest
+import com.taiwanlife.teamwalk.remote.response.CSSOResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface CssoService {
@@ -36,4 +41,11 @@ interface CssoService {
         @Field("service")
         service: String
     ): Response<String>
+
+
+    @POST("rest/setPatternLock")
+    suspend fun setPatternLock(@Header("Cookie") cookie: String, @Body pattern: PatternRequest): Response<CSSOResponse>
+
+    @POST("user/disable_graphical_login")
+    suspend fun disablePatternLock(@Body disablePatternRequest: DisablePatternRequest): Response<CSSOResponse>
 }
