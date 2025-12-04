@@ -18,6 +18,7 @@ import com.taiwanlife.teamwalk.ui.login.LoginViewModel
 import com.taiwanlife.teamwalk.ui.main.MainViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.onboarding.OnBoardingViewModel
+import com.taiwanlife.teamwalk.ui.pattern.PatternSetupViewModel
 import com.taiwanlife.teamwalk.utils.getGson
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -110,4 +111,5 @@ val appModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::OnBoardingViewModel)
     viewModelOf(::TestViewModel)
+    viewModelOf(::PatternSetupViewModel)
 }

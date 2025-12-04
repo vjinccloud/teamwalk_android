@@ -151,40 +151,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             debugToast(R.string.change_success)
 
             if (result.resultCode == RESULT_OK) {
-                val changed = result.data?.getBooleanExtra(
-                    PatternSetupActivity.KEY_IS_GRAPHICAL_LOGIN_CHANGED,
-                    false
-                )
                 val isGraphicalLoginSet = result.data?.getBooleanExtra(
                     PatternSetupActivity.KEY_IS_GRAPHICAL_LOGIN_SET,
                     false
-                )
-                // 如果有變更圖形修改的狀況 就把最新的綁定圖形結果回傳
-                if (changed == true && isGraphicalLoginSet != null) {
-                    postEvent(
-                        EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
-                        isGraphicalLoginSet.enableToString().quoteJS()
-                    )
-                } else {
-                    // 如果沒有改變 就將使用者現在的狀況回傳
-                    val userInfoString =
-                        SecuredPreferenceStoreManager.getString(Config.SP_USER_INFO, "")
-                    val userInfoResponse =
-                        getGson().fromJson(userInfoString, UserInfoResponse::class.java)
+                ) ?: false
 
-                    if (userInfoString.isNotEmpty() && userInfoResponse.bindingCaptcha != null) {
-                        postEvent(
-                            EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
-                            userInfoResponse.bindingCaptcha.enableToString().quoteJS()
-                        )
-                    } else {
-                        // 防呆傳入N 如果有登入不該走到這裡
-                        postEvent(
-                            EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
-                            false.enableToString().quoteJS()
-                        )
-                    }
-                }
+                postEvent(
+                    EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                    isGraphicalLoginSet.enableToString().quoteJS()
+                )
             }
         }
 
@@ -909,8 +884,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun setGraphicalLogin(enable: String) {
-        val patternIntent = Intent(this, PatternSetupActivity::class.java)
-        patternLauncher.launch(patternIntent)
+        if(enable == "N") {
+            postEvent(
+                EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                false.enableToString().quoteJS()
+            )
+        } else {
+            val patternIntent = Intent(this, PatternSetupActivity::class.java)
+            patternIntent.putExtra(PatternSetupActivity.KEY_ATTEMPT_ENABLE, enable)
+            patternLauncher.launch(patternIntent)
+        }
     }
 
     override fun bindingGoogleHealth(enable: String) {

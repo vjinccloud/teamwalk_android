@@ -78,6 +78,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //                    it.putString(Config.PREF_LOGIN_PID, "")
                     it.putString(Config.SP_LOGIN_REMEMBER_PID, "")
                 }
+                it.putString(Config.SP_PID, pid)
 
                 loginResponse.let { loginResponse ->
                     it.putString(Config.SP_LOGIN_JWT_TOKEN, loginResponse.token)
@@ -142,8 +143,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 //        viewBinding.loginEditTextPasswordPid.setText("A127393470")
 //        viewBinding.loginEditTextPassword.setText("Titan123")
-        viewBinding.loginEditTextPasswordPid.setText("X188015300")
-        viewBinding.loginEditTextPassword.setText("123a456A")
+//        viewBinding.loginEditTextPasswordPid.setText("A107529143")
+//        viewBinding.loginEditTextPassword.setText("abc12345")
 
 
         tabSettings()
@@ -306,7 +307,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //            viewBinding.loginButtonCaptcha.text = genText
             currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
             viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
-//            viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
         }
         viewBinding.loginButtonCaptcha.setOnClickListener(reload)
 
@@ -314,7 +314,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //        viewBinding.loginButtonCaptcha.text = genText
         currentCaptchaResult = CaptchaGenerator.generateCaptchaBitmap()
         viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
-        viewBinding.loginEditTextCaptcha.setText(currentCaptchaResult.code)
     }
 
     private fun setPatterLock() {

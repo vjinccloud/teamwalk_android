@@ -14,6 +14,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
 import com.speed_trap.android.WebAppInterface
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
@@ -22,6 +23,8 @@ import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import androidx.core.net.toUri
+import com.taiwanlife.teamwalk.EnvironmentManager
+import timber.log.Timber
 
 class CSSOWebViewActivity :
     BaseActivity<ActivityCssoWebviewBinding>({ ActivityCssoWebviewBinding.inflate(it) }) {
@@ -146,8 +149,25 @@ class CSSOWebViewActivity :
 
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
         webView.loadUrl(cssoURL)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!backIfValid()) {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
+    private fun backIfValid(): Boolean {
+        return if (webView.canGoBack()) {
+            webView.goBack()
+            true
+        } else {
+            false
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -172,8 +192,8 @@ class CSSOWebViewActivity :
      * @return
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView!!.canGoBack()) {
-            webView!!.goBack()
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) {
+            webView.goBack()
             return true
         }
 
@@ -221,9 +241,15 @@ class CSSOWebViewActivity :
                 return false
             }
 
-            val intent = Intent(Intent.ACTION_VIEW, request.url)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
+//            val intent = Intent(Intent.ACTION_VIEW, request.url)
+//            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+//            context.startActivity(intent)
+            Timber.d(request.url.toString())
+            if(request.url.toString() == "teamwalk://login") {
+                if (context is Activity) {
+                    context.finish()
+                }
+            }
             return true
         }
     }
