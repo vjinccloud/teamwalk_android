@@ -19,7 +19,6 @@ import android.webkit.WebViewClient
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.listener.PatternLockViewListener
@@ -256,11 +255,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
         }
         ticketCallback = { ticket ->
-            CookieManager.getInstance().getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")?.let { cookieString ->
-                extractCastgcValueSplit(cookieString) ?.let {
-                    SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, it)
+            CookieManager.getInstance()
+                .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
+                ?.let { cookieString ->
+                    extractCastgcValueSplit(cookieString)?.let {
+                        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, it)
+                    }
                 }
-            }
 
             loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
         }
@@ -309,6 +310,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             viewBinding.loginButtonCaptcha.setImageBitmap(currentCaptchaResult.bitmap)
         }
         viewBinding.loginButtonCaptcha.setOnClickListener(reload)
+        viewBinding.loginReloadCaptcha.setOnClickListener(reload)
 
 //        genText = genRandomNumbers()
 //        viewBinding.loginButtonCaptcha.text = genText
