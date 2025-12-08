@@ -119,7 +119,7 @@ class CSSOWebViewActivity :
         }
 
         var cssoURL = ""
-        val purpose = getIntent().getStringExtra(CSSOWebViewActivity.KEY_PURPOSE)
+        val purpose = intent.getStringExtra(CSSOWebViewActivity.KEY_PURPOSE)
         if (TextUtils.isEmpty(purpose)) {
             finish()
         } else if (TextUtils.equals(purpose, CSSOWebViewActivity.PURPOSE_REGISTER)) {
@@ -147,8 +147,10 @@ class CSSOWebViewActivity :
         )
 
 
-//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
         webView.loadUrl(cssoURL)
+//        webView.postDelayed({
+//            webView.evaluateJavascript( "window.location.href = '${getString(R.string.redirect_scheme)}://login';", null)
+//        }, 1000L)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -241,15 +243,15 @@ class CSSOWebViewActivity :
                 return false
             }
 
-//            val intent = Intent(Intent.ACTION_VIEW, request.url)
-//            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-//            context.startActivity(intent)
             Timber.d(request.url.toString())
-            if(request.url.toString() == "teamwalk://login") {
-                if (context is Activity) {
-                    context.finish()
-                }
-            }
+            val intent = Intent(Intent.ACTION_VIEW, request.url)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            context.startActivity(intent)
+//            if(request.url.toString() == "teamwalk://login") {
+//                if (context is Activity) {
+//                    context.finish()
+//                }
+//            }
             return true
         }
     }

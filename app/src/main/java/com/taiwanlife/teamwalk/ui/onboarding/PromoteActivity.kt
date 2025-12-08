@@ -56,7 +56,17 @@ class PromoteActivity :
         }
         setDialog()
         viewBinding.onboardingEditTextPromoteCode.setText(userInfo.referrerCode)
-        viewBinding.onboardingEditTextPromoteCode.addTextChangedListener(CustomTextWatcher {
+//        viewBinding.onboardingEditTextPromoteCode.addTextChangedListener(CustomTextWatcher {
+//            val currentText = viewBinding.onboardingEditTextPromoteCode.text.toString().trim()
+//            if (TextUtils.isEmpty(currentText)) {
+//                toast(getString(R.string.onboard_promote_editText) + " " + getString(R.string.empty))
+//                userInfo = userInfo.copy(referrerCode = "")
+//            } else {
+//                userInfo = userInfo.copy(referrerCode = currentText)
+//            }
+//        })
+
+        viewBinding.onboardingNextButton.setOnClickListener {
             val currentText = viewBinding.onboardingEditTextPromoteCode.text.toString().trim()
             if (TextUtils.isEmpty(currentText)) {
                 toast(getString(R.string.onboard_promote_editText) + " " + getString(R.string.empty))
@@ -64,9 +74,6 @@ class PromoteActivity :
             } else {
                 userInfo = userInfo.copy(referrerCode = currentText)
             }
-        })
-
-        viewBinding.onboardingNextButton.setOnClickListener {
             if (!TextUtils.isEmpty(userInfo.referrerCode) && userInfo.referrerCode.length > 8) {
                 toast(R.string.onboard_promote_msg)
                 return@setOnClickListener

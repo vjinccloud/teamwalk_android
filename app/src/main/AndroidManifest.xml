@@ -97,6 +97,7 @@
 
                 <!--                <data android:scheme="teamwalk" />-->
                 <!--                <data android:scheme="teamwalkuat" />-->
+                <data android:scheme="@string/redirect_scheme" />
                 <data android:host="home" />
                 <data android:host="login" />
                 <data android:host="loginsuccess" />

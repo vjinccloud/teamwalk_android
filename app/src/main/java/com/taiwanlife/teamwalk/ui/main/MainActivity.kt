@@ -836,6 +836,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
 
         val loginIntent = Intent(this, LoginActivity::class.java)
+        loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         loginLauncher.launch(loginIntent)
     }
 

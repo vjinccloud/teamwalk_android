@@ -1,7 +1,5 @@
 package com.taiwanlife.teamwalk.ui.onboarding
 
-import android.R.attr.text
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
@@ -9,8 +7,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import com.google.gson.Gson
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseAdapter
 import com.taiwanlife.teamwalk.databinding.ActivityAvatarBinding
@@ -21,9 +17,7 @@ import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.PURPLE
 import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.RED
 import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.ROYAL_PURPLE
 import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.YELLOW
-import com.taiwanlife.teamwalk.ui.onboarding.model.UserInfo
 import com.taiwanlife.teamwalk.utils.Utils
-import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.toast
 
 class AvatarActivity :
@@ -57,18 +51,18 @@ class AvatarActivity :
         setAvatars()
         setNickName()
         viewBinding.onboardingNextButton.setOnClickListener {
-            val text = userInfo.nickname
-            if (!TextUtils.isEmpty(text)) {
-                val chars: CharArray = text!!.toCharArray()
-                for (aChar in chars) {
-                    val type = Character.getType(aChar)
-                    if (type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()) {
-                        toast(R.string.onboard_edit_nickname_emoji)
-                        return@setOnClickListener
-                    }
-                }
-            }
-            if(buildInImage != -1) {
+//            val text = userInfo.nickname
+//            if (!TextUtils.isEmpty(text)) {
+//                val chars: CharArray = text!!.toCharArray()
+//                for (aChar in chars) {
+//                    val type = Character.getType(aChar)
+//                    if (type == Character.SURROGATE.toInt() || type == Character.OTHER_SYMBOL.toInt()) {
+//                        toast(R.string.onboard_edit_nickname_emoji)
+//                        return@setOnClickListener
+//                    }
+//                }
+//            }
+            if (buildInImage != -1) {
                 userInfo = userInfo.copy(userAvatar = "${buildInImage}.png")
             }
 
@@ -82,7 +76,7 @@ class AvatarActivity :
         viewBinding.onboardingRecyclerCoverFlowAvatar.adapter = avatarAdapter
         viewBinding.onboardingRecyclerCoverFlowAvatar.setIntervalRatio(0.66f)
         viewBinding.onboardingRecyclerCoverFlowAvatar.setAlphaItem(true)
-        viewBinding.onboardingRecyclerCoverFlowAvatar.setOnItemSelectedListener { position ->
+        val changePosition: (Int) -> Unit = { position ->
             var avatar = position + 1
             filter = 0
             avatar += when (currentOptionType) {
@@ -95,6 +89,7 @@ class AvatarActivity :
             }
             buildInImage = avatar
         }
+        viewBinding.onboardingRecyclerCoverFlowAvatar.setOnItemSelectedListener(changePosition)
 
         val resetAdapter = {
             when (currentOptionType) {
@@ -105,6 +100,7 @@ class AvatarActivity :
                 PURPLE -> avatarAdapter.setModels(optionMap[PURPLE]!!.toMutableList())
                 ROYAL_PURPLE -> avatarAdapter.setModels(optionMap[ROYAL_PURPLE]!!.toMutableList())
             }
+            changePosition(viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.selectedPos)
             viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.scrollToPosition(1)
         }
 
@@ -135,6 +131,7 @@ class AvatarActivity :
 
         // 手動選紅色
         viewBinding.onboardingImageButtonRed.performClick()
+        viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.scrollToPosition(1)
     }
 
     private fun setNickName() {
