@@ -1,7 +1,9 @@
 package com.taiwanlife.teamwalk.ui.login
 
+import android.R.id.message
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.text.SpannableString
@@ -14,9 +16,12 @@ import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -38,6 +43,7 @@ import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.security.SecureRandom
+import java.util.Locale
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
 
@@ -209,6 +215,29 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
                 super.onPageStarted(view, url, favicon)
             }
+
+            @Override
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                // 確保錯誤是針對主框架的請求 (isForMainFrame)
+                if (request?.isForMainFrame == true) {
+                    val description = error?.description.toString()
+                    val errorCode = error?.errorCode ?: -1
+
+                    AlertDialog.Builder(this@LoginActivity)
+                        .setTitle(String.format(Locale.getDefault(), getString(R.string.webview_error_title), errorCode.toString()))
+                        .setMessage(String.format(Locale.getDefault(), getString(R.string.webview_error_message), description))
+                        .setPositiveButton(R.string.confirm1) { dialog, _ ->
+
+                        }
+                        .setCancelable(true)
+                        .show()
+                }
+            }
+
         }
         viewBinding.webview.webChromeClient = object : WebChromeClient() {
             @Override

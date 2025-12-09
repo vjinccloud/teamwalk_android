@@ -155,6 +155,8 @@
     <string name="empty">未填寫</string>
     <string name="close">關閉</string>
     <string name="go_back">返回</string>
+    <string name="webview_error_title" formatted="true">網路連線錯誤 (代碼: %s)</string>
+    <string name="webview_error_message" formatted="true">載入失敗。\n%s</string>
 
     <string name="main_finish_login">你以登入</string>
     <string name="main_add_to_clipboard">複製到剪貼簿</string>

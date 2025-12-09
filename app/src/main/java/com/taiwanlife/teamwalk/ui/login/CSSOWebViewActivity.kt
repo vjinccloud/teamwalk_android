@@ -11,10 +11,12 @@ import android.view.KeyEvent
 import android.view.View
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import com.speed_trap.android.WebAppInterface
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
@@ -25,6 +27,7 @@ import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.EnvironmentManager
 import timber.log.Timber
+import java.util.Locale
 
 class CSSOWebViewActivity :
     BaseActivity<ActivityCssoWebviewBinding>({ ActivityCssoWebviewBinding.inflate(it) }) {
@@ -148,6 +151,7 @@ class CSSOWebViewActivity :
 
 
         webView.loadUrl(cssoURL)
+//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
 //        webView.postDelayed({
 //            webView.evaluateJavascript( "window.location.href = '${getString(R.string.redirect_scheme)}://login';", null)
 //        }, 1000L)
@@ -253,6 +257,28 @@ class CSSOWebViewActivity :
 //                }
 //            }
             return true
+        }
+
+        @Override
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
+            // 確保錯誤是針對主框架的請求 (isForMainFrame)
+            if (request?.isForMainFrame == true) {
+                val description = error?.description.toString()
+                val errorCode = error?.errorCode ?: -1
+
+                AlertDialog.Builder(context)
+                    .setTitle(String.format(Locale.getDefault(), context.getString(R.string.webview_error_title), errorCode.toString()))
+                    .setMessage(String.format(Locale.getDefault(), context.getString(R.string.webview_error_message), description))
+                    .setPositiveButton(R.string.confirm1) { dialog, _ ->
+
+                    }
+                    .setCancelable(true)
+                    .show()
+            }
         }
     }
 }
