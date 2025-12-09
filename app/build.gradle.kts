@@ -14,7 +14,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.01"
+        versionName = "3.0.02"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -104,11 +104,18 @@ android {
     namespace = "com.taiwanlife.teamwalk"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
+    }
+
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
     }
 
     buildFeatures {
@@ -129,7 +136,6 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
 
-    implementation(libs.gms.fitness)
     implementation(libs.gms.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
@@ -153,24 +159,14 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit)
-    implementation(libs.secure.preference)
     implementation(libs.converter.gson)
 
     implementation(libs.material)
 
-    coreLibraryDesugaring(libs.desugar)
-
-    implementation(libs.play.review)
-    implementation(libs.play.core.common)
-    implementation(libs.play.review.ktx)
 
     implementation(libs.facebook.sdk)
 
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

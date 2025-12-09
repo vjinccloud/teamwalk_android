@@ -1,7 +1,7 @@
 [versions]
 # Android
 agp = "8.9.2"
-kotlin = "2.0.21"
+kotlin = "2.2.21"
 
 # PatternLock 現在Jcenter已經不使用 參考 https://jitpack.io/#aritraroy/PatternLockView 找最新的Tag
 patternlockview = "a90b0d4bf0"
@@ -29,7 +29,6 @@ firebase_bom = "33.11.0"
 firebase_crashlytics = "3.0.4"
 
 # Google Play Services
-gms_fitness = "21.2.0"
 gms_auth = "21.3.0"
 google_services = "4.4.3"
 credentialsPlayServicesAuth = "1.5.0"
@@ -37,27 +36,18 @@ credentials = "1.5.0"
 googleid = "1.1.1"
 connectClient = "1.1.0-rc02"
 
-# Google Play Core
-play_review = "2.0.2"
-play_core_common = "2.0.4"
-
 # Network
-okhttp_logging = "4.12.0"
+okhttp_logging = "5.3.2"
 retrofit = "2.10.0"
-gson = "2.11.0"
-converterGson = "2.9.0"
+gson = "2.13.2"
+converterGson = "3.0.0"
 
 # Image Loading
-glide = "4.15.1"
+glide = "5.0.5"
 
-# Security
-secure_preference = "0.5.0"
 
 # Facebook
 facebook_sdk = "18.0.3"
-
-# Tools
-desugar = "2.1.5"
 
 # DI
 koin-bom = "4.0.3"
@@ -65,19 +55,11 @@ koin-bom = "4.0.3"
 # Log
 timberVersion = "5.0.1"
 
-# Testing
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-
 [libraries]
 patternlockview = { module = "com.github.aritraroy:PatternLockView", version.ref = "patternlockview" }
 recyclercoverflow = { module = "com.github.ChenLittlePing:RecyclerCoverFlow", version.ref = "recyclercoverflow" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidxFragment" }
@@ -92,7 +74,6 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 
-gms-fitness = { module = "com.google.android.gms:play-services-fitness", version.ref = "gms_fitness" }
 gms-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "gms_auth" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
@@ -108,14 +89,8 @@ glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp_logging" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-secure-preference = { module = "online.devliving:securedpreferencestore", version.ref = "secure_preference" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 
-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
-
-play-review = { module = "com.google.android.play:review", version.ref = "play_review" }
-play-core-common = { module = "com.google.android.play:core-common", version.ref = "play_core_common" }
-play-review-ktx = { group = "com.google.android.play", name = "review-ktx", version.ref = "play_review" }
 
 facebook-sdk = { module = "com.facebook.android:facebook-android-sdk", version.ref = "facebook_sdk" }
 

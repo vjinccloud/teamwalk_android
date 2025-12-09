@@ -320,13 +320,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     private fun setPatterLock() {
 
-        viewBinding.loginPatternLockView.isInStealthMode = true
+        viewBinding.loginPatternLockView.isInStealthMode = false
         viewBinding.loginPatternLockView.isInputEnabled = isRememberMe && pid.length == 10
 
         viewBinding.loginPatternToggleStealthModeButton.setOnClickListener {
-            viewBinding.loginPatternLockView.isInStealthMode =
-                !viewBinding.loginPatternLockView.isInStealthMode
-            if (viewBinding.loginPatternLockView.isInStealthMode) {
+            viewBinding.loginPatternLockView.isInStealthMode = !viewBinding.loginPatternLockView.isInStealthMode
+            if (!viewBinding.loginPatternLockView.isInStealthMode) {
                 viewBinding.loginPatternToggleStealthModeButton.setCompoundDrawablesWithIntrinsicBounds(
                     0, 0, R.drawable.visibility, 0
                 )

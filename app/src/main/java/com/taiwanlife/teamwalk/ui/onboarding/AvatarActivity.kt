@@ -101,7 +101,7 @@ class AvatarActivity :
                 ROYAL_PURPLE -> avatarAdapter.setModels(optionMap[ROYAL_PURPLE]!!.toMutableList())
             }
             changePosition(viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.selectedPos)
-            viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.scrollToPosition(1)
+//            viewBinding.onboardingRecyclerCoverFlowAvatar.coverFlowLayout.scrollToPosition(1)
         }
 
         viewBinding.onboardingImageButtonRed.setOnClickListener {

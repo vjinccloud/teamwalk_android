@@ -5,18 +5,15 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
-import androidx.core.content.ContextCompat.getSystemService
 import com.taiwanlife.teamwalk.Config.CHANNEL_DESCRIPTION
 import com.taiwanlife.teamwalk.Config.CHANNEL_ID
 import com.taiwanlife.teamwalk.Config.CHANNEL_NAME
 import com.taiwanlife.teamwalk.di.appModule
-import devliving.online.securedpreferencestore.DefaultRecoveryHandler
-import devliving.online.securedpreferencestore.SecuredPreferenceStore
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import org.koin.core.context.startKoin
 import timber.log.Timber
 
-class MyApplication: Application() {
+class MyApplication : Application() {
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
@@ -49,7 +46,7 @@ class MyApplication: Application() {
         super.onCreate()
         context = applicationContext
 
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
 
@@ -57,7 +54,8 @@ class MyApplication: Application() {
             modules(appModule)
         }
 
-        SecuredPreferenceStore.init(this, DefaultRecoveryHandler())
+//        SecuredPreferenceStore.init(this, DefaultRecoveryHandler())
+        SecuredPreferenceStoreManager.init(this)
         createNotificationChannel(this)
     }
 }
