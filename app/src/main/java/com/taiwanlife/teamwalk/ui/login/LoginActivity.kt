@@ -36,6 +36,7 @@ import com.taiwanlife.teamwalk.databinding.ActivityLoginBinding
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
+import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
@@ -69,7 +70,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     ) {
         DeviceUtil.setFlagSecure(this)
 
-        observeOnLifeCycle(loginViewModel.loginFlow) { loginResponse ->
+        observeOnLifeCycle(loginViewModel.loginFlow, onError = {
+            viewBinding.loginPatternLockView.clearPattern()
+        }) { loginResponse ->
             SecuredPreferenceStoreManager.editAndApply {
                 it.putBoolean(Config.SP_LOGIN_AUTH, true)
 //                it.putBoolean(Config.PREF_LOGIN_AUTH, true)
@@ -200,18 +203,36 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         webSettings.displayZoomControls = false
 
         viewBinding.webview.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(
-                view: WebView?, url: String?, favicon: Bitmap?
-            ) {
-                viewBinding.url.text = url ?: ""
-                if (!url.isNullOrEmpty()) {
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                url: String
+            ): Boolean {
+                return tryOverrideUrlLoading(url)
+            }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest
+            ): Boolean {
+                return tryOverrideUrlLoading(request.url.toString())
+            }
+
+            private fun tryOverrideUrlLoading(url: String):Boolean {
+                if (url.isNotEmpty()) {
                     val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
                     if (!ticket.isNullOrEmpty()) {
                         ticketCallback(ticket)
                         viewBinding.webview.loadUrl("about:blank")
-                        return
+                        return true
                     }
                 }
+                return false
+            }
+
+            override fun onPageStarted(
+                view: WebView?, url: String?, favicon: Bitmap?
+            ) {
+                viewBinding.url.text = url ?: ""
 
                 super.onPageStarted(view, url, favicon)
             }
@@ -222,6 +243,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 request: WebResourceRequest?,
                 error: WebResourceError?
             ) {
+                viewBinding.loginPatternLockView.clearPattern()
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
                     val description = error?.description.toString()
@@ -239,50 +261,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
 
         }
-        viewBinding.webview.webChromeClient = object : WebChromeClient() {
-            @Override
-            override fun onJsAlert(
-                view: WebView?,
-                url: String?,
-                message: String?,
-                result: JsResult
-            ): Boolean {
-                AlertDialog.Builder(this@LoginActivity)
-                    .setMessage(message)
-                    .setPositiveButton(
-                        R.string.ok
-                    ) { dialog, which ->
-                        result.confirm()
-                    }
-                    .setCancelable(false)
-                    .show()
-
-                return true
-            }
-
-            @Override
-            override fun onJsConfirm(
-                view: WebView?,
-                url: String?,
-                message: String?,
-                result: JsResult
-            ): Boolean {
-                AlertDialog.Builder(this@LoginActivity)
-                    .setMessage(message)
-                    .setPositiveButton(
-                        R.string.ok
-                    ) { dialog, which ->
-                        result.confirm()
-                    }
-                    .setNegativeButton(R.string.cancel) { dialog, which ->
-                        result.cancel()
-                    }
-                    .setCancelable(false)
-                    .show()
-
-                return true
-            }
-        }
+        val myWebChromeClient = MyWebChromeClient(this)
+        myWebChromeClient.setAlertCallback { viewBinding.loginPatternLockView.clearPattern() }
+        myWebChromeClient.setConfirmCallback { viewBinding.loginPatternLockView.clearPattern() }
+        viewBinding.webview.webChromeClient = myWebChromeClient
         ticketCallback = { ticket ->
             CookieManager.getInstance()
                 .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")

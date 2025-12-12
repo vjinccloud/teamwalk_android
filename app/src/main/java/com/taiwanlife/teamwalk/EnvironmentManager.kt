@@ -2,9 +2,9 @@ package com.taiwanlife.teamwalk
 
 import com.taiwanlife.teamwalk.Config.variableApiUrl
 import com.taiwanlife.teamwalk.Config.variableConnectFitbitClientId
-import com.taiwanlife.teamwalk.Config.variableConnectFitbitClientSecret
+import com.taiwanlife.teamwalk.Config.variableConnectFitbitClientS
 import com.taiwanlife.teamwalk.Config.variableConnectGarminConsumerKey
-import com.taiwanlife.teamwalk.Config.variableConnectGarminConsumerSecret
+import com.taiwanlife.teamwalk.Config.variableConnectGarminConsumerS
 import com.taiwanlife.teamwalk.Config.variableConnectGoogleClientId
 import com.taiwanlife.teamwalk.Config.variableCssoForgetMimaUrl
 import com.taiwanlife.teamwalk.Config.variableCssoSignUpUrl
@@ -42,9 +42,9 @@ object EnvironmentManager {
         taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.release,
         connectGoogleClientId = variableConnectGoogleClientId.release,
         connectFitbitClientId = variableConnectFitbitClientId.release,
-        connectFitbitClientSecret = variableConnectFitbitClientSecret.release,
+        connectFitbitClientSecret = variableConnectFitbitClientS.release,
         connectGarminConsumerKey = variableConnectGarminConsumerKey.release,
-        connectGarminConsumerSecret = variableConnectGarminConsumerSecret.release,
+        connectGarminConsumerSecret = variableConnectGarminConsumerS.release,
         garminUrl = variableGarminUrl.release,
         googleFitbitUrl = variableFitbitUrl.release,
     )
@@ -60,9 +60,9 @@ object EnvironmentManager {
         taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.debug,
         connectGoogleClientId = variableConnectGoogleClientId.debug,
         connectFitbitClientId = variableConnectFitbitClientId.debug,
-        connectFitbitClientSecret = variableConnectFitbitClientSecret.debug,
+        connectFitbitClientSecret = variableConnectFitbitClientS.debug,
         connectGarminConsumerKey = variableConnectGarminConsumerKey.debug,
-        connectGarminConsumerSecret = variableConnectGarminConsumerSecret.debug,
+        connectGarminConsumerSecret = variableConnectGarminConsumerS.debug,
         garminUrl = variableGarminUrl.debug,
         googleFitbitUrl = variableFitbitUrl.debug,
     )
@@ -78,9 +78,9 @@ object EnvironmentManager {
         taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.sit,
         connectGoogleClientId = variableConnectGoogleClientId.sit,
         connectFitbitClientId = variableConnectFitbitClientId.sit,
-        connectFitbitClientSecret = variableConnectFitbitClientSecret.sit,
+        connectFitbitClientSecret = variableConnectFitbitClientS.sit,
         connectGarminConsumerKey = variableConnectGarminConsumerKey.sit,
-        connectGarminConsumerSecret = variableConnectGarminConsumerSecret.sit,
+        connectGarminConsumerSecret = variableConnectGarminConsumerS.sit,
         garminUrl = variableGarminUrl.sit,
         googleFitbitUrl = variableFitbitUrl.sit,
     )
@@ -96,9 +96,9 @@ object EnvironmentManager {
         taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.uat,
         connectGoogleClientId = variableConnectGoogleClientId.uat,
         connectFitbitClientId = variableConnectFitbitClientId.uat,
-        connectFitbitClientSecret = variableConnectFitbitClientSecret.uat,
+        connectFitbitClientSecret = variableConnectFitbitClientS.uat,
         connectGarminConsumerKey = variableConnectGarminConsumerKey.uat,
-        connectGarminConsumerSecret = variableConnectGarminConsumerSecret.uat,
+        connectGarminConsumerSecret = variableConnectGarminConsumerS.uat,
         garminUrl = variableGarminUrl.uat,
         googleFitbitUrl = variableFitbitUrl.uat,
     )

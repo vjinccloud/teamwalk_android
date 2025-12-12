@@ -95,7 +95,7 @@ object Config {
         uat = "https://cssouat.taiwanlife.com/csso/"
     )
 
-    // CSSO Forget Password URL
+    // CSSO Forget URL
     val variableCssoForgetMimaUrl = EnvironmentVariable(
         release = "https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk",
         debug = "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk",
@@ -170,8 +170,8 @@ object Config {
         uat = "23B3KR"
     )
 
-    // Fitbit Client Secret
-    val variableConnectFitbitClientSecret = EnvironmentVariable(
+    // Fitbit Client S
+    val variableConnectFitbitClientS = EnvironmentVariable(
         release = "00403c68f5025d238d022963dfab43dd",
         debug = "565d1f1a0822d1fbf50cedae0041d3ee",
         sit = "c586771e4f9a4ae17ec0b1de15f38ef6",
@@ -186,8 +186,8 @@ object Config {
         uat = "0b3e7e2c-328a-4bc6-b713-1dd7774ff3d8"
     )
 
-    // Garmin Consumer Secret
-    val variableConnectGarminConsumerSecret = EnvironmentVariable(
+    // Garmin Consumer S
+    val variableConnectGarminConsumerS = EnvironmentVariable(
         release = "DJ1wEi3uNk0rbBDdalerp6ZYqmFJ2D4kf4t",
         debug = "4b3u2KpOwZdjymZSW9IqbfKXZ4g9MS4tmQb",
         sit = "l9FrmPYVSNgqTT5SOwPfOuT172Vrtmi2tV0",

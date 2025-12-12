@@ -33,5 +33,10 @@ data class LoginRequest(
      * FCM推播Token
      */
     @SerializedName("push_id")
-    val pushId: String
+    val pushId: String,
+    /**
+     * 裝置識別碼
+     */
+    @SerializedName("device_os")
+    val deviceOS: String
 ) : BaseRequest()
