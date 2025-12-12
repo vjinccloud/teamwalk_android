@@ -203,26 +203,26 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         webSettings.displayZoomControls = false
 
         viewBinding.webview.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                url: String
-            ): Boolean {
-                return tryOverrideUrlLoading(url)
-            }
-
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest
-            ): Boolean {
-                return tryOverrideUrlLoading(request.url.toString())
-            }
-
-            private fun tryOverrideUrlLoading(url: String):Boolean {
-                if (url.isNotEmpty() && url.startsWith("teamwalk")) {
-                    return true
-                }
-                return false
-            }
+//            override fun shouldOverrideUrlLoading(
+//                view: WebView?,
+//                url: String
+//            ): Boolean {
+//                return tryOverrideUrlLoading(url)
+//            }
+//
+//            override fun shouldOverrideUrlLoading(
+//                view: WebView?,
+//                request: WebResourceRequest
+//            ): Boolean {
+//                return tryOverrideUrlLoading(request.url.toString())
+//            }
+//
+//            private fun tryOverrideUrlLoading(url: String):Boolean {
+//                if (url.isNotEmpty() && url.startsWith("teamwalk")) {
+//                    return true
+//                }
+//                return false
+//            }
 
             override fun onPageStarted(
                 view: WebView?, url: String, favicon: Bitmap?
