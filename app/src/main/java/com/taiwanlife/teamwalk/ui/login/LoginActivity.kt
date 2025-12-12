@@ -218,21 +218,24 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
 
             private fun tryOverrideUrlLoading(url: String):Boolean {
-                if (url.isNotEmpty()) {
-                    val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
-                    if (!ticket.isNullOrEmpty()) {
-                        ticketCallback(ticket)
-                        viewBinding.webview.loadUrl("about:blank")
-                        return true
-                    }
+                if (url.isNotEmpty() && url.startsWith("teamwalk")) {
+                    return true
                 }
                 return false
             }
 
             override fun onPageStarted(
-                view: WebView?, url: String?, favicon: Bitmap?
+                view: WebView?, url: String, favicon: Bitmap?
             ) {
-                viewBinding.url.text = url ?: ""
+                viewBinding.url.text = url
+                if (url.isNotEmpty()) {
+                    val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
+                    if (!ticket.isNullOrEmpty()) {
+                        ticketCallback(ticket)
+                        viewBinding.webview.loadUrl("about:blank")
+                        return
+                    }
+                }
 
                 super.onPageStarted(view, url, favicon)
             }
@@ -420,6 +423,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 ////                        )
 //                    }
                 }
+                viewBinding.loginPatternLockView.postDelayed({
+                    viewBinding.loginPatternLockView.clearPattern()
+                }, 1000L)
             }
 
             override fun onCleared() {}
