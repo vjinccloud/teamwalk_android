@@ -26,6 +26,7 @@ import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
 import timber.log.Timber
 import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 
 class MyWebView : WebView {
     constructor(context: Context) : super(context)
@@ -128,7 +129,7 @@ class MyWebView : WebView {
             }
         }
 
-        webChromeClient = object : WebChromeClient() {
+        webChromeClient = object : MyWebChromeClient(context) {
             override fun onShowFileChooser(
                 webView: WebView,
                 filePathCallback: ValueCallback<Array<Uri>>,
@@ -136,50 +137,6 @@ class MyWebView : WebView {
             ): Boolean {
 
                 fileChooserCallback(filePathCallback, fileChooserParams)
-                return true
-            }
-
-            @Override
-            override fun onJsAlert(
-                view: WebView?,
-                url: String?,
-                message: String?,
-                result: JsResult
-            ): Boolean {
-                AlertDialog.Builder(context)
-                    .setMessage(message)
-                    .setPositiveButton(
-                        R.string.ok
-                    ) { dialog, which ->
-                        result.confirm()
-                    }
-                    .setCancelable(false)
-                    .show()
-
-                return true
-//                return super.onJsAlert(view, url, message, result)
-            }
-
-            @Override
-            override fun onJsConfirm(
-                view: WebView?,
-                url: String?,
-                message: String?,
-                result: JsResult
-            ): Boolean {
-                AlertDialog.Builder(context)
-                    .setMessage(message)
-                    .setPositiveButton(
-                        R.string.ok
-                    ) { dialog, which ->
-                        result.confirm()
-                    }
-                    .setNegativeButton(R.string.cancel) { dialog, which ->
-                        result.cancel()
-                    }
-                    .setCancelable(false)
-                    .show()
-
                 return true
             }
         }

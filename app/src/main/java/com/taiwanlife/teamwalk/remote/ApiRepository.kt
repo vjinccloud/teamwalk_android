@@ -60,7 +60,7 @@ class ApiRepository(
         deviceId: String,
         pushId: String
     ): Response<ResponseWrapper<LoginResponse>> {
-        return apiService.login(LoginRequest(applId, ticket, service, appUuid, deviceId, pushId))
+        return apiService.login(LoginRequest(applId, ticket, service, appUuid, deviceId, pushId, "Android"))
     }
 
     /**
