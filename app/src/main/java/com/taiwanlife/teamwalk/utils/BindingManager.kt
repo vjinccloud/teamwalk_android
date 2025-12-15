@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -13,6 +14,7 @@ import com.taiwanlife.teamwalk.remote.GarminHelper
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
+import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
@@ -185,10 +187,14 @@ class BindingManager(
     private fun startHealthConnectProcess() {
         if (!healthConnectHelper.availableStatusFlow()) return
 
-        healthConnectHelper.requestPermissionFlow {
-            if (!(!healthConnectHelper.availableStatusFlow() || !healthConnectHelper.checkPermissions())) {
-                // 拿到所有我們需要的權限了 呼叫綁定完成API
-                bindProcessFinished(HEALTH_CONNECT, null)
+        baseActivity.lifecycleScope.launch {
+            healthConnectHelper.requestPermissionFlow {
+                baseActivity.lifecycleScope.launch {
+                    if (!(!healthConnectHelper.availableStatusFlow() || !healthConnectHelper.checkPermissions())) {
+                        // 拿到所有我們需要的權限了 呼叫綁定完成API
+                        bindProcessFinished(HEALTH_CONNECT, null)
+                    }
+                }
             }
         }
     }

@@ -1,21 +1,26 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
-import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 
 class HealthConnectHelper(private val context: Context, activity: AppCompatActivity) {
-    private val permissionManager = PermissionManager(activity)
+//    private val permissionManager = PermissionManager(activity)
 
-    private val healthConnectPermissions = arrayOf(
+    private val healthConnectClient by lazy {
+        HealthConnectClient.getOrCreate(activity)
+    }
+
+    private val healthConnectPermissions = setOf(
         HealthPermission.getReadPermission(SleepSessionRecord::class),
         HealthPermission.getWritePermission(SleepSessionRecord::class),
         HealthPermission.getReadPermission(StepsRecord::class),
@@ -23,6 +28,18 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
 //        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
 //        HealthPermission.getWritePermission(TotalCaloriesBurnedRecord::class)
     )
+
+    private val permissionLauncher = activity.registerForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (granted.containsAll(healthConnectPermissions)) {
+            permissionGratedCallback?.invoke()
+        } else {
+            activity.toast(R.string.main_health_connect_permission_denied)
+        }
+    }
+
+    private var permissionGratedCallback: (() -> Unit)? = null
 
     fun availableStatusFlow(): Boolean {
         val availabilityStatus =
@@ -33,54 +50,42 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
         }
         if (availabilityStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
             // Optionally redirect to package installer to find a provider, for example:
-            val uriString =
-                "market://details?id=${Config.GOOGLE_HEALTH_CONNECT_PACKAGE_NAME}&url=healthconnect%3A%2F%2Fonboarding"
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW).apply {
-                    setPackage("com.android.vending")
-                    data = uriString.toUri()
-                    putExtra("overlay", true)
-                    putExtra("callerId", context.packageName)
-                }
-            )
+            AlertDialog.Builder(context)
+                .setMessage(context.getString(R.string.main_health_connect_not_installed))
+                .setPositiveButton(context.getString(R.string.main_health_connect_not_installed_to_store)) { _, _ ->
+                    val uriString =
+                        "market://details?id=${Config.GOOGLE_HEALTH_CONNECT_PACKAGE_NAME}&url=healthconnect%3A%2F%2Fonboarding"
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW).apply {
+                            setPackage("com.android.vending")
+                            data = uriString.toUri()
+                            putExtra("overlay", true)
+                            putExtra("callerId", context.packageName)
+                        }
+                    )
+                }.setNegativeButton(context.getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }.show()
             return false
         }
         return true
     }
 
-    fun checkPermissions(): Boolean {
-        return permissionManager.hasPermissions(context, healthConnectPermissions)
+    suspend fun checkPermissions(): Boolean {
+        val granted = healthConnectClient.permissionController.getGrantedPermissions()
+        return granted.containsAll(healthConnectPermissions)
     }
 
     fun requestPermissionFunction(permissionGratedCallback: () -> Unit) {
-        permissionManager.requestPermissions(healthConnectPermissions) { granted, denied ->
-            if (granted) {
-                permissionGratedCallback()
-            } else {
-                context.toast(R.string.main_health_connect_permission_denied)
-            }
-        }
+        this.permissionGratedCallback = permissionGratedCallback
+        permissionLauncher.launch(healthConnectPermissions)
     }
 
-    fun requestPermissionFlow(permissionGratedCallback: () -> Unit) {
+    suspend fun requestPermissionFlow(permissionGratedCallback: () -> Unit) {
         if (!availableStatusFlow()) return
 
         if (!checkPermissions()) {
-            val atLeastOneShowRationale =
-                permissionManager.shouldShowRationale(healthConnectPermissions) {}
-            if (atLeastOneShowRationale) {
-                getAlertDialog(
-                    context,
-                    context.getString(R.string.main_health_connect_permission_rationale),
-                    false,
-                    true,
-                    context.getString(R.string.confirm1), {
-                        requestPermissionFunction(permissionGratedCallback)
-                    }
-                )
-            } else {
-                requestPermissionFunction(permissionGratedCallback)
-            }
+            requestPermissionFunction(permissionGratedCallback)
         } else {
             permissionGratedCallback()
         }

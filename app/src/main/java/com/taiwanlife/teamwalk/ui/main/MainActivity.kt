@@ -343,6 +343,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun forTest() {
+        viewBinding.testHc.setOnClickListener {
+            bindingManager.bindNewDevice(DeviceType.HEALTH_CONNECT)
+        }
         viewBinding.testCsso.setOnClickListener {
             startActivity(Intent(this, TestActivity::class.java))
         }
@@ -474,7 +477,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 // 應該不需要呼叫了?
 //                mainViewModel.getUserInfo()
             }
-
 
             viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
         }
