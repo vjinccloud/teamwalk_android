@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.ui.onboarding
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
@@ -18,6 +19,7 @@ import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.RED
 import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.ROYAL_PURPLE
 import com.taiwanlife.teamwalk.ui.onboarding.AvatarActivity.OptionType.YELLOW
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.toast
 
 class AvatarActivity :
@@ -68,8 +70,18 @@ class AvatarActivity :
 
             toConnectActivity()
         }
+
+        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
+            val intent = Intent(this, ConnectActivity::class.java)
+            intent.putExtra(KEY_USER_INFO, getGson().toJson(userInfo))
+            startActivity(intent)
+        }
     }
 
+
+    fun toConnectActivity() {
+        onBoardingViewModel.saveLandingInfo(userInfo)
+    }
 
     private fun setAvatars() {
         avatarAdapter = AvatarAdapter()

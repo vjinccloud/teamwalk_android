@@ -100,6 +100,13 @@ class ConnectActivity :
             }
         }
         setCheckBoxAndNext()
+
+        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
+            debugToast(R.string.onboarding_connect_done)
+
+            // 最後關閉所有頁面
+            OnBoardingActivityManage.finishAll()
+        }
     }
 
     private fun sameDeviceCallback(deviceType: DeviceType) {
@@ -115,6 +122,10 @@ class ConnectActivity :
         }
 
         setCheckBoxAndNext()
+    }
+
+    fun saveUserAndFinishAll() {
+        onBoardingViewModel.saveLandingInfo(userInfo)
     }
 
     private fun bindingRemoved(deviceType: DeviceType) {

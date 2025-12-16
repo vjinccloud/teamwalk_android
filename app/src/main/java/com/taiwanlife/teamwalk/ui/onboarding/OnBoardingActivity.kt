@@ -33,33 +33,11 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
         }
 
         OnBoardingActivityManage.add(this)
-        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
-            debugToast(R.string.onboarding_connect_done)
-
-            // 最後關閉所有頁面
-            OnBoardingActivityManage.finishAll()
-        }
-    }
-
-    fun toAvatarActivity() {
-        val intent = Intent(this, AvatarActivity::class.java)
-        intent.putExtra(KEY_USER_INFO, getGson().toJson(userInfo))
-        startActivity(intent)
-    }
-
-    fun toConnectActivity() {
-        val intent = Intent(this, ConnectActivity::class.java)
-        intent.putExtra(KEY_USER_INFO, getGson().toJson(userInfo))
-        startActivity(intent)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         OnBoardingActivityManage.remove(this)
-    }
-
-    fun saveUserAndFinishAll() {
-        onBoardingViewModel.saveLandingInfo(userInfo)
     }
 
     fun finishAllWithoutSave() {
