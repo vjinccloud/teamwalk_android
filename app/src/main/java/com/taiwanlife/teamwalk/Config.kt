@@ -17,6 +17,7 @@ object Config {
     const val API_SYS_ID = "teamwalk"
     const val API_CSSO_HEADER_LOCATION = "location"
     const val JAVASCRIPT_BRIDGE_NAME = "JSBridge"
+    const val WEBVIEW_CALLBACK_SCHEME = "teamwalk"
 
     const val GOOGLE_HEALTH_CONNECT_PACKAGE_NAME = "com.google.android.apps.healthdata"
 

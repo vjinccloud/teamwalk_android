@@ -61,4 +61,8 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
     fun saveUserAndFinishAll() {
         onBoardingViewModel.saveLandingInfo(userInfo)
     }
+
+    fun finishAllWithoutSave() {
+        OnBoardingActivityManage.finishAll()
+    }
 }

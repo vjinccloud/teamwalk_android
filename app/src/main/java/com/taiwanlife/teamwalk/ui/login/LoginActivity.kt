@@ -247,6 +247,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 error: WebResourceError?
             ) {
                 viewBinding.loginPatternLockView.clearPattern()
+                if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+                    return
+                }
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
                     val description = error?.description.toString()

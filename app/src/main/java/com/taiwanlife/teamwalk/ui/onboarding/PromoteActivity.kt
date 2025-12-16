@@ -52,7 +52,7 @@ class PromoteActivity :
         super.onLastCreateBaseActivity(view, savedInstanceState)
 
         viewBinding.onboardingSkipButton.setOnClickListener {
-            saveUserAndFinishAll()
+            finishAllWithoutSave()
         }
         setDialog()
         viewBinding.onboardingEditTextPromoteCode.setText(userInfo.referrerCode)

@@ -64,7 +64,7 @@ class ConnectActivity :
         }
 
         viewBinding.onboardingSkipButton.setOnClickListener {
-            saveUserAndFinishAll()
+            finishAllWithoutSave()
         }
         viewBinding.onboardingNextButton.setOnClickListener {
             saveUserAndFinishAll()

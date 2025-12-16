@@ -25,6 +25,7 @@ import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import androidx.core.net.toUri
+import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager
 import timber.log.Timber
 import java.util.Locale
@@ -265,6 +266,9 @@ class CSSOWebViewActivity :
             request: WebResourceRequest?,
             error: WebResourceError?
         ) {
+            if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+                return
+            }
             // 確保錯誤是針對主框架的請求 (isForMainFrame)
             if (request?.isForMainFrame == true) {
                 val description = error?.description.toString()

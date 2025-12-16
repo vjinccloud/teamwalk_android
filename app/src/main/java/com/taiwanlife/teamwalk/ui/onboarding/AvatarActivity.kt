@@ -41,7 +41,7 @@ class AvatarActivity :
         super.onLastCreateBaseActivity(view, savedInstanceState)
 
         viewBinding.onboardingSkipButton.setOnClickListener {
-            saveUserAndFinishAll()
+            finishAllWithoutSave()
         }
         viewBinding.back.setOnClickListener {
             finish()
