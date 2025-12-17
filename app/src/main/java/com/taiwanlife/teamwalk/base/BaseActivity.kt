@@ -253,8 +253,8 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                             }
 
                             when (it.e) {
-                                is ApiException.ResponseHeaderCodeNotSuccessException -> {
-                                    if (it.e.header.code == Config.API_CODE_NO_TOKEN) {
+                                is ApiException.ResponseNotSuccessfulException -> {
+                                    if (it.e.code.toString() == Config.API_CODE_500_LOG_OUT || it.e.code.toString() == Config.API_CODE_401_LOG_OUT) {
                                         postEvent(Config.EVENT_NO_TOKEN_TO_LOGIN, "")
                                     }
                                 }

@@ -18,14 +18,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.lifecycleScope
-import com.andrognito.patternlockview.PatternLockView
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
-import com.google.gson.Gson
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
@@ -37,7 +35,6 @@ import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
-import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
 import com.taiwanlife.teamwalk.test.TestActivity
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
@@ -70,6 +67,7 @@ import com.taiwanlife.teamwalk.utils.HealthConnectHelper
 import com.taiwanlife.teamwalk.utils.MyNotificationManager
 import com.taiwanlife.teamwalk.utils.PermissionManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
+import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
@@ -82,7 +80,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
-import java.util.Locale
 import kotlin.random.Random
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
@@ -702,60 +699,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun securityCheck() {
-        val knowsRoot = SecuredPreferenceStoreManager.getBoolean(Config.SP_KNOWS_ROOT, false)
-        if (DeviceUtil.isDeviceRooted() && !knowsRoot) {
+        val result = SecurityCheckManager.runAll(this)
+        if(!result.passed) {
             getAlertDialog(
                 context = this,
-                message = getString(R.string.alert_root_message),
+                message = result.errorMessage ?: "",
                 icon = R.mipmap.ic_launcher,
                 isCancelable = false,
                 shouldShow = true,
                 positiveText = getString(R.string.understand_and_continue),
                 positiveOnClick = {
                     doBusiness()
-                    SecuredPreferenceStoreManager.editAndApply { editor ->
-                        editor.putBoolean(Config.SP_KNOWS_ROOT, true)
-                    }
-                }
-            )
-        } else if (!DeviceUtil.isDeviceSecure(this) && !isKnowsDeviceSecure) {
-            getAlertDialog(
-                context = this,
-                message = getString(R.string.alert_no_password_message),
-                icon = R.mipmap.ic_launcher,
-                isCancelable = false,
-                shouldShow = true,
-                positiveText = getString(R.string.understand_and_continue),
-                positiveOnClick = {
-                    doBusiness()
-                    isKnowsDeviceSecure = true
-                }
-            )
-        } else if (DeviceUtil.isReverseToolRunning(this) && !isKnowsReverseToolRunning) {
-            getAlertDialog(
-                context = this,
-                message = getString(R.string.alert_reverse_tool_message),
-                icon = R.mipmap.ic_launcher,
-                isCancelable = false,
-                shouldShow = true,
-                positiveText = getString(R.string.understand_and_continue),
-                positiveOnClick = {
-                    doBusiness()
-                    isKnowsReverseToolRunning = true
-                }
-            )
-        } else if (DeviceUtil.isCovered(this) && !isKnowsCovered) {
-            // 舊版沒加 !isKnowsCovered 應該是忘記了 加上
-            getAlertDialog(
-                context = this,
-                message = getString(R.string.alert_covered_message),
-                icon = R.mipmap.ic_launcher,
-                isCancelable = false,
-                shouldShow = true,
-                positiveText = getString(R.string.understand_and_continue),
-                positiveOnClick = {
-                    doBusiness()
-                    isKnowsCovered = true
                 }
             )
         } else {
@@ -830,7 +784,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             prefEditor.putBoolean(Config.SP_LOGIN_AUTH, false)
 //            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
 //            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
-            prefEditor.putString(Config.SP_LOGIN_JWT_TOKEN, "")
+            prefEditor.putString(Config.SP_LOGIN_JWT, "")
         }
 
         viewBinding.webView.post {

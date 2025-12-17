@@ -7,7 +7,8 @@ object Config {
     const val API_CODE_SUCCESS = "0000"
     const val API_BODY_EMPTY_MESSAGE = "Response body is null"
     // 沒有帶Token API會給這個code
-    const val API_CODE_NO_TOKEN = "500"
+    const val API_CODE_500_LOG_OUT = "500"
+    const val API_CODE_401_LOG_OUT = "401"
     // 除了這隻以外的path都需要戴上JWT token
     const val API_LOGIN_PATH = "login"
 
@@ -38,35 +39,11 @@ object Config {
     // end region
 
     // region secured preference 使用的Key值
-    const val PREF_LOGIN = "com.taiwanlife.teamwalk.android.pref_login"
-
-    const val PREF_LOGIN_SEGMENT_CONTROL_POS =
-        "com.taiwanlife.teamwalk.android.pref_login_segment_control_pos"
-    const val PREF_LOGIN_REMEMBER_ME = "com.taiwanlife.teamwalk.android.pref_login_remember_me"
-    const val PREF_LOGIN_PID = "com.taiwanlife.teamwalk.android.pref_login_pid"
-    const val PREF_LOGIN_PATTERN_STATUS =
-        "com.taiwanlife.teamwalk.android.pref_login_pattern_status"
-    const val PREF_LOGIN_AUTH = "com.taiwanlife.teamwalk.android.pref_login_auth"
-    // 備註: Firebase Installations Unique Id
-    const val PREF_LOGIN_FID = "com.taiwanlife.teamwalk.android.pref_login_fid"
-    const val KNOWS_ROOT = "com.taiwanlife.teamwalk.android.pref_login_knows_root"
-
-    const val PW_PAGE_FLAG = "Teamwalk_PwPageFlag"
-
-    // 登入資訊
-    const val PREF_LOGIN_USERNAME = "com.taiwanlife.teamwalk.android.pref_login_username"
-    const val PREF_LOGIN_TICKET = "com.taiwanlife.teamwalk.android.pref_login_ticket"
-    const val PREF_LOGIN_TOKEN = "com.taiwanlife.teamwalk.android.pref_login_token"
-    const val PREF_LOGIN_REFRESH_TOKEN = "com.taiwanlife.teamwalk.android.pref_login_refresh_token"
-    const val PREF_LOGIN_EXP = "com.taiwanlife.teamwalk.android.pref_login_exp"
-    const val PREF_LOGIN_CASTGC = "com.taiwanlife.teamwalk.android.pref_login_castgc"
-    const val PREF_LOGIN_UUID = "com.taiwanlife.teamwalk.android.pref_login_uuid"
-
-    // 新增的 為了不和上面的搞混 相同功能的也先重新做一個 到時候要清理才能將上面的一次全部刪除
+    // 新增的 相同功能的也先重新做一個 到時候要清理才能將上面的一次全部刪除
     const val SP_FCM_TOKEN = "SP_FCM_TOKEN"
     const val SP_FIREBASE_INSTALLATIONS_UNIQUE_ID = "SP_FIREBASE_INSTALLATIONS_UNIQUE_ID"
 
-    const val SP_LOGIN_JWT_TOKEN = "SP_LOGIN_JWT_TOKEN"
+    const val SP_LOGIN_JWT = "SP_LOGIN_JWT"
     const val SP_LOGIN_REMEMBER_PID = "SP_LOGIN_REMEMBER_PID"
     const val SP_LOGIN_AUTH = "SP_LOGIN_AUTH"
     const val SP_LOGIN_REMEMBER_ME = "SP_LOGIN_REMEMBER_ME"

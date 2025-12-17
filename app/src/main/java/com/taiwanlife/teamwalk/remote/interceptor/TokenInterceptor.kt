@@ -22,7 +22,7 @@ class TokenInterceptor : Interceptor {
             // 如果不是API 也放行 不添加JWT
             return chain.proceed(originalRequest)
         }
-        val jwtToken = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT_TOKEN, "")
+        val jwtToken = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT, "")
         if (jwtToken.isEmpty()) {
             // 沒有JWT Token 送出去 但是會出錯 請前往察看錯誤
             return chain.proceed(originalRequest)

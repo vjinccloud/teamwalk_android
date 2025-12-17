@@ -1,6 +1,5 @@
 package com.taiwanlife.teamwalk.base
 
-import android.text.TextUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.taiwanlife.teamwalk.Config
@@ -8,15 +7,10 @@ import com.taiwanlife.teamwalk.remote.ApiException.ResponseBodyEmptyException
 import com.taiwanlife.teamwalk.remote.ApiException.ResponseHeaderCodeNotSuccessException
 import com.taiwanlife.teamwalk.remote.ApiException.ResponseNotSuccessfulException
 import com.taiwanlife.teamwalk.remote.Repository
-import com.taiwanlife.teamwalk.remote.response.CSSOResponse
 import com.taiwanlife.teamwalk.remote.response.api.ResponseWrapper
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import timber.log.Timber
@@ -312,9 +306,6 @@ abstract class BaseViewModel(
             }
 
             is ResponseHeaderCodeNotSuccessException -> {
-                if (e.header.code == Config.API_CODE_NO_TOKEN) {
-                    // 在UI層的錯誤處理做登出
-                }
                 Timber.e(e)
             }
 

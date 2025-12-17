@@ -11,10 +11,10 @@ android {
 
     defaultConfig {
         applicationId = "com.taiwanlife.teamwalk"
-        minSdk = 26
+        minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.04"
+        versionName = "3.0.05"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -161,7 +161,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
-    implementation(libs.material)
+//    implementation(libs.material)
 
 
     implementation(libs.facebook.sdk)

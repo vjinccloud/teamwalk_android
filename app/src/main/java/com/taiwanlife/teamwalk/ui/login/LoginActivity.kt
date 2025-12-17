@@ -1,9 +1,7 @@
 package com.taiwanlife.teamwalk.ui.login
 
-import android.R.id.message
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.text.SpannableString
@@ -14,14 +12,11 @@ import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
-import android.webkit.JsResult
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -89,7 +84,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 it.putString(Config.SP_PID, pid)
 
                 loginResponse.let { loginResponse ->
-                    it.putString(Config.SP_LOGIN_JWT_TOKEN, loginResponse.token)
+                    it.putString(Config.SP_LOGIN_JWT, loginResponse.token)
                 }
             }
 
@@ -699,18 +694,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         ss.setSpan(cs, 0, text.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
         textView.text = ss
         textView.movementMethod = LinkMovementMethod.getInstance()
-    }
-
-    private fun genRandomNumbers(): String {
-        val sb = StringBuilder()
-        for (i in 0..3) {
-            val secureRandom = SecureRandom()
-            val randomInt = secureRandom.nextInt('Z'.code - 'A'.code + 1)
-            val random = ('A'.code + randomInt).toChar()
-            //            char random = (char)((int)'A' + Math.random() * ((int)'Z' - (int)'A' + 1));
-            sb.append(random)
-        }
-        return sb.toString()
     }
 
     override fun onStop() {

@@ -1,6 +1,5 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
-import android.R.attr.data
 import android.content.Context
 import android.content.Intent
 import android.text.TextUtils
@@ -113,7 +112,7 @@ class MyWebAppInterface(
     @JavascriptInterface
     fun getLoginInfo() {
         val loginInfoModel = LoginInfoModel(
-            jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT_TOKEN, "")
+            jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT, "")
         )
 
         Timber.d(getGson().toJson(loginInfoModel))
