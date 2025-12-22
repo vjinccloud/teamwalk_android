@@ -1,105 +1,36 @@
 package com.taiwanlife.teamwalk
 
-import com.taiwanlife.teamwalk.Config.variableApiUrl
-import com.taiwanlife.teamwalk.Config.variableConnectFitbitClientId
-import com.taiwanlife.teamwalk.Config.variableConnectFitbitClientS
-import com.taiwanlife.teamwalk.Config.variableConnectGarminConsumerKey
-import com.taiwanlife.teamwalk.Config.variableConnectGarminConsumerS
-import com.taiwanlife.teamwalk.Config.variableConnectGoogleClientId
-import com.taiwanlife.teamwalk.Config.variableCssoForgetMimaUrl
-import com.taiwanlife.teamwalk.Config.variableCssoSignUpUrl
-import com.taiwanlife.teamwalk.Config.variableCssoUrl
-import com.taiwanlife.teamwalk.Config.variableFitbitUrl
-import com.taiwanlife.teamwalk.Config.variableGarminUrl
-import com.taiwanlife.teamwalk.Config.variableOrigin
-import com.taiwanlife.teamwalk.Config.variableTaiwanlifeMemberUrl
-import com.taiwanlife.teamwalk.Config.variableTcavUrl
-import com.taiwanlife.teamwalk.Config.variableWebUrl
-
 /**
  * 用來管理對應不同BuildConfig下的參數
  */
 object EnvironmentManager {
 
     fun getEnvironmentConfig(): EnvironmentConfig {
-        return when (BuildConfig.BUILD_TYPE) {
-            "debug" -> DEBUG_ENVIRONMENT_CONFIG
-            "sit" -> SIT_ENVIRONMENT_CONFIG
-            "uat" -> UAT_ENVIRONMENT_CONFIG
-            "release" -> RELEASE_ENVIRONMENT_CONFIG
-            else -> RELEASE_ENVIRONMENT_CONFIG
-        }
+        return environment
+//        return when (BuildConfig.BUILD_TYPE) {
+//            "debug" -> DEBUG_ENVIRONMENT_CONFIG
+//            "sit" -> SIT_ENVIRONMENT_CONFIG
+//            "uat" -> UAT_ENVIRONMENT_CONFIG
+//            "release" -> RELEASE_ENVIRONMENT_CONFIG
+//            else -> RELEASE_ENVIRONMENT_CONFIG
+//        }
     }
 
-    val RELEASE_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        cssoUrl = variableCssoUrl.release,
-        cssoForgetMimaUrl = variableCssoForgetMimaUrl.release,
-        cssoSignUpUrl = variableCssoSignUpUrl.release,
-        tcavUrl = variableTcavUrl.release,
-        apiUrl = variableApiUrl.release,
-        webUrl = variableWebUrl.release,
-        origin = variableOrigin.release,
-        taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.release,
-        connectGoogleClientId = variableConnectGoogleClientId.release,
-        connectFitbitClientId = variableConnectFitbitClientId.release,
-        connectFitbitClientSecret = variableConnectFitbitClientS.release,
-        connectGarminConsumerKey = variableConnectGarminConsumerKey.release,
-        connectGarminConsumerSecret = variableConnectGarminConsumerS.release,
-        garminUrl = variableGarminUrl.release,
-        googleFitbitUrl = variableFitbitUrl.release,
-    )
-
-    val DEBUG_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        cssoUrl = variableCssoUrl.debug,
-        cssoForgetMimaUrl = variableCssoForgetMimaUrl.debug,
-        cssoSignUpUrl = variableCssoSignUpUrl.debug,
-        tcavUrl = variableTcavUrl.debug,
-        apiUrl = variableApiUrl.debug,
-        webUrl = variableWebUrl.debug,
-        origin = variableOrigin.debug,
-        taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.debug,
-        connectGoogleClientId = variableConnectGoogleClientId.debug,
-        connectFitbitClientId = variableConnectFitbitClientId.debug,
-        connectFitbitClientSecret = variableConnectFitbitClientS.debug,
-        connectGarminConsumerKey = variableConnectGarminConsumerKey.debug,
-        connectGarminConsumerSecret = variableConnectGarminConsumerS.debug,
-        garminUrl = variableGarminUrl.debug,
-        googleFitbitUrl = variableFitbitUrl.debug,
-    )
-
-    val SIT_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        cssoUrl = variableCssoUrl.sit,
-        cssoForgetMimaUrl = variableCssoForgetMimaUrl.sit,
-        cssoSignUpUrl = variableCssoSignUpUrl.sit,
-        tcavUrl = variableTcavUrl.sit,
-        apiUrl = variableApiUrl.sit,
-        webUrl = variableWebUrl.sit,
-        origin = variableOrigin.sit,
-        taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.sit,
-        connectGoogleClientId = variableConnectGoogleClientId.sit,
-        connectFitbitClientId = variableConnectFitbitClientId.sit,
-        connectFitbitClientSecret = variableConnectFitbitClientS.sit,
-        connectGarminConsumerKey = variableConnectGarminConsumerKey.sit,
-        connectGarminConsumerSecret = variableConnectGarminConsumerS.sit,
-        garminUrl = variableGarminUrl.sit,
-        googleFitbitUrl = variableFitbitUrl.sit,
-    )
-
-    val UAT_ENVIRONMENT_CONFIG = EnvironmentConfig(
-        cssoUrl = variableCssoUrl.uat,
-        cssoForgetMimaUrl = variableCssoForgetMimaUrl.uat,
-        cssoSignUpUrl = variableCssoSignUpUrl.uat,
-        tcavUrl = variableTcavUrl.uat,
-        apiUrl = variableApiUrl.uat,
-        webUrl = variableWebUrl.uat,
-        origin = variableOrigin.uat,
-        taiwanlifeMemberUrl = variableTaiwanlifeMemberUrl.uat,
-        connectGoogleClientId = variableConnectGoogleClientId.uat,
-        connectFitbitClientId = variableConnectFitbitClientId.uat,
-        connectFitbitClientSecret = variableConnectFitbitClientS.uat,
-        connectGarminConsumerKey = variableConnectGarminConsumerKey.uat,
-        connectGarminConsumerSecret = variableConnectGarminConsumerS.uat,
-        garminUrl = variableGarminUrl.uat,
-        googleFitbitUrl = variableFitbitUrl.uat,
+    val environment = EnvironmentConfig(
+        cssoUrl = MyApplication.context.getString(R.string.csso_url),
+        cssoForgetMimaUrl = MyApplication.context.getString(R.string.csso_forget_mima_url),
+        cssoSignUpUrl = MyApplication.context.getString(R.string.csso_sign_up_url),
+        tcavUrl = MyApplication.context.getString(R.string.tcav_url),
+        apiUrl = MyApplication.context.getString(R.string.api_url),
+        webUrl = MyApplication.context.getString(R.string.web_url),
+        origin = MyApplication.context.getString(R.string.origin),
+        taiwanlifeMemberUrl = MyApplication.context.getString(R.string.taiwanlife_member_url),
+        connectGoogleClientId = MyApplication.context.getString(R.string.connect_google_client_id),
+        connectFitbitClientId = MyApplication.context.getString(R.string.connect_fitbit_client_id),
+        connectFitbitClientSecret = MyApplication.context.getString(R.string.connect_fitbit_client_s),
+        connectGarminConsumerKey = MyApplication.context.getString(R.string.connect_garmin_consumer_key),
+        connectGarminConsumerSecret = MyApplication.context.getString(R.string.connect_garmin_consumer_s),
+        garminUrl = MyApplication.context.getString(R.string.garmin_url),
+        googleFitbitUrl = MyApplication.context.getString(R.string.fitbit_url)
     )
 }

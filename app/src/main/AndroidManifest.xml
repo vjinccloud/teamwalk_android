@@ -67,7 +67,6 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
@@ -79,36 +78,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!--                <data android:scheme="teamwalk" />-->
-                <!--                <data android:scheme="teamwalkuat" />-->
                 <data android:scheme="@string/redirect_scheme" />
                 <data android:host="home" />
                 <data android:host="login" />
                 <data android:host="loginsuccess" />
                 <data android:host="loginfailure" />
                 <data android:host="userinfo" />
-                <data android:host="webconnect" />
-                <!--                <data android:host="webconnectgarmin" />-->
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_ONBOARDING" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-        </activity>
 
-        <activity
-            android:name=".ui.connect.ConnectGarminSuccessActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/TransparentActivityTheme"
-            android:windowSoftInputMode="adjustPan">
             <intent-filter
                 android:autoVerify="true"
                 tools:ignore="AppLinkUrlError">
@@ -123,14 +100,6 @@
                     android:scheme="@string/redirect_scheme" />
             </intent-filter>
 
-        </activity>
-
-        <activity
-            android:name=".ui.connect.ConnectFitbitSuccessActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/TransparentActivityTheme"
-            android:windowSoftInputMode="adjustPan">
             <intent-filter
                 android:autoVerify="true"
                 tools:ignore="AppLinkUrlError">
@@ -145,7 +114,30 @@
                     android:scheme="@string/redirect_scheme" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.connect.ConnectGarminSuccessActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/TransparentActivityTheme"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".ui.connect.ConnectFitbitSuccessActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/TransparentActivityTheme"
+            android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".ui.login.LoginActivity"
@@ -170,42 +162,21 @@
         <activity
             android:name=".ui.onboarding.ConnectActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan">
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-        </activity>
+            android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".test.TestActivity"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
+
         <activity
             android:name=".ui.pattern.PatternSetupActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:exported="true"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan">
-
-            <intent-filter
-                android:autoVerify="true"
-                tools:ignore="AppLinkUrlError">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <!--       不得已的下策 因為所有的環境有不同的網址要攔截 設定在app 級別的 gradle         -->
-                <!--       應該是不會利用DeepLink的方式進來了 因為在MainActivity我們使用Intent 這裡加上只是以防萬一         -->
-                <data
-                    android:host="pattern_setup"
-                    android:scheme="@string/redirect_scheme" />
-            </intent-filter>
-        </activity>
+            android:windowSoftInputMode="adjustPan" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
@@ -245,6 +216,7 @@
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name" />
+
         <activity
             android:name="com.facebook.CustomTabActivity"
             android:exported="true">

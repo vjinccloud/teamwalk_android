@@ -55,6 +55,22 @@
                 android:text="@string/main_simulate_logout" />
 
             <TextView
+                android:id="@+id/test_fitbit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:padding="8dp"
+                android:text="測試Fitbit" />
+
+            <TextView
+                android:id="@+id/test_garmin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:padding="8dp"
+                android:text="測試Garmin" />
+
+            <TextView
                 android:id="@+id/test_hc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -52,7 +52,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      * 有需要的類別自行繼承
      */
     open fun onReceivedEvent(eventName: String?, result: String) {
-        if (eventName == Config.EVENT_NO_TOKEN_TO_LOGIN) {
+        if (eventName == Config.EVENT_NO_ID_TO_LOGIN) {
             lifecycleScope.launch {
                 delay(200)
                 if (!isFinishing && !isDestroyed) {
@@ -255,7 +255,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                             when (it.e) {
                                 is ApiException.ResponseNotSuccessfulException -> {
                                     if (it.e.code.toString() == Config.API_CODE_500_LOG_OUT || it.e.code.toString() == Config.API_CODE_401_LOG_OUT) {
-                                        postEvent(Config.EVENT_NO_TOKEN_TO_LOGIN, "")
+                                        postEvent(Config.EVENT_NO_ID_TO_LOGIN, "")
                                     }
                                 }
                             }

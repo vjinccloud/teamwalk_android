@@ -96,7 +96,7 @@ class MyWebAppInterface(
                 ""
             ),
             deviceId = Utils.getDeviceId(context),
-            pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_TOKEN, "")
+            pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
         )
 
         currentWaitingCallbackName = CALLBACK_DEVICE_INFO_RESOLVER

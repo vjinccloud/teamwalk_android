@@ -6,7 +6,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewModelScope
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -14,7 +13,6 @@ import com.taiwanlife.teamwalk.remote.GarminHelper
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
-import com.taiwanlife.teamwalk.ui.common.HealthConnectViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
 import com.taiwanlife.teamwalk.ui.common.model.GarminData

@@ -45,6 +45,8 @@ import com.taiwanlife.teamwalk.ui.common.model.FitbitModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.ui.common.model.GarminModel
 import com.taiwanlife.teamwalk.ui.common.model.SyncHealthDataModel
+import com.taiwanlife.teamwalk.ui.connect.ConnectFitbitSuccessActivity
+import com.taiwanlife.teamwalk.ui.connect.ConnectGarminSuccessActivity
 import com.taiwanlife.teamwalk.ui.login.LoginActivity
 import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
@@ -193,6 +195,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         view: View,
         savedInstanceState: Bundle?
     ) {
+        handleIntent(intent)
+
         // 設置安全Utils
         DeviceUtil.setFlagSecure(this)
 
@@ -226,7 +230,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful && !task.result.isNullOrEmpty()) {
                         SecuredPreferenceStoreManager.simpleEditAndApply(
-                            Config.SP_FCM_TOKEN,
+                            Config.SP_FCM_IDENTIFIER,
                             task.result
                         )
                     } else {
@@ -340,6 +344,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun forTest() {
+        viewBinding.testFitbit.setOnClickListener {
+            bindingManager.bindNewDevice(DeviceType.FITBIT)
+        }
+        viewBinding.testGarmin.setOnClickListener {
+            bindingManager.bindNewDevice(DeviceType.GARMIN)
+        }
         viewBinding.testHc.setOnClickListener {
             bindingManager.bindNewDevice(DeviceType.HEALTH_CONNECT)
         }
@@ -481,13 +491,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun onReceivedEvent(eventName: String?, result: String) {
 //        super.onReceivedEvent(eventName, result)
-        if (eventName == Config.EVENT_NO_TOKEN_TO_LOGIN) {
+        if (eventName == Config.EVENT_NO_ID_TO_LOGIN) {
             toLogin()
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleIntent(intent)
+
         setIntent(intent)
 
         val uri = intent.data
@@ -1009,5 +1021,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun onWebviewPageFinished() {
         onLoading(false)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        if(intent.data != null) {
+            val uri = intent.data!!
+            when (uri.host) {
+                "webconnect" ->
+                    forwardIntent(intent, ConnectFitbitSuccessActivity::class.java)
+
+                "webconnectgarmin" ->
+                    forwardIntent(intent, ConnectGarminSuccessActivity::class.java)
+            }
+        }
+    }
+
+    private fun forwardIntent(
+        original: Intent,
+        target: Class<out BaseActivity<*>>
+    ) {
+        val newIntent = Intent(original).apply {
+            setClass(this@MainActivity, target)
+
+            // 避免返回 PortalActivity
+            addFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
+        }
+
+        startActivity(newIntent)
     }
 }
