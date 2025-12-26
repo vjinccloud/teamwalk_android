@@ -43,9 +43,9 @@ object SecurityCheckManager {
         if(usbDebugStatus == SecurityStatus.INIT) {
             checkUsbDebug(context)?.let { return it }
         }
-        if(rootStatus == SecurityStatus.INIT) {
-            checkRoot(context)?.let { return it }
-        }
+//        if(rootStatus == SecurityStatus.INIT) {
+//            checkRoot(context)?.let { return it }
+//        }
         if(deviceLockStatus == SecurityStatus.INIT) {
             checkDeviceLock(context)?.let { return it }
         }
