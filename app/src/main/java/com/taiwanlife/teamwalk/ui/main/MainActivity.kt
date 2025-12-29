@@ -16,6 +16,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -24,6 +25,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
@@ -83,6 +85,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import kotlin.random.Random
+import kotlin.system.exitProcess
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
     ProviderInstaller.ProviderInstallListener,
@@ -296,6 +299,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             // 取得使用者資料
             mainViewModel.getLanding()
         }
+
+        mainViewModel.getSysParam()
     }
 
 
@@ -487,6 +492,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
         }
+
+        observeOnLifeCycle(mainViewModel.systemParamFlow) { systemParamResponse ->
+            systemParamResponse.forceUpdateVerAndroid?.let { ver ->
+                if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
+                    // 需要版本更新
+                    systemParamResponse.androidIsForced?.let { forced ->
+                        if (forced.enableToBoolean()) {
+                            // 強制版本更新
+                            CommonDialog(this).apply {
+                                oneButtonInit(
+                                    "", getString(R.string.main_force_update), R.drawable.alert_1,
+                                    showButtons = true,
+                                    canceledOnTouchOutside = true,
+                                    text = getString(R.string.ok),
+                                    onClick = {
+                                        clearLoginData()
+                                        openPlayStoreAndExit()
+
+                                    }
+                                )
+                            }.show()
+                        } else {
+                            // 非強制版本更新
+                            CommonDialog(this).apply {
+                                twoButtonInit(
+                                    "", getString(R.string.main_force_update), R.drawable.alert_1,
+                                    showButtons = true,
+                                    canceledOnTouchOutside = true,
+                                    positiveText = getString(R.string.ok),
+                                    positiveOnClick = {
+                                        clearLoginData()
+                                        openPlayStoreAndExit()
+                                    },
+                                    negativeText = getString(R.string.cancel),
+                                    negativeOnClick = {
+
+                                    }
+                                )
+                            }.show()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onReceivedEvent(eventName: String?, result: String) {
@@ -595,7 +644,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         if (deviceType != NONE) {
             CommonDialog(this).apply {
                 oneButtonInit(
-                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    getString(R.string.binding_success_title),
+                    getString(R.string.binding_success_body),
+                    R.drawable.alert_1,
                     showButtons = true,
                     canceledOnTouchOutside = true,
                     text = getString(R.string.ok)
@@ -654,7 +705,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         if (deviceType != NONE) {
             CommonDialog(this).apply {
                 oneButtonInit(
-                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
+                    getString(R.string.binding_success_title),
+                    getString(R.string.binding_success_body),
+                    R.drawable.alert_1,
                     showButtons = true,
                     canceledOnTouchOutside = true,
                     text = getString(R.string.ok)
@@ -712,7 +765,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun securityCheck() {
         val result = SecurityCheckManager.runAll(this)
-        if(!result.passed) {
+        if (!result.passed) {
             getAlertDialog(
                 context = this,
                 message = result.errorMessage ?: "",
@@ -786,7 +839,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
     }
 
-    private fun toLogin() {
+    private fun clearLoginData() {
         val cookieManager = CookieManager.getInstance()
         cookieManager.removeAllCookies(null)
         cookieManager.flush()
@@ -802,6 +855,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         viewBinding.webView.post {
             viewBinding.webView.loadUrl("about:blank")
         }
+    }
+
+    private fun toLogin() {
+        clearLoginData()
 
         val loginIntent = Intent(this, LoginActivity::class.java)
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -853,7 +910,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun setGraphicalLogin(enable: String) {
-        if(enable == "N") {
+        if (enable == "N") {
             postEvent(
                 EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
                 false.enableToString().quoteJS()
@@ -1024,7 +1081,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun handleIntent(intent: Intent) {
-        if(intent.data != null) {
+        if (intent.data != null) {
             val uri = intent.data!!
             when (uri.host) {
                 "webconnect" ->
@@ -1051,5 +1108,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
 
         startActivity(newIntent)
+    }
+
+    private fun openPlayStoreAndExit() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "market://details?id=${BuildConfig.APPLICATION_ID}".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data =
+                    "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(webIntent)
+        } finally {
+            finishAffinity()
+            // 用這個會讓登出資料沒辦法清乾淨
+//            exitProcess(0)
+        }
     }
 }

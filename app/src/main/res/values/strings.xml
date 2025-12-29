@@ -13,6 +13,8 @@
     <string name="main_health_connect_unavailable">您的裝置不支援Health Connect</string>
     <string name="main_health_connect_not_installed">您的裝置沒有安裝 Google Health Connect，無法使用相關功能</string>
     <string name="main_health_connect_not_installed_to_store">前往安裝</string>
+    <string name="main_force_update">TeamWalk已經改版更新囉！為了保持APP能正常運作，當你點選確認後會將您自動登出，記得趕緊重新登入同步最新步數唷，謝謝！</string>
+    <string name="main_recommend_update">TeamWalk已經改版更新囉！為了保持APP能正常運作，當你點選確認後會將您自動登出，記得趕緊重新登入同步最新步數唷，謝謝！</string>
     <string name="main_health_connect_permission_denied">Health Connect 權限被拒絕</string>
     <string name="main_health_connect_permission_rationale">Health Connect 需要權限才能運作</string>
     <string name="main_health_connect_dummy_insert_finished">Health Connect 假資料已經插入</string>

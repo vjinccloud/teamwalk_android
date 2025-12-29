@@ -9,6 +9,7 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.base.BaseViewModel
 import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.response.api.LandingResponse
+import com.taiwanlife.teamwalk.remote.response.api.SysParamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,7 @@ import kotlinx.coroutines.withContext
 class MainViewModel(repository: Repository) : BaseViewModel(repository) {
     val userInfoFlow = ApiFlow<UserInfoResponse>(this)
     val landingFlow = ApiFlow<LandingResponse>(this)
+    val systemParamFlow = ApiFlow<SysParamInfoResponse>(this)
 
     fun getUserInfo() {
         userInfoFlow.execute {
@@ -28,6 +30,12 @@ class MainViewModel(repository: Repository) : BaseViewModel(repository) {
     fun getLanding() {
         landingFlow.execute(true) {
             repository.api.getLanding()
+        }
+    }
+
+    fun getSysParam() {
+        systemParamFlow.execute(true) {
+            repository.api.getSysParam()
         }
     }
 

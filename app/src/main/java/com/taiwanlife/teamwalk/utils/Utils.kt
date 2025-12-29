@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import android.util.Base64
-import android.util.Patterns
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.andrognito.patternlockview.PatternLockView
