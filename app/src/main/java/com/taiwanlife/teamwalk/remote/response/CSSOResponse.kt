@@ -6,5 +6,5 @@ data class CSSOResponse(
     @Field("rspCode")
     val rspCode: String,
     @Field("rspMsg")
-    val rspMsg: String
+    val rspMsg: String?
 )

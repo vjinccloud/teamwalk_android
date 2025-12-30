@@ -87,7 +87,7 @@ class PatternSetupActivity :
             if(cssoResponse.rspCode == "0000") {
                 showSuccess()
             } else {
-                showFailed(cssoResponse.rspMsg) {
+                showFailed(cssoResponse.rspMsg ?: "") {
                     val intent = Intent()
                     intent.putExtra(KEY_IS_GRAPHICAL_LOGIN_SET, false)
                     setResult(RESULT_OK, intent)

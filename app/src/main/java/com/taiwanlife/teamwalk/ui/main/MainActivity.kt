@@ -504,7 +504,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                                 oneButtonInit(
                                     "", getString(R.string.main_force_update), R.drawable.alert_1,
                                     showButtons = true,
-                                    canceledOnTouchOutside = true,
+                                    canceledOnTouchOutside = false,
                                     text = getString(R.string.ok),
                                     onClick = {
                                         clearLoginData()
@@ -519,7 +519,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                                 twoButtonInit(
                                     "", getString(R.string.main_force_update), R.drawable.alert_1,
                                     showButtons = true,
-                                    canceledOnTouchOutside = true,
+                                    canceledOnTouchOutside = false,
                                     positiveText = getString(R.string.ok),
                                     positiveOnClick = {
                                         clearLoginData()
