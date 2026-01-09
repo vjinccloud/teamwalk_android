@@ -29,6 +29,7 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.MyApplication.Companion.context
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -37,7 +38,7 @@ import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
-import com.taiwanlife.teamwalk.test.TestActivity
+import com.taiwanlife.teamwalk.ui.test.TestActivity
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
@@ -85,7 +86,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import kotlin.random.Random
-import kotlin.system.exitProcess
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
     ProviderInstaller.ProviderInstallListener,
@@ -358,8 +358,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         viewBinding.testHc.setOnClickListener {
             bindingManager.bindNewDevice(DeviceType.HEALTH_CONNECT)
         }
-        viewBinding.testCsso.setOnClickListener {
+        viewBinding.test.setOnClickListener {
             startActivity(Intent(this, TestActivity::class.java))
+        }
+        viewBinding.patternLcokTest.setOnClickListener {
+            val patternIntent = Intent(this, PatternSetupActivity::class.java)
+            patternIntent.putExtra(PatternSetupActivity.KEY_ATTEMPT_ENABLE, "Y")
+            patternLauncher.launch(patternIntent)
         }
         viewBinding.dummyData.setOnClickListener {
             if (healthConnectViewModel == null) {
@@ -387,6 +392,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                val isCurrentlyHome = viewBinding.webView.url?.startsWith(getEnvironmentConfig().webUrl)
+                if(isCurrentlyHome != null && isCurrentlyHome) finish()
+
                 if (!viewBinding.webView.backIfValid()) {
                     finish()
                 }
@@ -850,6 +858,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
 //            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
             prefEditor.putString(Config.SP_LOGIN_JWT, "")
+            prefEditor.putString(Config.SP_CASTGC, "")
         }
 
         viewBinding.webView.post {

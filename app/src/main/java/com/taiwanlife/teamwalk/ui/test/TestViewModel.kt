@@ -1,4 +1,4 @@
-package com.taiwanlife.teamwalk.test
+package com.taiwanlife.teamwalk.ui.test
 
 import androidx.lifecycle.viewModelScope
 import com.taiwanlife.teamwalk.Config

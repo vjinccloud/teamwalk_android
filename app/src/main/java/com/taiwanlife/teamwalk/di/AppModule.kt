@@ -6,12 +6,13 @@ import com.taiwanlife.teamwalk.remote.CssoRepository
 import com.taiwanlife.teamwalk.remote.FitbitRepository
 import com.taiwanlife.teamwalk.remote.GarminRepository
 import com.taiwanlife.teamwalk.remote.Repository
+import com.taiwanlife.teamwalk.remote.interceptor.ApiLoggingInterceptor
 import com.taiwanlife.teamwalk.remote.interceptor.TokenInterceptor
 import com.taiwanlife.teamwalk.remote.service.APIService
 import com.taiwanlife.teamwalk.remote.service.CssoService
 import com.taiwanlife.teamwalk.remote.service.FitBitService
 import com.taiwanlife.teamwalk.remote.service.GarminService
-import com.taiwanlife.teamwalk.test.TestViewModel
+import com.taiwanlife.teamwalk.ui.test.TestViewModel
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.login.LoginViewModel
@@ -42,6 +43,7 @@ val appModule = module {
         OkHttpClient.Builder()
             .addInterceptor(logger)
             .addInterceptor(tokenInterceptor)
+            .addInterceptor(ApiLoggingInterceptor())
             .build()
     }
 

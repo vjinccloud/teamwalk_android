@@ -9,6 +9,7 @@ import com.taiwanlife.teamwalk.Config.CHANNEL_DESCRIPTION
 import com.taiwanlife.teamwalk.Config.CHANNEL_ID
 import com.taiwanlife.teamwalk.Config.CHANNEL_NAME
 import com.taiwanlife.teamwalk.di.appModule
+import com.taiwanlife.teamwalk.utils.FileLoggingTree
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import org.koin.core.context.startKoin
 import timber.log.Timber
@@ -47,7 +48,9 @@ class MyApplication : Application() {
         context = applicationContext
 
         if (BuildConfig.DEBUG) {
+            FileLoggingTree.clearLogs(this)
             Timber.plant(Timber.DebugTree())
+            Timber.plant(FileLoggingTree(this))
         }
 
         startKoin {

@@ -4,66 +4,86 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.andrognito.patternlockview.PatternLockView
-        android:id="@+id/original_pattern"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginEnd="40dp"
-        app:correctStateColor="#00d7c2"
-        app:dotCount="4"
-        app:dotNormalSize="16dp"
-        app:dotSelectedSize="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:normalStateColor="#d1d5db" />
-
-    <TextView
-        android:id="@+id/original_pattern_text"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/original_pattern" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <com.andrognito.patternlockview.PatternLockView
-        android:id="@+id/new_pattern"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="40dp"
-        app:correctStateColor="#00d7c2"
-        app:dotCount="4"
-        app:dotNormalSize="16dp"
-        app:dotSelectedSize="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/original_pattern_text"
-        app:normalStateColor="#d1d5db" />
+        <TextView
+            android:id="@+id/log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true" />
+    </ScrollView>
 
-    <TextView
-        android:id="@+id/new_pattern_text"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/new_pattern" />
-
-    <TextView
-        android:id="@+id/send"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="Send"
-        android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@+id/new_pattern_text" />
-
-    <TextView
-        android:id="@+id/disable"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="Disable"
-        android:textAlignment="center"
+        android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/send" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.andrognito.patternlockview.PatternLockView
+            android:id="@+id/original_pattern"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            app:correctStateColor="#00d7c2"
+            app:dotCount="4"
+            app:dotNormalSize="16dp"
+            app:dotSelectedSize="24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:normalStateColor="#d1d5db" />
+
+        <TextView
+            android:id="@+id/original_pattern_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/original_pattern" />
+
+        <com.andrognito.patternlockview.PatternLockView
+            android:id="@+id/new_pattern"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="40dp"
+            app:correctStateColor="#00d7c2"
+            app:dotCount="4"
+            app:dotNormalSize="16dp"
+            app:dotSelectedSize="24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/original_pattern_text"
+            app:normalStateColor="#d1d5db" />
+
+        <TextView
+            android:id="@+id/new_pattern_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/new_pattern" />
+
+        <TextView
+            android:id="@+id/send"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="Send"
+            android:textAlignment="center"
+            app:layout_constraintTop_toBottomOf="@+id/new_pattern_text" />
+
+        <TextView
+            android:id="@+id/disable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="Disable"
+            android:textAlignment="center"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/send" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

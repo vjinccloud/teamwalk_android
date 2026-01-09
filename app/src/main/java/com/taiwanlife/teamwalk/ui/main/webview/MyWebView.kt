@@ -11,6 +11,7 @@ import android.webkit.JsResult
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -27,6 +28,7 @@ import timber.log.Timber
 import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
+import java.util.Locale
 
 class MyWebView : WebView {
     constructor(context: Context) : super(context)
@@ -126,6 +128,31 @@ class MyWebView : WebView {
                 super.onPageFinished(view, url)
                 Timber.d("Finish loading $url")
                 webviewLoadingCallback.onWebviewPageFinished()
+            }
+
+            @Override
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+                    return
+                }
+                // 確保錯誤是針對主框架的請求 (isForMainFrame)
+                if (request?.isForMainFrame == true) {
+                    val description = error?.description.toString()
+                    val errorCode = error?.errorCode ?: -1
+
+                    AlertDialog.Builder(context)
+                        .setTitle(String.format(Locale.getDefault(), context.getString(R.string.webview_error_title), errorCode.toString()))
+                        .setMessage(String.format(Locale.getDefault(), context.getString(R.string.webview_error_message), description))
+                        .setPositiveButton(R.string.confirm1) { dialog, _ ->
+
+                        }
+                        .setCancelable(true)
+                        .show()
+                }
             }
         }
 

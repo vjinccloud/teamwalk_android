@@ -20,11 +20,18 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/test_csso"
+                android:id="@+id/test"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="8dp"
-                android:text="CSSO測試" />
+                android:text="測試頁面" />
+
+            <TextView
+                android:id="@+id/pattern_lcok_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="PatternLock頁" />
 
             <TextView
                 android:id="@+id/clearBadge"

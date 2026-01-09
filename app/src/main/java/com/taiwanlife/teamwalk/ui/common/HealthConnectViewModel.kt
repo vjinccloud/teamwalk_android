@@ -42,8 +42,12 @@ class HealthConnectViewModel(
             val stepDataDeferred =
                 async { healthConnectRepository.readStepData(startTime, endTime) }
 
-            val sleepData = sleepDataDeferred.await().map { it.toTeamWalkRecord() }
-            val stepData = stepDataDeferred.await().map { it.toTeamWalkRecord() }
+            val sleepData = sleepDataDeferred.await().filter { record ->
+                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
+            }.map { it.toTeamWalkRecord() }
+            val stepData = stepDataDeferred.await().filter { record ->
+                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
+            }.map { it.toTeamWalkRecord() }
 
             callback(sleepData, stepData)
         }
