@@ -3,9 +3,12 @@ package com.taiwanlife.teamwalk.ui.main
 import android.Manifest
 import android.app.Activity
 import android.app.ComponentCaller
+import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -220,6 +223,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             ::bindNewDeviceSuccess
         )
 
+        registerNetworkCallback({}) {
+            showNoInternetAlert()
+        }
         // 原本在這裡建立 Notification Channel 移至MyApplication
 
         // 檢查我們的權限是不是都拿到了 delay的原因我推測是因為可能會去到其他頁面 導致這頁被關閉會出錯 現在改為權限分開請求
@@ -827,7 +833,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //            }
 
             if (!isOnline()) {
-                toast(R.string.main_is_not_online)
+                showNoInternetAlert()
             }
         }
     }
@@ -1138,5 +1144,45 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             // 用這個會讓登出資料沒辦法清乾淨
 //            exitProcess(0)
         }
+    }
+
+    fun registerNetworkCallback(
+        onAvailable: () -> Unit,
+        onLost: () -> Unit
+    ) {
+        val cm =
+            getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        cm.registerNetworkCallback(
+            request,
+            object : ConnectivityManager.NetworkCallback() {
+
+                override fun onAvailable(network: Network) {
+                    onAvailable()
+                }
+
+                override fun onLost(network: Network) {
+                    onLost()
+                }
+            }
+        )
+    }
+
+    fun showNoInternetAlert() {
+        CommonDialog(this).apply {
+            oneButtonInit(
+                "", getString(R.string.main_is_not_online), R.drawable.alert_1,
+                showButtons = true,
+                canceledOnTouchOutside = false,
+                text = getString(R.string.ok),
+                onClick = {
+                    finishAffinity()
+                }
+            )
+        }.show()
     }
 }

@@ -172,7 +172,7 @@
     <string name="main_finish_login">你以登入</string>
     <string name="main_add_to_clipboard">複製到剪貼簿</string>
     <string name="main_can_not_open_file_chooser">無法打開相簿</string>
-    <string name="main_is_not_online">無法連線, APP需要網路連線才可正常運作</string>
+    <string name="main_is_not_online">請檢查網路連線!</string>
 
     <!-- api / data access -->
     <string name="access_connect_fail">連線失敗</string>
