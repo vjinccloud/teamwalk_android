@@ -1,6 +1,7 @@
 package com.taiwanlife.teamwalk.utils
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -121,4 +122,8 @@ fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
         localDate = localFormatter.format(startTime),
         data = count // 使用者的步數
     )
+}
+
+fun Uri.toOrigin():String {
+    return "${scheme}://${host}"
 }

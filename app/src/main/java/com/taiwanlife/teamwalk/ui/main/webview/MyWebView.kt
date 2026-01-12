@@ -190,14 +190,16 @@ class MyWebView : WebView {
 //        val webAppInterface = WebAppInterface(this)
 //        addJavascriptInterface(webAppInterface, webAppInterface.appBridgeJsName)
 
-        addJavascriptInterface(
-            MyWebAppInterface(
-                context,
-                lifecycleOwner,
-                this,
-                asyncCallbacks
-            ), Config.JAVASCRIPT_BRIDGE_NAME
-        )
+//        addJavascriptInterface(
+//            MyWebAppInterface(
+//                context,
+//                lifecycleOwner,
+//                this,
+//                asyncCallbacks
+//            ), Config.JAVASCRIPT_BRIDGE_NAME
+//        )
+        val myWebMessageListener = MyWebMessageListener(context, lifecycleOwner, asyncCallbacks)
+        myWebMessageListener.init(this)
 
 //        loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
     }

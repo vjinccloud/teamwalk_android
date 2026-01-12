@@ -1,10 +1,8 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
-import android.R.id.shareText
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.text.TextUtils
 import android.webkit.WebView
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -28,6 +26,7 @@ import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import kotlin.jvm.java
 import androidx.core.text.isDigitsOnly
+import com.taiwanlife.teamwalk.utils.toOrigin
 
 class MyWebMessageListener(
     private val context: Context,
@@ -37,9 +36,9 @@ class MyWebMessageListener(
 
     private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
     private val allowedOrigins = setOf(
-        context.getString(R.string.web_url),
-        context.getString(R.string.api_url),
-        context.getString(R.string.csso_url)
+        context.getString(R.string.web_url).toUri().toOrigin(),
+        context.getString(R.string.api_url).toUri().toOrigin(),
+        context.getString(R.string.csso_url).toUri().toOrigin(),
     )
 
     private var pendingReplyProxy: JavaScriptReplyProxy? = null
@@ -52,7 +51,7 @@ class MyWebMessageListener(
                 lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                     sharedEventViewModel.eventFlow.collect { (eventName, result) ->
                         if (eventName == Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK) {
-                            // 透過 WebMessage 直接回傳，不再需要 evaluateJavascript
+                            // 透過 WebMessage 直接回傳
                             pendingReplyProxy?.postMessage(result)
                             pendingReplyProxy = null
                         }
@@ -62,7 +61,7 @@ class MyWebMessageListener(
 
             WebViewCompat.addWebMessageListener(
                 webView,
-                "androidBridge", // JS 端的呼叫對象名稱
+                Config.JAVASCRIPT_BRIDGE_NAME,
                 allowedOrigins
             ) { view, message, sourceOrigin, isMainFrame, replyProxy ->
                 val data = message.data ?: return@addWebMessageListener
@@ -107,7 +106,7 @@ class MyWebMessageListener(
 
             "openBrowser" -> {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, command.params?.toUri())
+                    val intent = Intent(Intent.ACTION_VIEW, command.status?.toUri())
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     context.debugToast("無法開啟網頁")
@@ -115,7 +114,7 @@ class MyWebMessageListener(
             }
 
             "share" -> {
-                val shareContent = getGson().fromJson(command.params, ShareContentModel::class.java)
+                val shareContent = getGson().fromJson(command.status, ShareContentModel::class.java)
                 if (shareContent.status == "TEXT") {
                     shareText(shareContent.message)
                 } else {
@@ -124,13 +123,13 @@ class MyWebMessageListener(
             }
 
             "updatePushCount" -> {
-                if (command.params!= null && command.params.isDigitsOnly()) {
-                    asyncCallbacks.updatePushCount(command.params.toInt())
+                if (command.status!= null && command.status.isDigitsOnly()) {
+                    asyncCallbacks.updatePushCount(command.status.toInt())
                 }
             }
 
             "saveDataToFile" -> {
-                val saveModel = getGson().fromJson(command.params, SaveDataToFileModel::class.java)
+                val saveModel = getGson().fromJson(command.status, SaveDataToFileModel::class.java)
                 asyncCallbacks.saveDataToFile(saveModel.data, saveModel.fileName)
             }
 
@@ -139,21 +138,21 @@ class MyWebMessageListener(
             "bindingFitbitHealth", "setPushMessageStatus", "syncHealthData" -> {
                 pendingReplyProxy = replyProxy
                 when (command.action) {
-                    "setGraphicalLogin" -> asyncCallbacks.setGraphicalLogin(command.params ?: "")
+                    "setGraphicalLogin" -> asyncCallbacks.setGraphicalLogin(command.status ?: "")
                     "bindingGoogleHealth" -> asyncCallbacks.bindingGoogleHealth(
-                        command.params ?: ""
+                        command.status ?: "Y"
                     )
 
                     "bindingGarminHealth" -> asyncCallbacks.bindingGarminHealth(
-                        command.params ?: ""
+                        command.status ?: "Y"
                     )
 
                     "bindingFitbitHealth" -> asyncCallbacks.bindingFitbitHealth(
-                        command.params ?: ""
+                        command.status ?: "Y"
                     )
 
                     "setPushMessageStatus" -> asyncCallbacks.setPushMessageStatus(
-                        command.params ?: ""
+                        command.status ?: "Y"
                     )
 
                     "syncHealthData" -> asyncCallbacks.syncHealthData()
@@ -173,5 +172,5 @@ class MyWebMessageListener(
         context.startActivity(Intent.createChooser(intent, ""))
     }
 
-    data class WebCommand(val action: String, val params: String?)
+    data class WebCommand(val action: String, val status: String?)
 }
