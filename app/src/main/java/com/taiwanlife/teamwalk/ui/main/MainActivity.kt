@@ -1,6 +1,7 @@
 package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
+import android.R.attr.data
 import android.app.Activity
 import android.app.ComponentCaller
 import android.content.Intent
@@ -126,7 +127,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private val loginLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                debugToast(R.string.login_success)
 
                 // 登入完畢 取得使用者資訊
                 mainViewModel.getLanding()
@@ -150,7 +150,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     // 提供變更圖形密碼 PatternSetupActivity之成果回傳
     private val patternLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            debugToast(R.string.change_success)
 
             if (result.resultCode == RESULT_OK) {
                 val isGraphicalLoginSet = result.data?.getBooleanExtra(
@@ -236,13 +235,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             Config.SP_FCM_IDENTIFIER,
                             task.result
                         )
+                        debugToast("取得FCM Token ${task.result}")
                     } else {
                         Timber.d("Fetching FCM registration token failed")
                         Timber.d(task.exception?.message)
+                        debugToast("取得FCM Token 失敗 message => ${task.exception?.message}")
                     }
                 }
         } catch (e: Exception) {
             e.printStackTrace()
+            debugToast("取得FCM Token 失敗 catch => ${e.message}")
         }
 
         // 初始化參數 這裡不再需要
@@ -373,7 +375,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             }
             healthConnectViewModel?.let { healthConnectViewModel ->
                 healthConnectViewModel.writeAndCleanDummyHealthDataForPast30Days {
-                    debugToast(R.string.main_health_connect_dummy_insert_finished)
+
                 }
             }
         }
@@ -665,7 +667,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
 
     private fun bindingRemoved(deviceType: DeviceType) {
-        debugToast("${deviceType.displayName} removed")
+        // 如果有需要透過JS回傳綁定結果
+        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, false.enableToString().quoteJS())
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
@@ -674,7 +677,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         }
         when (deviceType) {
             HEALTH_CONNECT -> {
-                debugToast(R.string.onboard_connect_success)
                 lifecycleScope.launch(Dispatchers.Main.immediate) {
                     viewBinding.dummyData.visibility = View.VISIBLE
                 }
@@ -686,8 +688,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 val garminData = getGson().fromJson(data, GarminData::class.java)
 
                 if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
-                    debugToast("t = ${garminData.oauthToken}\ns = ${garminData.oauthTokenSecret}")
-
                     // 如果有需要透過JS回傳綁定結果
                     val garminModel =
                         GarminModel(garminData.oauthToken, garminData.oauthTokenSecret)
@@ -699,8 +699,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 val fitbitData = getGson().fromJson(data, FitbitData::class.java)
 
                 if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
-                    debugToast("t = ${fitbitData.accessToken}\nr = ${fitbitData.refreshToken}")
-
                     // 如果有需要透過JS回傳綁定結果
                     val fitbitModel = FitbitModel(fitbitData.accessToken, fitbitData.refreshToken)
                     postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(fitbitModel))
@@ -891,8 +889,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 "window.WebAppBridge.resumeAPP()",
                 null
             )
-
-            context.debugToast("resumeAPP()")
         }
     }
 
@@ -932,7 +928,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun bindingGoogleHealth(enable: String) {
-        bindingManager.bindNewDevice(HEALTH_CONNECT)
+        if(enable.enableToBoolean()) {
+            bindingManager.bindNewDevice(HEALTH_CONNECT)
+        } else {
+            bindingManager.removeDevice(HEALTH_CONNECT)
+        }
     }
 
     fun getHealthConnectData() {
@@ -961,24 +961,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun bindingGarminHealth(enable: String) {
-        bindingManager.bindNewDevice(GARMIN)
+        if(enable.enableToBoolean()) {
+            bindingManager.bindNewDevice(GARMIN)
+        } else {
+            bindingManager.removeDevice(GARMIN)
+        }
     }
 
     override fun bindingFitbitHealth(enable: String) {
-        bindingManager.bindNewDevice(FITBIT)
-
-//        // 版本29之後才需要要求此權限 29之前的可以直接執行
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            val permissions = ArrayList<String>()
-//            permissions.add(Manifest.permission.ACTIVITY_RECOGNITION)
-//            getPermissionAndCallback(
-//                permissions,
-//                MainWebViewJava.SimpleCallback {
-//                    accessGoogleFit()
-//                })
-//        } else {
-//            accessGoogleFit()
-//        }
+        if(enable.enableToBoolean()) {
+            bindingManager.bindNewDevice(FITBIT)
+        } else {
+            bindingManager.removeDevice(FITBIT)
+        }
     }
 
     override fun setPushMessageStatus(enable: String) {

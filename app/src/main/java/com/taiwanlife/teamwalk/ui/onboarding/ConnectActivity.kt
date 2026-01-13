@@ -129,7 +129,6 @@ class ConnectActivity :
     }
 
     private fun bindingRemoved(deviceType: DeviceType) {
-        debugToast("${deviceType.displayName} removed")
         userInfo = userInfo.copy(
             bindingType = null,
             bindingToken = null,

@@ -1,10 +1,13 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
+import android.R.attr.version
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.text.TextUtils
 import android.webkit.WebView
 import androidx.core.net.toUri
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -13,20 +16,29 @@ import androidx.webkit.JavaScriptReplyProxy
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_APP_VERSION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_DEVICE_INFO_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_GRAPHICAL_LOGIN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_JWT_TOKEN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_OPEN_NOTIFICATION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_SYNC_HEALTH_DATA_RESOLVER
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.getGson
+import com.taiwanlife.teamwalk.utils.quoteJS
+import com.taiwanlife.teamwalk.utils.toOrigin
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
-import kotlin.jvm.java
-import androidx.core.text.isDigitsOnly
-import com.taiwanlife.teamwalk.utils.toOrigin
 
 class MyWebMessageListener(
     private val context: Context,
@@ -35,29 +47,53 @@ class MyWebMessageListener(
 ) {
 
     private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
+    private var currentWaitingCallbackName = ""
     private val allowedOrigins = setOf(
         context.getString(R.string.web_url).toUri().toOrigin(),
         context.getString(R.string.api_url).toUri().toOrigin(),
         context.getString(R.string.csso_url).toUri().toOrigin(),
     )
 
-    private var pendingReplyProxy: JavaScriptReplyProxy? = null
+//    private var pendingReplyProxy: JavaScriptReplyProxy? = null
+    private lateinit var webView: WebView
 
     fun init(webView: WebView) {
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-            Timber.e("不支援 WebViewFeature.WEB_MESSAGE_LISTENER")
-        } else {
-            lifecycleOwner.lifecycleScope.launch {
-                lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    sharedEventViewModel.eventFlow.collect { (eventName, result) ->
-                        if (eventName == Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK) {
-                            // 透過 WebMessage 直接回傳
-                            pendingReplyProxy?.postMessage(result)
-                            pendingReplyProxy = null
+        this.webView = webView
+
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                sharedEventViewModel.eventFlow.collect { (eventName, result) ->
+                    Timber.d("eventName = $eventName, result = $result")
+                    if (eventName.equals(EVENT_EXECUTE_JAVASCRIPT_CALLBACK) && currentWaitingCallbackName.isNotEmpty()) {
+                        webView.post {
+                            var test = ""
+                            webView.evaluateJavascript(
+                                "$currentWaitingCallbackName$test(${result})",
+                                null
+                            )
+
+                            context.debugToast("透過${currentWaitingCallbackName}回傳結果 - $result")
+                            currentWaitingCallbackName = ""
                         }
                     }
                 }
             }
+        }
+
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            Timber.e("不支援 WebViewFeature.WEB_MESSAGE_LISTENER")
+        } else {
+//            lifecycleOwner.lifecycleScope.launch {
+//                lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                    sharedEventViewModel.eventFlow.collect { (eventName, result) ->
+//                        if (eventName == Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK) {
+//                            // 透過 WebMessage 直接回傳
+//                            pendingReplyProxy?.postMessage(result)
+//                            pendingReplyProxy = null
+//                        }
+//                    }
+//                }
+//            }
 
             WebViewCompat.addWebMessageListener(
                 webView,
@@ -65,14 +101,12 @@ class MyWebMessageListener(
                 allowedOrigins
             ) { view, message, sourceOrigin, isMainFrame, replyProxy ->
                 val data = message.data ?: return@addWebMessageListener
-                val command = try {
-                    getGson().fromJson(data, WebCommand::class.java)
+                try {
+                    val command = getGson().fromJson(data, WebCommand::class.java)
+                    handleCommand(command, replyProxy)
                 } catch (e: Exception) {
                     Timber.e(e, "解析 WebMessage 失敗")
-                    return@addWebMessageListener
                 }
-
-                handleCommand(command, replyProxy)
             }
         }
     }
@@ -81,7 +115,7 @@ class MyWebMessageListener(
     private fun handleCommand(command: WebCommand, replyProxy: JavaScriptReplyProxy) {
         when (command.action) {
             "getDeviceInfo" -> {
-                val model = DeviceInfoModel(
+                val deviceInfoModel = DeviceInfoModel(
                     appUuid = SecuredPreferenceStoreManager.getString(
                         Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
                         ""
@@ -89,27 +123,43 @@ class MyWebMessageListener(
                     deviceId = Utils.getDeviceId(context),
                     pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
                 )
-                replyProxy.postMessage(getGson().toJson(model))
+//                replyProxy.postMessage(getGson().toJson(deviceInfoModel))
+                currentWaitingCallbackName = CALLBACK_DEVICE_INFO_RESOLVER
+                sharedEventViewModel.postEvent(
+                    getGson().toJson(deviceInfoModel).quoteJS(),
+                    EVENT_EXECUTE_JAVASCRIPT_CALLBACK
+                )
             }
 
             "getLoginInfo" -> {
-                val model = LoginInfoModel(
+                val loginInfoModel = LoginInfoModel(
                     jwt = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT, "")
                 )
-                replyProxy.postMessage(getGson().toJson(model))
+//                replyProxy.postMessage(getGson().toJson(model))
+                currentWaitingCallbackName = CALLBACK_JWT_TOKEN_RESOLVER
+                sharedEventViewModel.postEvent(
+                    getGson().toJson(loginInfoModel).quoteJS(),
+                    EVENT_EXECUTE_JAVASCRIPT_CALLBACK
+                )
             }
 
             "getAppVersion" -> {
                 val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                replyProxy.postMessage(packageInfo.versionName ?: "")
+                val version =
+                    if (!TextUtils.isEmpty(packageInfo.versionName)) packageInfo.versionName!! else ""
+//                replyProxy.postMessage(version ?: "")
+
+                currentWaitingCallbackName = CALLBACK_APP_VERSION_RESOLVER
+                sharedEventViewModel.postEvent(version.quoteJS(), EVENT_EXECUTE_JAVASCRIPT_CALLBACK)
             }
 
             "openBrowser" -> {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, command.status?.toUri())
+                    val intent = Intent(Intent.ACTION_VIEW, command.url?.toUri())
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     context.debugToast("無法開啟網頁")
+                    e.printStackTrace()
                 }
             }
 
@@ -123,7 +173,7 @@ class MyWebMessageListener(
             }
 
             "updatePushCount" -> {
-                if (command.status!= null && command.status.isDigitsOnly()) {
+                if (command.status != null && command.status.isDigitsOnly()) {
                     asyncCallbacks.updatePushCount(command.status.toInt())
                 }
             }
@@ -136,26 +186,44 @@ class MyWebMessageListener(
             // 以下為需要透過 ViewModel 處理的非同步操作
             "setGraphicalLogin", "bindingGoogleHealth", "bindingGarminHealth",
             "bindingFitbitHealth", "setPushMessageStatus", "syncHealthData" -> {
-                pendingReplyProxy = replyProxy
+//                pendingReplyProxy = replyProxy
                 when (command.action) {
-                    "setGraphicalLogin" -> asyncCallbacks.setGraphicalLogin(command.status ?: "")
-                    "bindingGoogleHealth" -> asyncCallbacks.bindingGoogleHealth(
-                        command.status ?: "Y"
-                    )
+                    "setGraphicalLogin" -> {
+                        currentWaitingCallbackName = CALLBACK_GRAPHICAL_LOGIN_RESOLVER
+                        asyncCallbacks.setGraphicalLogin(command.status ?: "")
+                    }
+                    "bindingGoogleHealth" -> {
+                        currentWaitingCallbackName = CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
+                        asyncCallbacks.bindingGoogleHealth(
+                            command.status ?: "Y"
+                        )
+                    }
 
-                    "bindingGarminHealth" -> asyncCallbacks.bindingGarminHealth(
-                        command.status ?: "Y"
-                    )
+                    "bindingGarminHealth" -> {
+                        currentWaitingCallbackName = CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
+                        asyncCallbacks.bindingGarminHealth(
+                            command.status ?: "Y"
+                        )
+                    }
 
-                    "bindingFitbitHealth" -> asyncCallbacks.bindingFitbitHealth(
-                        command.status ?: "Y"
-                    )
+                    "bindingFitbitHealth" -> {
+                        currentWaitingCallbackName = CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
+                        asyncCallbacks.bindingFitbitHealth(
+                            command.status ?: "Y"
+                        )
+                    }
 
-                    "setPushMessageStatus" -> asyncCallbacks.setPushMessageStatus(
-                        command.status ?: "Y"
-                    )
+                    "setPushMessageStatus" -> {
+                        currentWaitingCallbackName = CALLBACK_OPEN_NOTIFICATION_RESOLVER
+                        asyncCallbacks.setPushMessageStatus(
+                            command.status ?: "Y"
+                        )
+                    }
 
-                    "syncHealthData" -> asyncCallbacks.syncHealthData()
+                    "syncHealthData" -> {
+                        currentWaitingCallbackName = CALLBACK_SYNC_HEALTH_DATA_RESOLVER
+                        asyncCallbacks.syncHealthData()
+                    }
                 }
             }
 
@@ -172,5 +240,5 @@ class MyWebMessageListener(
         context.startActivity(Intent.createChooser(intent, ""))
     }
 
-    data class WebCommand(val action: String, val status: String?)
+    data class WebCommand(val action: String, val status: String?, val url: String?)
 }

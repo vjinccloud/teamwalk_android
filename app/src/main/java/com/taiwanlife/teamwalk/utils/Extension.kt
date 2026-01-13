@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.google.gson.Gson
@@ -14,6 +15,7 @@ import com.taiwanlife.teamwalk.remote.adapter.InstantAdapter
 import com.taiwanlife.teamwalk.remote.adapter.ZoneOffsetAdapter
 import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
 import org.json.JSONObject
+import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -121,6 +123,55 @@ fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
         utcDate = utcFormatter.format(startTime),
         localDate = localFormatter.format(startTime),
         data = count // 使用者的步數
+    )
+}
+
+fun AggregationResultGroupedByDuration.toStepTeamWalkRecord(): TeamWalkRecordModel {
+    val startSeconds = startTime.epochSecond.toString()
+    val endSeconds = endTime.epochSecond.toString()
+
+    val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.of("UTC"))
+
+    // 匯總資料通常建議使用系統預設時區，因為匯總物件本身不帶 zoneOffset
+    val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.systemDefault())
+
+    // 從 result 中提取步數總和
+    val totalSteps = result[StepsRecord.COUNT_TOTAL] ?: 0L
+
+    return TeamWalkRecordModel(
+        startTimestamp = startSeconds,
+        endTimestamp = endSeconds,
+        utcDate = utcFormatter.format(startTime),
+        localDate = localFormatter.format(startTime),
+        data = totalSteps
+    )
+}
+
+fun AggregationResultGroupedByDuration.toSleepTeamWalkRecord(): TeamWalkRecordModel {
+    val startSeconds = startTime.epochSecond.toString()
+    val endSeconds = endTime.epochSecond.toString()
+
+    val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.of("UTC"))
+
+    val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.systemDefault())
+
+    // 提取睡眠總時長，並轉為秒數 (Long)
+    val sleepDurationInSeconds = result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.seconds ?: 0L
+
+    return TeamWalkRecordModel(
+        startTimestamp = startSeconds,
+        endTimestamp = endSeconds,
+        utcDate = utcFormatter.format(startTime),
+        localDate = localFormatter.format(startTime),
+        data = sleepDurationInSeconds
     )
 }
 

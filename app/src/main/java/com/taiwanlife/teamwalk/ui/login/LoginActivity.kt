@@ -35,7 +35,6 @@ import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
-import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -268,20 +267,19 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         myWebChromeClient.setConfirmCallback { viewBinding.loginPatternLockView.clearPattern() }
         viewBinding.webview.webChromeClient = myWebChromeClient
         ticketCallback = { ticket ->
-            this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
+//            this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
             val cookieString = CookieManager.getInstance()
                 .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
                 if(cookieString != null) {
-                    this.debugToast("嘗試找CASTGC - $cookieString")
+//                    this.debugToast("嘗試找CASTGC - $cookieString")
                     val castGC = extractCastgcValueSplit(cookieString)
                     if(!castGC.isNullOrEmpty()) {
                         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
                     } else {
-                        this.debugToast("找不到CASTGC")
+//                        this.debugToast("找不到CASTGC")
                     }
                 } else {
-                    this.debugToast("沒有取得CookieString")
-                    SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, "TGC-1687-qXlkV9nuixHlAKKXui6abFH4UaywqBdlCPYrFXcuA2Dljc4eax")
+//                    this.debugToast("沒有取得CookieString")
                 }
 
             loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
