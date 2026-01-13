@@ -1,10 +1,8 @@
 package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
-import android.R.attr.data
 import android.app.Activity
 import android.app.ComponentCaller
-import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
@@ -34,7 +32,6 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
-import com.taiwanlife.teamwalk.MyApplication.Companion.context
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
@@ -42,7 +39,6 @@ import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
-import com.taiwanlife.teamwalk.ui.test.TestActivity
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
@@ -65,6 +61,7 @@ import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView
 import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
+import com.taiwanlife.teamwalk.ui.test.TestActivity
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.BindingManager
 import com.taiwanlife.teamwalk.utils.DeviceType
@@ -400,8 +397,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val isCurrentlyHome = viewBinding.webView.url?.startsWith(getEnvironmentConfig().webUrl)
-                if(isCurrentlyHome != null && isCurrentlyHome) finish()
+                val isCurrentlyHome =
+                    viewBinding.webView.url?.startsWith(getEnvironmentConfig().webUrl)
+                if (isCurrentlyHome != null && isCurrentlyHome) finish()
 
                 if (!viewBinding.webView.backIfValid()) {
                     finish()
@@ -934,7 +932,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun bindingGoogleHealth(enable: String) {
-        if(enable.enableToBoolean()) {
+        if (enable.enableToBoolean()) {
             bindingManager.bindNewDevice(HEALTH_CONNECT)
         } else {
             bindingManager.removeDevice(HEALTH_CONNECT)
@@ -967,7 +965,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun bindingGarminHealth(enable: String) {
-        if(enable.enableToBoolean()) {
+        if (enable.enableToBoolean()) {
             bindingManager.bindNewDevice(GARMIN)
         } else {
             bindingManager.removeDevice(GARMIN)
@@ -975,7 +973,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun bindingFitbitHealth(enable: String) {
-        if(enable.enableToBoolean()) {
+        if (enable.enableToBoolean()) {
             bindingManager.bindNewDevice(FITBIT)
         } else {
             bindingManager.removeDevice(FITBIT)
@@ -1175,7 +1173,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 canceledOnTouchOutside = false,
                 text = getString(R.string.ok),
                 onClick = {
-                    finishAffinity()
+                    when (BuildConfig.BUILD_TYPE) {
+                        "uat" -> {}
+
+                        else -> {
+                            finishAffinity()
+                        }
+                    }
                 }
             )
         }.show()
