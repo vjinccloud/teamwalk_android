@@ -173,7 +173,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         if (uri != null) {
             if (tempFileData == null || tempFileName == null) return@registerForActivityResult
 
-            mainViewModel.startToWriteFile(contentResolver, uri, tempFileName!!) {
+            mainViewModel.startToWriteFile(contentResolver, uri, tempFileData!!) {
                 tempFileData = null
                 tempFileName = null
             }

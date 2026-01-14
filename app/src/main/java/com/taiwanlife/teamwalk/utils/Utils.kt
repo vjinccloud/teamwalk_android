@@ -201,13 +201,104 @@ object Utils {
         return len
     }
 
-    /**
-     * 把 base64 圖片分享到其他 App（把檔案放在 app cache，使用 FileProvider 分享）
-     *
-     * @param context Application or Activity context
-     * @param base64OrDataUri 可能是純 base64，也可能是 data:image/png;base64,.... 的格式
-     * @param suggestedFileName  建議檔名（含副檔名），若為 null 會自動產生 .png
-     */
+//    /**
+//     * 把 base64 圖片分享到其他 App（把檔案放在 app cache，使用 FileProvider 分享）
+//     *
+//     * @param context Application or Activity context
+//     * @param base64OrDataUri 可能是純 base64，也可能是 data:image/png;base64,.... 的格式
+//     * @param suggestedFileName  建議檔名（含副檔名），若為 null 會自動產生 .png
+//     */
+//    fun shareBase64ImageSecure(
+//        context: Context,
+//        base64OrDataUri: String,
+//        suggestedFileName: String = "share_image.png"
+//    ) {
+//        try {
+//            val (mimeType, base64Str) = if (base64OrDataUri.startsWith("data:")) {
+//                // data:[<mediatype>][;base64],<data>
+//                val parts = base64OrDataUri.split(",")
+//                val meta = parts.getOrNull(0) ?: ""
+//                val body = parts.getOrNull(1) ?: ""
+//                val mt = meta.substringAfter("data:", "image/png").substringBefore(";")
+//                Pair(mt, body)
+//            } else {
+//                Pair("image/png", base64OrDataUri)
+//            }
+//
+//            val imageBytes = Base64.decode(base64Str, Base64.DEFAULT)
+//            val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+//
+//            // 寫入 app 的 cache 目錄（非公開）
+//            val imagesDir = File(context.cacheDir, "pictures").apply { if (!exists()) mkdirs() }
+//            val ext = when {
+//                mimeType.contains("png") -> "png"
+//                mimeType.contains("jpeg") || mimeType.contains("jpg") -> "jpg"
+//                else -> "png"
+//            }
+//            val fileName = suggestedFileName
+//            val outFile = File(imagesDir, fileName)
+//
+//            FileOutputStream(outFile).use { fos ->
+//                if (bitmap != null) {
+//                    val format =
+//                        if (ext == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+//                    bitmap.compress(format, 100, fos)
+//                } else {
+//                    // fallback: 如果不能 decode 成 bitmap，就直接把原 bytes 寫入（適用於已是 png/jpg bytes）
+//                    fos.write(imageBytes)
+//                }
+//                fos.flush()
+//            }
+//
+//            val authority = "${context.packageName}.fileprovider"
+//            val imageUri: Uri = FileProvider.getUriForFile(context, authority, outFile)
+//
+//            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+//                putExtra(Intent.EXTRA_STREAM, imageUri)
+//                type = mimeType.ifEmpty { "image/*" }
+//                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//
+//                // ClipData 可確保 chooser/preview 可以正確取得 URI（避免部分裝置 preview 權限問題）
+//                clipData = ClipData(
+//                    ClipDescription("image", arrayOf("image/*")),
+//                    ClipData.Item(imageUri)
+//                )
+//            }
+//
+//            val chooser = Intent.createChooser(sendIntent, "分享圖片")
+//
+//            val resInfoList = context.packageManager.queryIntentActivities(
+//                sendIntent,
+//                PackageManager.MATCH_DEFAULT_ONLY
+//            )
+//            resInfoList.forEach { resolveInfo ->
+//                val packageName = resolveInfo.activityInfo.packageName
+//                try {
+//                    context.grantUriPermission(
+//                        packageName,
+//                        imageUri,
+//                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+//                    )
+//                } catch (_: Exception) { /* ignore */
+//                }
+//            }
+//
+//            context.startActivity(chooser)
+//
+//            // 60秒之後刪除
+////            Handler(Looper.getMainLooper()).postDelayed({
+////                try {
+////                    outFile.delete()
+////                    if (imagesDir.exists() && imagesDir.listFiles()?.isEmpty() == true) imagesDir.delete()
+////                } catch (_: Exception) { /* ignore */ }
+////            }, 60_000L) // 60s 後刪除
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//
+//            context.debugToast("分享圖片失敗")
+//        }
+//    }
+
     fun shareBase64ImageSecure(
         context: Context,
         base64OrDataUri: String,
@@ -215,7 +306,6 @@ object Utils {
     ) {
         try {
             val (mimeType, base64Str) = if (base64OrDataUri.startsWith("data:")) {
-                // data:[<mediatype>][;base64],<data>
                 val parts = base64OrDataUri.split(",")
                 val meta = parts.getOrNull(0) ?: ""
                 val body = parts.getOrNull(1) ?: ""
@@ -226,27 +316,12 @@ object Utils {
             }
 
             val imageBytes = Base64.decode(base64Str, Base64.DEFAULT)
-            val bitmap: Bitmap? = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-            // 寫入 app 的 cache 目錄（非公開）
             val imagesDir = File(context.cacheDir, "pictures").apply { if (!exists()) mkdirs() }
-            val ext = when {
-                mimeType.contains("png") -> "png"
-                mimeType.contains("jpeg") || mimeType.contains("jpg") -> "jpg"
-                else -> "png"
-            }
-            val fileName = suggestedFileName
-            val outFile = File(imagesDir, fileName)
+            val outFile = File(imagesDir, suggestedFileName)
 
             FileOutputStream(outFile).use { fos ->
-                if (bitmap != null) {
-                    val format =
-                        if (ext == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
-                    bitmap.compress(format, 100, fos)
-                } else {
-                    // fallback: 如果不能 decode 成 bitmap，就直接把原 bytes 寫入（適用於已是 png/jpg bytes）
-                    fos.write(imageBytes)
-                }
+                fos.write(imageBytes)
                 fos.flush()
             }
 
@@ -255,10 +330,8 @@ object Utils {
 
             val sendIntent = Intent(Intent.ACTION_SEND).apply {
                 putExtra(Intent.EXTRA_STREAM, imageUri)
-                type = mimeType.ifEmpty { "image/*" }
+                type = mimeType.ifEmpty { "image/png" } // 確保預設是 png 以支援透明
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                // ClipData 可確保 chooser/preview 可以正確取得 URI（避免部分裝置 preview 權限問題）
                 clipData = ClipData(
                     ClipDescription("image", arrayOf("image/*")),
                     ClipData.Item(imageUri)
@@ -267,35 +340,17 @@ object Utils {
 
             val chooser = Intent.createChooser(sendIntent, "分享圖片")
 
-            val resInfoList = context.packageManager.queryIntentActivities(
-                sendIntent,
-                PackageManager.MATCH_DEFAULT_ONLY
-            )
+            // 針對 Android 10+ 以外的權限處理 (Optional)
+            val resInfoList = context.packageManager.queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY)
             resInfoList.forEach { resolveInfo ->
-                val packageName = resolveInfo.activityInfo.packageName
-                try {
-                    context.grantUriPermission(
-                        packageName,
-                        imageUri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (_: Exception) { /* ignore */
-                }
+                context.grantUriPermission(resolveInfo.activityInfo.packageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
             context.startActivity(chooser)
 
-            // 60秒之後刪除
-//            Handler(Looper.getMainLooper()).postDelayed({
-//                try {
-//                    outFile.delete()
-//                    if (imagesDir.exists() && imagesDir.listFiles()?.isEmpty() == true) imagesDir.delete()
-//                } catch (_: Exception) { /* ignore */ }
-//            }, 60_000L) // 60s 後刪除
         } catch (e: Exception) {
             e.printStackTrace()
-
-            context.debugToast("分享圖片失敗")
+            // context.debugToast("分享圖片失敗")
         }
     }
 
