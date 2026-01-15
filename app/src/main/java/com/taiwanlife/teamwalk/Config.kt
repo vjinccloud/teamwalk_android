@@ -12,11 +12,6 @@ object Config {
     // 除了這隻以外的path都需要戴上JWT token
     const val API_LOGIN_PATH = "login"
 
-    const val FITBIT_BASE_URL = "https://api.fitbit.com/oauth2/"
-    const val GARMIN_BASE_URL = "https://connectapi.garmin.com/oauth-service/oauth/"
-
-    const val API_SYS_ID = "teamwalk"
-    const val API_CSSO_HEADER_LOCATION = "location"
     const val JAVASCRIPT_BRIDGE_NAME = "JSBridge"
     const val WEBVIEW_CALLBACK_SCHEME = "teamwalk"
 

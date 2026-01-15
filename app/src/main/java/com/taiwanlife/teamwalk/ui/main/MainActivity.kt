@@ -242,7 +242,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     } else {
                         Timber.d("Fetching FCM registration token failed")
                         Timber.d(task.exception?.message)
-                        debugToast("取得FCM Token 失敗 message => ${task.exception?.message}")
+                        val oldFCMToken = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
+                        if (oldFCMToken.isNotEmpty()) {
+                            debugToast("取得新的FCMToken失敗, 但有舊的")
+                        } else {
+                            debugToast("取得新的FCMToken失敗, 且沒有舊的")
+                        }
                     }
                 }
         } catch (e: Exception) {
@@ -277,7 +282,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)
-        viewBinding.webView.setUp(this, this, this) { filePathCallback, fileChooserParams ->
+        viewBinding.webView.setUp(this, this, this, {
+            finishAffinity()
+        }) { filePathCallback, fileChooserParams ->
             this@MainActivity.filePathCallback?.onReceiveValue(null)
             this@MainActivity.filePathCallback = filePathCallback
 
@@ -305,7 +312,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             mainViewModel.getLanding()
         }
 
-        mainViewModel.getSysParam()
+        // TODO: 先拿掉版更方便測試
+//        mainViewModel.getSysParam()
     }
 
 
@@ -377,8 +385,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 return@setOnClickListener
             }
             healthConnectViewModel?.let { healthConnectViewModel ->
-                healthConnectViewModel.writeAndCleanDummyHealthDataForPast30Days {
-
+                healthConnectViewModel.writeAndCleanDummyHealthData {
+                    debugToast("假資料插入完成")
+                }
+            }
+        }
+        viewBinding.deleteData.setOnClickListener {
+            if (healthConnectViewModel == null) {
+                toast(R.string.main_health_connect_not_available)
+                return@setOnClickListener
+            }
+            healthConnectViewModel?.let { healthConnectViewModel ->
+                healthConnectViewModel.deleteAllOurData {
+                    toast("刪除完成")
                 }
             }
         }

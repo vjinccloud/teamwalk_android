@@ -11,7 +11,6 @@ import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
 import com.taiwanlife.teamwalk.utils.toSleepTeamWalkRecord
 import com.taiwanlife.teamwalk.utils.toStepTeamWalkRecord
-import com.taiwanlife.teamwalk.utils.toTeamWalkRecord
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -41,29 +40,29 @@ class HealthConnectViewModel(
         callback: (List<TeamWalkRecordModel>, List<TeamWalkRecordModel>) -> Unit
     ) {
         viewModelScope.launch {
-            val sleepDataDeferred =
-                async { healthConnectRepository.readSleepData(startTime, endTime) }
-            val stepDataDeferred =
-                async { healthConnectRepository.readStepData(startTime, endTime) }
-
-            val sleepData = sleepDataDeferred.await().filter { record ->
-                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
-            }.map { it.toTeamWalkRecord() }
-            val stepData = stepDataDeferred.await().filter { record ->
-                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
-            }.map { it.toTeamWalkRecord() }
-
 //            val sleepDataDeferred =
-//                async { healthConnectRepository.readSleepDataAsBuckets(startTime, endTime) }
-//            val sleepData = sleepDataDeferred.await().map { bucket ->
-//                bucket.toSleepTeamWalkRecord()
-//            }.filter { record -> record.data > 0 }
-//
+//                async { healthConnectRepository.readSleepData(startTime, endTime) }
 //            val stepDataDeferred =
-//                async { healthConnectRepository.readStepDataAsBuckets(startTime, endTime) }
-//            val stepData = stepDataDeferred.await().map { bucket ->
-//                bucket.toStepTeamWalkRecord()
-//            }.filter { record -> record.data > 0 }
+//                async { healthConnectRepository.readStepData(startTime, endTime) }
+//
+//            val sleepData = sleepDataDeferred.await().filter { record ->
+//                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
+//            }.map { it.toTeamWalkRecord() }
+//            val stepData = stepDataDeferred.await().filter { record ->
+//                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
+//            }.map { it.toTeamWalkRecord() }
+
+            val sleepDataDeferred =
+                async { healthConnectRepository.readSleepDataAsBuckets(startTime, endTime) }
+            val sleepData = sleepDataDeferred.await().map { bucket ->
+                bucket.toSleepTeamWalkRecord()
+            }.filter { record -> record.data > 0 }
+
+            val stepDataDeferred =
+                async { healthConnectRepository.readStepDataAsBuckets(startTime, endTime) }
+            val stepData = stepDataDeferred.await().map { bucket ->
+                bucket.toStepTeamWalkRecord()
+            }.filter { record -> record.data > 0 }
 
             callback(sleepData, stepData)
         }
@@ -103,10 +102,30 @@ class HealthConnectViewModel(
         }
     }
 
+
+    fun deleteAllOurData(callback: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                healthConnectRepository.deleteStepsDataByTimeRange(
+                    earliestPossibleStartTime,
+                    defaultEndTime
+                )
+                healthConnectRepository.deleteSleepDataByTimeRange(
+                    earliestPossibleStartTime,
+                    defaultEndTime
+                )
+
+                callback()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     /**
      *  模擬30天前的資料 插入之前會先把所有來自我們APP的插入資料都先刪除 避免混亂
      */
-    fun writeAndCleanDummyHealthDataForPast30Days(callback: () -> Unit) {
+    fun writeAndCleanDummyHealthData(callback: () -> Unit) {
         viewModelScope.launch {
             try {
                 healthConnectRepository.deleteStepsDataByTimeRange(
@@ -125,7 +144,7 @@ class HealthConnectViewModel(
                 val stepsRecords = mutableListOf<StepsRecord>()
                 val sleepRecords = mutableListOf<SleepSessionRecord>()
 
-                for (i in 1 until 31) {
+                for (i in 1 until 100) {
                     val targetDay = now.minusDays(i.toLong())
 
                     val periods = listOf(8 to 10, 12 to 14, 18 to 21) // 定義活動時段

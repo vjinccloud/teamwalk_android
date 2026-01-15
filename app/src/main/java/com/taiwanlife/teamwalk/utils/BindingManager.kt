@@ -58,6 +58,32 @@ class BindingManager(
                 }
             }
         }
+
+        baseActivity.observeOnLifeCycle(
+            garminViewModel.getAuthCodeFlow,
+            unSubscribeOnComplete = true,
+            onError = {
+                baseActivity.toast(R.string.onboard_connect_fail)
+            }) { response ->
+            // 處理成功結果
+            val responseString = response.string()
+            if (!TextUtils.isEmpty(responseString)) {
+                GarminHelper.parseGetAuthCodeString(responseString, getTsGarminCallback = {
+                    val garminData = GarminData(tsGarmin = it)
+                    SecuredPreferenceStoreManager.simpleEditAndApply(
+                        Config.SP_BIND_GARMIN,
+                        getGson().toJson(garminData)
+                    )
+                }, showFailedToast = {
+                    baseActivity.toast(R.string.onboard_connect_fail)
+                }, getUrlCallback = { url ->
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    baseActivity.startActivity(intent)
+                })
+            } else {
+                baseActivity.toast(R.string.onboard_connect_fail)
+            }
+        }
     }
 
     fun getCurrentDeviceType(): DeviceType {
@@ -199,31 +225,6 @@ class BindingManager(
 
     private fun startGarminProcess() {
         val authorization = GarminHelper.getGarminAuthorizationForAuthCode()
-        baseActivity.observeOnLifeCycle(
-            garminViewModel.getAuthCodeFlow,
-            unSubscribeOnComplete = true,
-            onError = {
-                baseActivity.toast(R.string.onboard_connect_fail)
-            }) { response ->
-            // 處理成功結果
-            val responseString = response.string()
-            if (!TextUtils.isEmpty(responseString)) {
-                GarminHelper.parseGetAuthCodeString(responseString, getTsGarminCallback = {
-                    val garminData = GarminData(tsGarmin = it)
-                    SecuredPreferenceStoreManager.simpleEditAndApply(
-                        Config.SP_BIND_GARMIN,
-                        getGson().toJson(garminData)
-                    )
-                }, showFailedToast = {
-                    baseActivity.toast(R.string.onboard_connect_fail)
-                }, getUrlCallback = { url ->
-                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                    baseActivity.startActivity(intent)
-                })
-            } else {
-                baseActivity.toast(R.string.onboard_connect_fail)
-            }
-        }
         garminViewModel.getGarminAuthCode(authorization)
     }
 

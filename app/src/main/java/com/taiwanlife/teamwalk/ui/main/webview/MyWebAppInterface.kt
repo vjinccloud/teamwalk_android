@@ -15,6 +15,17 @@ import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
+import com.taiwanlife.teamwalk.ui.common.model.SaveDataToFileModel
+import com.taiwanlife.teamwalk.ui.common.model.ShareContentModel
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_APP_VERSION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_DEVICE_INFO_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_GRAPHICAL_LOGIN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_JWT_TOKEN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_OPEN_NOTIFICATION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_SYNC_HEALTH_DATA_RESOLVER
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
@@ -33,18 +44,6 @@ class MyWebAppInterface(
     private val asyncCallbacks: AsyncCallbacks
 ) {
 
-    companion object {
-        const val CALLBACK_DEVICE_INFO_RESOLVER = "deviceInfoResolver"
-        const val CALLBACK_JWT_TOKEN_RESOLVER = "jwtTokenResolver"
-        const val CALLBACK_APP_VERSION_RESOLVER = "appVersionResolver"
-        const val CALLBACK_GRAPHICAL_LOGIN_RESOLVER = "graphicalLoginResolver"
-        const val CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER = "bindGoogleHealthConnectResolver"
-        const val CALLBACK_BIND_APPLE_IOS_HEALTH_RESOLVER = "bindAppleiOSHealthResolver"
-        const val CALLBACK_BIND_GARMIN_HEALTH_RESOLVER = "bindGarminHealthResolver"
-        const val CALLBACK_BIND_FITBIT_HEALTH_RESOLVER = "bindFitbitHealthResolver"
-        const val CALLBACK_OPEN_NOTIFICATION_RESOLVER = "openNotificationResolver"
-        const val CALLBACK_SYNC_HEALTH_DATA_RESOLVER = "syncHealthDataResolver"
-    }
 
 
     interface AsyncCallbacks {
@@ -288,17 +287,3 @@ class MyWebAppInterface(
         }
     }
 }
-
-data class ShareContentModel(
-    @SerializedName("status")
-    val status: String,
-    @SerializedName("msg")
-    val message: String
-)
-
-data class SaveDataToFileModel(
-    @SerializedName("data")
-    val data: String,
-    @SerializedName("fileName")
-    val fileName: String
-)

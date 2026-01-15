@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.11"
+        versionName = "3.0.13"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,6 +47,7 @@ android {
             resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
             resValue("string", "api_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
+            resValue("string", "web_url_base", "https://demo.mutron.com.tw/teamwalk/")
             resValue("string", "web_url", "https://demo.mutron.com.tw/teamwalk/bridge")
             resValue("string", "origin", "http://teamwork-frontend.bestamina.net:8080")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
@@ -81,6 +82,7 @@ android {
             resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
             resValue("string", "api_url", "http://10.1.242.55:9080/frontend/api/")
+            resValue("string", "web_url_base", "http://10.1.242.55:9080/frontend/")
             resValue("string", "web_url", "http://10.1.242.55:9080/frontend/")
             resValue("string", "origin", "http://10.1.242.55:9080")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
@@ -115,6 +117,7 @@ android {
             resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
             resValue("string", "api_url", "https://teamwalk2uat.taiwanlife.com/teamwalk-fe-api/")
+            resValue("string", "web_url_base", "https://teamwalk2uat.taiwanlife.com/")
             resValue("string", "web_url", "https://teamwalk2uat.taiwanlife.com/bridge")
             resValue("string", "origin", "https://teamwalkuat.taiwanlife.com")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
@@ -148,6 +151,7 @@ android {
             resValue("string", "csso_sign_up_url", "https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcav.taiwanlife.com/")
             resValue("string", "api_url", "https://teamwalk.taiwanlife.com/frontend/api/")
+            resValue("string", "web_url_base", "https://teamwalk.taiwanlife.com/frontend/")
             resValue("string", "web_url", "https://teamwalk.taiwanlife.com/frontend/")
             resValue("string", "origin", "https://teamwalk.taiwanlife.com")
             resValue("string", "taiwanlife_member_url", "https://www.taiwanlife.com/member?service=https%3A%2F%2Ftcav.taiwanlife.com%2Flogin")

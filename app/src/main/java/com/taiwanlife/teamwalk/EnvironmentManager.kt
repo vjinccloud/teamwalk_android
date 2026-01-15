@@ -22,6 +22,7 @@ object EnvironmentManager {
         cssoSignUpUrl = MyApplication.context.getString(R.string.csso_sign_up_url),
         tcavUrl = MyApplication.context.getString(R.string.tcav_url),
         apiUrl = MyApplication.context.getString(R.string.api_url),
+        webUrlBase = MyApplication.context.getString(R.string.web_url_base),
         webUrl = MyApplication.context.getString(R.string.web_url),
         origin = MyApplication.context.getString(R.string.origin),
         taiwanlifeMemberUrl = MyApplication.context.getString(R.string.taiwanlife_member_url),

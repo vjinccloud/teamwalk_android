@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.util.AttributeSet
-import android.webkit.JsResult
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -16,21 +15,57 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleOwner
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
-import com.taiwanlife.teamwalk.EnvironmentManager
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
-import timber.log.Timber
-import androidx.core.net.toUri
+import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
+import timber.log.Timber
 import java.util.Locale
 
 class MyWebView : WebView {
+
+    companion object {
+        const val CALLBACK_DEVICE_INFO_RESOLVER = "WebAppBridge.receiveDeviceInfo"
+        const val CALLBACK_JWT_TOKEN_RESOLVER = "WebAppBridge.receiveLoginInfo"
+        const val CALLBACK_APP_VERSION_RESOLVER = "WebAppBridge.receiveAppVersion"
+        const val CALLBACK_GRAPHICAL_LOGIN_RESOLVER = "WebAppBridge.receiveGraphicalLoginResult"
+        const val CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER =
+            "WebAppBridge.receiveBindingGoogleHealthResult"
+        const val CALLBACK_BIND_GARMIN_HEALTH_RESOLVER = "WebAppBridge.receiveGarminHealthResult"
+        const val CALLBACK_BIND_FITBIT_HEALTH_RESOLVER = "WebAppBridge.receiveFitbitHealthResult"
+        const val CALLBACK_OPEN_NOTIFICATION_RESOLVER =
+            "WebAppBridge.receiveSetPushMessageStatusResult"
+        const val CALLBACK_SYNC_HEALTH_DATA_RESOLVER = "WebAppBridge.receiveSyncHealthDataResult"
+        const val CALLBACK_CASTGC_RESOLVER = "WebAppBridge.receiveCastgcInfo"
+
+
+        val LIST_OF_MAIN_PAGES = listOf(
+            getEnvironmentConfig().webUrlBase + "main",
+            getEnvironmentConfig().webUrlBase + "imei",
+            getEnvironmentConfig().webUrlBase + "bridge",
+        )
+    }
+//    companion object {
+//        const val CALLBACK_DEVICE_INFO_RESOLVER = "deviceInfoResolver"
+//        const val CALLBACK_JWT_TOKEN_RESOLVER = "jwtTokenResolver"
+//        const val CALLBACK_APP_VERSION_RESOLVER = "appVersionResolver"
+//        const val CALLBACK_GRAPHICAL_LOGIN_RESOLVER = "graphicalLoginResolver"
+//        const val CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER = "bindGoogleHealthConnectResolver"
+//        const val CALLBACK_BIND_APPLE_IOS_HEALTH_RESOLVER = "bindAppleiOSHealthResolver"
+//        const val CALLBACK_BIND_GARMIN_HEALTH_RESOLVER = "bindGarminHealthResolver"
+//        const val CALLBACK_BIND_FITBIT_HEALTH_RESOLVER = "bindFitbitHealthResolver"
+//        const val CALLBACK_OPEN_NOTIFICATION_RESOLVER = "openNotificationResolver"
+//        const val CALLBACK_SYNC_HEALTH_DATA_RESOLVER = "syncHealthDataResolver"
+//        const val CALLBACK_CASTGC_RESOLVER = "WebAppBridge.receiveCastgcInfo"
+//    }
+
+    private var finishCallback: () -> Unit = {}
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -62,11 +97,13 @@ class MyWebView : WebView {
         lifecycleOwner: LifecycleOwner,
         webviewLoadingCallback: WebviewLoadingCallback,
         asyncCallbacks: AsyncCallbacks,
+        finishCallback: () -> Unit,
         fileChooserCallback: (
             filePathCallback: ValueCallback<Array<Uri>>,
             fileChooserParams: WebChromeClient.FileChooserParams
         ) -> Unit
     ) {
+        this.finishCallback = finishCallback
         val webSettings: WebSettings = settings
         webSettings.setUserAgentString(webSettings.userAgentString + "/env=taiwanlife_teamwalk_app")
         webSettings.javaScriptEnabled = true
@@ -136,7 +173,7 @@ class MyWebView : WebView {
                 request: WebResourceRequest?,
                 error: WebResourceError?
             ) {
-                if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+                if (request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
                     return
                 }
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
@@ -145,8 +182,20 @@ class MyWebView : WebView {
                     val errorCode = error?.errorCode ?: -1
 
                     AlertDialog.Builder(context)
-                        .setTitle(String.format(Locale.getDefault(), context.getString(R.string.webview_error_title), errorCode.toString()))
-                        .setMessage(String.format(Locale.getDefault(), context.getString(R.string.webview_error_message), description))
+                        .setTitle(
+                            String.format(
+                                Locale.getDefault(),
+                                context.getString(R.string.webview_error_title),
+                                errorCode.toString()
+                            )
+                        )
+                        .setMessage(
+                            String.format(
+                                Locale.getDefault(),
+                                context.getString(R.string.webview_error_message),
+                                description
+                            )
+                        )
                         .setPositiveButton(R.string.confirm1) { dialog, _ ->
 
                         }
@@ -190,22 +239,29 @@ class MyWebView : WebView {
 //        val webAppInterface = WebAppInterface(this)
 //        addJavascriptInterface(webAppInterface, webAppInterface.appBridgeJsName)
 
-        addJavascriptInterface(
-            MyWebAppInterface(
-                context,
-                lifecycleOwner,
-                this,
-                asyncCallbacks
-            ), Config.JAVASCRIPT_BRIDGE_NAME
-        )
-//        val myWebMessageListener = MyWebMessageListener(context, lifecycleOwner, asyncCallbacks)
-//        myWebMessageListener.init(this)
+//        addJavascriptInterface(
+//            MyWebAppInterface(
+//                context,
+//                lifecycleOwner,
+//                this,
+//                asyncCallbacks
+//            ), Config.JAVASCRIPT_BRIDGE_NAME
+//        )
+        val myWebMessageListener = MyWebMessageListener(context, lifecycleOwner, asyncCallbacks)
+        myWebMessageListener.init(this)
 
 //        loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
     }
 
     fun backIfValid(): Boolean {
-        if (canGoBack() && url != EnvironmentManager.getEnvironmentConfig().webUrl) {
+        if (!url.isNullOrEmpty()) {
+            if (LIST_OF_MAIN_PAGES.any { mainUrl ->
+                    url!!.startsWith(mainUrl)
+                }) {
+                finishCallback()
+            }
+        }
+        if (canGoBack()) {
             goBack()
             return true
         }

@@ -6,6 +6,7 @@ data class EnvironmentConfig(
     val cssoSignUpUrl: String,
     val tcavUrl: String,
     val apiUrl: String,
+    val webUrlBase: String,
     val webUrl: String,
     val origin: String,
     val taiwanlifeMemberUrl: String,

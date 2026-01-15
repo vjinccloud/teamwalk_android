@@ -1,6 +1,5 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
-import android.R.attr.version
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -19,17 +18,21 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
+import com.taiwanlife.teamwalk.ui.common.model.CastGCModel
 import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_APP_VERSION_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_DEVICE_INFO_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_GRAPHICAL_LOGIN_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_JWT_TOKEN_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_OPEN_NOTIFICATION_RESOLVER
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.Companion.CALLBACK_SYNC_HEALTH_DATA_RESOLVER
+import com.taiwanlife.teamwalk.ui.common.model.SaveDataToFileModel
+import com.taiwanlife.teamwalk.ui.common.model.ShareContentModel
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_APP_VERSION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_CASTGC_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_DEVICE_INFO_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_GRAPHICAL_LOGIN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_JWT_TOKEN_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_OPEN_NOTIFICATION_RESOLVER
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_SYNC_HEALTH_DATA_RESOLVER
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
@@ -54,7 +57,7 @@ class MyWebMessageListener(
         context.getString(R.string.csso_url).toUri().toOrigin(),
     )
 
-//    private var pendingReplyProxy: JavaScriptReplyProxy? = null
+    //    private var pendingReplyProxy: JavaScriptReplyProxy? = null
     private lateinit var webView: WebView
 
     fun init(webView: WebView) {
@@ -192,6 +195,7 @@ class MyWebMessageListener(
                         currentWaitingCallbackName = CALLBACK_GRAPHICAL_LOGIN_RESOLVER
                         asyncCallbacks.setGraphicalLogin(command.status ?: "")
                     }
+
                     "bindingGoogleHealth" -> {
                         currentWaitingCallbackName = CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER
                         asyncCallbacks.bindingGoogleHealth(
@@ -228,6 +232,18 @@ class MyWebMessageListener(
             }
 
             "logout" -> asyncCallbacks.logout()
+
+            "getCastgc" -> {
+                val castGCModel = CastGCModel(
+                    castgc = SecuredPreferenceStoreManager.getString(Config.SP_CASTGC, "")
+                )
+//                replyProxy.postMessage(getGson().toJson(model))
+                currentWaitingCallbackName = CALLBACK_CASTGC_RESOLVER
+                sharedEventViewModel.postEvent(
+                    getGson().toJson(castGCModel).quoteJS(),
+                    EVENT_EXECUTE_JAVASCRIPT_CALLBACK
+                )
+            }
         }
     }
 

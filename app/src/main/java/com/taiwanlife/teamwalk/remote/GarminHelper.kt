@@ -36,7 +36,7 @@ object GarminHelper {
         var signatureBaseString = ""
         try {
             val signatureBase = URLEncoder.encode(
-                Config.GARMIN_BASE_URL + "request_token",
+                EnvironmentManager.getEnvironmentConfig().garminUrl + "request_token",
                 "utf-8"
             ) + "&" + URLEncoder.encode(signature, "utf-8")
             signatureBaseString = "POST&" + signatureBase
