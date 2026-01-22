@@ -23,6 +23,7 @@ import com.taiwanlife.teamwalk.ui.common.model.DeviceInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.LoginInfoModel
 import com.taiwanlife.teamwalk.ui.common.model.SaveDataToFileModel
 import com.taiwanlife.teamwalk.ui.common.model.ShareContentModel
+import com.taiwanlife.teamwalk.ui.common.model.WebCommand
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_APP_VERSION_RESOLVER
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_FITBIT_HEALTH_RESOLVER
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_BIND_GARMIN_HEALTH_RESOLVER
@@ -255,6 +256,4 @@ class MyWebMessageListener(
         }
         context.startActivity(Intent.createChooser(intent, ""))
     }
-
-    data class WebCommand(val action: String, val status: String?, val url: String?)
 }

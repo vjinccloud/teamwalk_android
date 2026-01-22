@@ -1,6 +1,8 @@
 package com.taiwanlife.teamwalk.remote
 
 import com.taiwanlife.teamwalk.BuildConfig
+import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.remote.response.fitbit.FitbitGetTokenResponse
 import com.taiwanlife.teamwalk.remote.service.FitBitService
 import retrofit2.Response
@@ -13,8 +15,8 @@ class FitbitRepository(
         return "authorization_code"
     }
 
-    fun getRedirectUrl(): String {
-        return "teamwalk${BuildConfig.BUILD_TYPE}://webconnect?device=fitbit"
+    fun getRedirectUrl(redirectScheme: String): String {
+        return "${redirectScheme}://webconnect?device=fitbit"
     }
 
     suspend fun getToken(

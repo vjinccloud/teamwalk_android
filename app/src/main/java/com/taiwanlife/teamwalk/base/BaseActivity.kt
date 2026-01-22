@@ -1,9 +1,15 @@
 package com.taiwanlife.teamwalk.base
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
+import android.webkit.CookieManager
+import android.webkit.WebStorage
+import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.ColorRes
@@ -28,6 +34,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import java.io.File
 
 abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInflater) -> VB) :
     AppCompatActivity() {
@@ -76,6 +83,13 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityBaseBinding = ActivityBaseBinding.inflate(layoutInflater)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+            )
+            activityBaseBinding.root.filterTouchesWhenObscured = true
+        }
         setContentView(activityBaseBinding.root)
         viewBinding = inflateVB.invoke(layoutInflater)
         activityBaseBinding.baseContainer.addView(viewBinding.root)
@@ -195,6 +209,46 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 
         val luminance = (0.299 * red + 0.587 * green + 0.114 * blue)
         return luminance > 128
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (ev.flags and MotionEvent.FLAG_WINDOW_IS_OBSCURED != 0) {
+                return true
+            }
+
+            if (ev.flags and MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED != 0) {
+                return true
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    /**
+     * 刪除敏感資料 所有Cookie和Webview存入之敏感資料、表單和歷史紀錄
+     */
+    fun clearSensitiveData(webView: WebView) {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+
+        WebStorage.getInstance().deleteAllData()
+
+        try {
+            webView.clearCache(true)
+            webView.clearHistory()
+            webView.clearFormData()
+            webView.destroy()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        cacheDir.deleteRecursively()
+
+        val webViewDir = File(dataDir, "app_webview")
+        if (webViewDir.exists()) {
+            webViewDir.deleteRecursively()
+        }
     }
 
     fun <T> observeOnLifeCycle(

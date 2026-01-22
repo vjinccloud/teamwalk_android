@@ -282,7 +282,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //                    this.debugToast("沒有取得CookieString")
                 }
 
-            loginViewModel.login(pid, ticket, Utils.getDeviceId(this))
+            loginViewModel.login(getString(R.string.redirect_scheme), pid, ticket, Utils.getDeviceId(this))
         }
     }
 
@@ -617,7 +617,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     private fun getPWTicketFromWebview(loginURL: String) {
         val loginParams =
             "SYS_ID=teamwalk&appl_id=$pid&appl_pwd=" + viewBinding.loginEditTextPassword.text
-                .toString() + "&" + "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
+                .toString() + "&" + "service=${getString(R.string.redirect_scheme)}://loginsuccess"
 
         viewBinding.webview.postUrl(loginURL, loginParams.toByteArray())
     }
@@ -631,7 +631,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             viewBinding.loginPatternLockView, pattern.toMutableList(), fid
         )
         val loginParams =
-            "SYS_ID=teamwalk&userId=$pid&pattern_path=" + patternPath + "&" + "service=teamwalk" + BuildConfig.BUILD_TYPE + "://loginsuccess"
+            "SYS_ID=teamwalk&userId=$pid&pattern_path=" + patternPath + "&" + "service=${getString(R.string.redirect_scheme)}://loginsuccess"
 
         viewBinding.webview.postUrl(loginURL, loginParams.toByteArray())
     }

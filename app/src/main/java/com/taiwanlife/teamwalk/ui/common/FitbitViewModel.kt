@@ -18,17 +18,18 @@ import kotlinx.coroutines.flow.asSharedFlow
 class FitbitViewModel(repository: Repository) : BaseViewModel(repository) {
     val getTokenFlow = RawFlow<FitbitGetTokenResponse>(this)
 
-    fun getUrlIntent(): Intent {
+    fun getUrlIntent(redirectScheme: String): Intent {
         val url = "https://www.fitbit.com/oauth2/authorize?" +
                 "client_id=" + EnvironmentManager.getEnvironmentConfig().connectFitbitClientId + "&" +
                 "response_type=code" + "&" +
                 "scope=" + "activity%20sleep" + "&" +
-                "expires_in=31536000&prompt=login%20consent&redirect_uri=teamwalk" + BuildConfig.BUILD_TYPE + "://webconnect?device=fitbit"
+                "expires_in=31536000&prompt=login%20consent&redirect_uri=${redirectScheme}://webconnect?device=fitbit"
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_BIND_FITBIT, getGson().toJson(FitbitData()))
         return Intent(Intent.ACTION_VIEW, url.toUri())
     }
 
     fun getFitbitToken(
+        redirectScheme: String,
         authorization: String,
         code: String
     ) {
@@ -38,7 +39,7 @@ class FitbitViewModel(repository: Repository) : BaseViewModel(repository) {
                 code,
                 repository.fitbit.getGrantType(),
                 EnvironmentManager.getEnvironmentConfig().connectGoogleClientId,
-                repository.fitbit.getRedirectUrl()
+                repository.fitbit.getRedirectUrl(redirectScheme)
             )
         }
     }

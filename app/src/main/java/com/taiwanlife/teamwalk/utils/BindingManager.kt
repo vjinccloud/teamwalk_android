@@ -22,6 +22,7 @@ import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.util.UUID
 
 enum class DeviceType(val value: String, val displayName: String) {
     HEALTH_CONNECT("GOOGLE", "Health Connect"),
@@ -68,7 +69,7 @@ class BindingManager(
             // 處理成功結果
             val responseString = response.string()
             if (!TextUtils.isEmpty(responseString)) {
-                GarminHelper.parseGetAuthCodeString(responseString, getTsGarminCallback = {
+                GarminHelper.parseGetAuthCodeString(baseActivity.getString(R.string.redirect_scheme), responseString, getTsGarminCallback = {
                     val garminData = GarminData(tsGarmin = it)
                     SecuredPreferenceStoreManager.simpleEditAndApply(
                         Config.SP_BIND_GARMIN,
@@ -224,12 +225,28 @@ class BindingManager(
     }
 
     private fun startGarminProcess() {
-        val authorization = GarminHelper.getGarminAuthorizationForAuthCode()
-        garminViewModel.getGarminAuthCode(authorization)
+//        val authorization = GarminHelper.getGarminAuthorizationForAuthCode()
+//        garminViewModel.getGarminAuthCode(authorization)
+
+        val verifier = GarminHelper.generateCodeVerifier()
+        val challenge = GarminHelper.generateCodeChallenge(verifier)
+        val state = UUID.randomUUID().toString()
+
+        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_GARMIN_VERIFIER, verifier)
+        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_GARMIN_STATE, state)
+
+        val url = GarminHelper.buildGarminAuthUrl(
+            "${baseActivity.getString(R.string.redirect_scheme)}://webconnectgarmin",
+            state,
+            challenge
+        )
+
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+        baseActivity.startActivity(intent)
     }
 
     private fun startFitbitProcess() {
-        baseActivity.startActivity(fitbitViewModel.getUrlIntent())
+        baseActivity.startActivity(fitbitViewModel.getUrlIntent(baseActivity.getString(R.string.redirect_scheme)))
     }
 
     private fun onReceivedEvent(eventName: String?, result: String) {

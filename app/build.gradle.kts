@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.13"
+        versionName = "3.0.15"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,7 +33,6 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
 
             signingConfig = signingConfigs.getByName("debug")
 
@@ -54,8 +53,13 @@ android {
             resValue("string", "connect_google_client_id", "773524163063-6je6tkpag1qgcapsn7kuv6s0h85tkct4.apps.googleusercontent.com")
             resValue("string", "connect_fitbit_client_id", "22BZQG")
             resValue("string", "connect_fitbit_client_s", "565d1f1a0822d1fbf50cedae0041d3ee")
-            resValue("string", "connect_garmin_consumer_key", "fee4d993-db0d-4e55-855f-b7ed099ce358")
-            resValue("string", "connect_garmin_consumer_s", "4b3u2KpOwZdjymZSW9IqbfKXZ4g9MS4tmQb")
+//            resValue("string", "connect_garmin_consumer_key", "fee4d993-db0d-4e55-855f-b7ed099ce358")
+            // 測試中
+            resValue("string", "connect_garmin_consumer_key", "0fe5a7c0-bc5b-41f5-aa05-97978415d272")
+//            resValue("string", "connect_garmin_consumer_s", "4b3u2KpOwZdjymZSW9IqbfKXZ4g9MS4tmQb")
+            // 測試中
+            resValue("string", "connect_garmin_consumer_s", "nsQkfD0nwCq2SHAwiIlhQatmAqYtWV/bRjQewaPZ+vM")
+            resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
 
@@ -68,7 +72,6 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             applicationIdSuffix = ".sit"
-            versionNameSuffix = "-SIT"
 
             signingConfig = signingConfigs.getByName("debug")
 
@@ -91,6 +94,7 @@ android {
             resValue("string", "connect_fitbit_client_s", "c586771e4f9a4ae17ec0b1de15f38ef6")
             resValue("string", "connect_garmin_consumer_key", "0b3e7e2c-328a-4bc6-b713-1dd7774ff3d8")
             resValue("string", "connect_garmin_consumer_s", "l9FrmPYVSNgqTT5SOwPfOuT172Vrtmi2tV0")
+            resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
 
@@ -103,7 +107,6 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             applicationIdSuffix = ".uat"
-            versionNameSuffix = "-UAT"
 
             signingConfig = signingConfigs.getByName("debug")
 
@@ -126,6 +129,7 @@ android {
             resValue("string", "connect_fitbit_client_s", "c586771e4f9a4ae17ec0b1de15f38ef6")
             resValue("string", "connect_garmin_consumer_key", "0b3e7e2c-328a-4bc6-b713-1dd7774ff3d8")
             resValue("string", "connect_garmin_consumer_s", "l9FrmPYVSNgqTT5SOwPfOuT172Vrtmi2tV0")
+            resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
 
@@ -160,6 +164,7 @@ android {
             resValue("string", "connect_fitbit_client_s", "00403c68f5025d238d022963dfab43dd")
             resValue("string", "connect_garmin_consumer_key", "4a08c804-fbd9-41f7-87f7-b7bcd44d430a")
             resValue("string", "connect_garmin_consumer_s", "DJ1wEi3uNk0rbBDdalerp6ZYqmFJ2D4kf4t")
+            resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
 

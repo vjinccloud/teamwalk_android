@@ -113,7 +113,7 @@ class ConnectFitbitSuccessActivity() : BaseActivity<ActivityConnectSuccessBindin
             )
         }"
         if (!TextUtils.isEmpty(code)) {
-            fitbitViewModel.getFitbitToken(authorizationValue, code!!)
+            fitbitViewModel.getFitbitToken(getString(R.string.redirect_scheme), authorizationValue, code!!)
         }
     }
 

@@ -31,6 +31,7 @@ object EnvironmentManager {
         connectFitbitClientSecret = MyApplication.context.getString(R.string.connect_fitbit_client_s),
         connectGarminConsumerKey = MyApplication.context.getString(R.string.connect_garmin_consumer_key),
         connectGarminConsumerSecret = MyApplication.context.getString(R.string.connect_garmin_consumer_s),
+        connectGarminPortal = MyApplication.context.getString(R.string.connect_garmin_portal),
         garminUrl = MyApplication.context.getString(R.string.garmin_url),
         googleFitbitUrl = MyApplication.context.getString(R.string.fitbit_url)
     )

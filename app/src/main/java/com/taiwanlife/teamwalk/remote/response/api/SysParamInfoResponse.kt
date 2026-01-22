@@ -7,12 +7,12 @@ data class SysParamInfoResponse(
      * android強制更版(Y:是/N:否)
      */
     @SerializedName("android_is_forced")
-    val androidIsForced: String?,
+    var androidIsForced: String?,
     /**
      * Android版本
      */
     @SerializedName("force_update_ver_android")
-    val forceUpdateVerAndroid: String?,
+    var forceUpdateVerAndroid: String?,
     /**
      * ios強制更版(Y:是/N:否)
      */

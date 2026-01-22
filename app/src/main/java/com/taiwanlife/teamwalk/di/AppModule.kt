@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.di
 
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.remote.ApiRepository
 import com.taiwanlife.teamwalk.remote.CssoRepository
@@ -12,14 +13,14 @@ import com.taiwanlife.teamwalk.remote.service.APIService
 import com.taiwanlife.teamwalk.remote.service.CssoService
 import com.taiwanlife.teamwalk.remote.service.FitBitService
 import com.taiwanlife.teamwalk.remote.service.GarminService
-import com.taiwanlife.teamwalk.ui.test.TestViewModel
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
+import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.login.LoginViewModel
 import com.taiwanlife.teamwalk.ui.main.MainViewModel
-import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.onboarding.OnBoardingViewModel
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupViewModel
+import com.taiwanlife.teamwalk.ui.test.TestViewModel
 import com.taiwanlife.teamwalk.utils.getGson
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -36,15 +37,23 @@ val appModule = module {
 
     single<OkHttpClient> {
         val logger = HttpLoggingInterceptor()
-        logger.level = HttpLoggingInterceptor.Level.BODY
+        logger.level = if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor.Level.BODY
+        } else {
+            HttpLoggingInterceptor.Level.NONE
+        }
 
         val tokenInterceptor = TokenInterceptor()
 
-        OkHttpClient.Builder()
+        val clientBuilder = OkHttpClient.Builder()
             .addInterceptor(logger)
             .addInterceptor(tokenInterceptor)
-            .addInterceptor(ApiLoggingInterceptor())
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            clientBuilder.addInterceptor(ApiLoggingInterceptor())
+        }
+
+        clientBuilder.build()
     }
 
     // 建立屬於API的Retrofit

@@ -231,6 +231,7 @@
                                 android:hint="@string/login_password_captcha"
                                 android:imeOptions="actionDone"
                                 android:inputType="text|textCapCharacters"
+                                android:maxLength="4"
                                 android:singleLine="true" />
 
 

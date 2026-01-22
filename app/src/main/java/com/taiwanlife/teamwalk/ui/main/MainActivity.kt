@@ -122,6 +122,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private var isKnowsCovered = false
 
     private var clearCache: Boolean? = null
+    // 增加一個Flag 初次更新的securityCheck等到檢查版本這隻API走完再做
+    private var isCheckVersionDone = false
 
     // 提供登入的LoginActivity之資料回傳
     private val loginLauncher =
@@ -312,8 +314,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             mainViewModel.getLanding()
         }
 
-        // TODO: 先拿掉版更方便測試
-//        mainViewModel.getSysParam()
+        mainViewModel.getSysParam()
     }
 
 
@@ -526,7 +527,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
         }
 
-        observeOnLifeCycle(mainViewModel.systemParamFlow) { systemParamResponse ->
+        observeOnLifeCycle(mainViewModel.systemParamFlow, onError = {
+            isCheckVersionDone = true
+            securityCheck()
+        }) { systemParamResponse ->
             systemParamResponse.forceUpdateVerAndroid?.let { ver ->
                 if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
                     // 需要版本更新
@@ -535,14 +539,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             // 強制版本更新
                             CommonDialog(this).apply {
                                 oneButtonInit(
-                                    "", getString(R.string.main_force_update), R.drawable.alert_1,
+                                    getString(R.string.main_update_title), getString(R.string.main_force_update), R.drawable.alert_1,
                                     showButtons = true,
                                     canceledOnTouchOutside = false,
-                                    text = getString(R.string.ok),
+                                    text = getString(R.string.main_force_update_confirm),
                                     onClick = {
+                                        isCheckVersionDone = true
                                         clearLoginData()
                                         openPlayStoreAndExit()
-
                                     }
                                 )
                             }.show()
@@ -550,22 +554,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             // 非強制版本更新
                             CommonDialog(this).apply {
                                 twoButtonInit(
-                                    "", getString(R.string.main_force_update), R.drawable.alert_1,
+                                    "", getString(R.string.main_recommend_update), R.drawable.alert_1,
                                     showButtons = true,
                                     canceledOnTouchOutside = false,
-                                    positiveText = getString(R.string.ok),
+                                    positiveText = getString(R.string.main_force_update_confirm),
                                     positiveOnClick = {
                                         clearLoginData()
                                         openPlayStoreAndExit()
                                     },
-                                    negativeText = getString(R.string.cancel),
+                                    negativeText = getString(R.string.close),
                                     negativeOnClick = {
-
+                                        isCheckVersionDone = true
+                                        securityCheck()
                                     }
                                 )
                             }.show()
                         }
                     }
+                } else {
+                    isCheckVersionDone = true
+                    securityCheck()
                 }
             }
         }
@@ -864,7 +872,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private fun clearSensitiveData(isDestroy: Boolean) {
         if (isDestroy) {
             viewBinding.webView.loadUrl("about:blank")
-            SensitiveDataUtil.clearWebViewSensitiveData(this, viewBinding.webView, isDestroy)
+            clearSensitiveData(viewBinding.webView)
+//            SensitiveDataUtil.clearWebViewSensitiveData(this, viewBinding.webView, isDestroy)
         }
     }
 
@@ -905,7 +914,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun onResume() {
         super.onResume()
 
-        securityCheck()
+        if(isCheckVersionDone) {
+            securityCheck()
+        }
 
         viewBinding.webView.post {
             viewBinding.webView.evaluateJavascript(

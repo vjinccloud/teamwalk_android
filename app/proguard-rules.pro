@@ -23,8 +23,8 @@
 
 -keep class com.taiwanlife.teamwalk.remote.** { *; }
 -keep class com.taiwanlife.teamwalk.ui.common.model.** { *; }
--keep class com.taiwanlife.teamwalk.remote.** { <init>(...); }
--keep class com.taiwanlife.teamwalk.ui.common.model.** { <init>(...); }
+-keep class com.taiwanlife.teamwalk.remote.** { *; }
+-keep class com.taiwanlife.teamwalk.ui.common.model.** { *; }
 
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
 # EnclosingMethod is required to use InnerClasses.

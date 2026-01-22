@@ -9,6 +9,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
 import androidx.core.graphics.set
 import androidx.core.graphics.withRotation
+import com.google.gson.annotations.SerializedName
 import java.security.SecureRandom
 import kotlin.math.PI
 import kotlin.math.cos
@@ -16,7 +17,9 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 data class CaptchaResult(
+    @SerializedName("code")
     val code: String,
+    @SerializedName("bitmap")
     val bitmap: Bitmap
 )
 
