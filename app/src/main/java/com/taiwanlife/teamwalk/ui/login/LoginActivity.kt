@@ -242,7 +242,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 error: WebResourceError?
             ) {
                 viewBinding.loginPatternLockView.clearPattern()
-                if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+                if (request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
                     return
                 }
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
@@ -251,8 +251,20 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     val errorCode = error?.errorCode ?: -1
 
                     AlertDialog.Builder(this@LoginActivity)
-                        .setTitle(String.format(Locale.getDefault(), getString(R.string.webview_error_title), errorCode.toString()))
-                        .setMessage(String.format(Locale.getDefault(), getString(R.string.webview_error_message), description))
+                        .setTitle(
+                            String.format(
+                                Locale.getDefault(),
+                                getString(R.string.webview_error_title),
+                                errorCode.toString()
+                            )
+                        )
+                        .setMessage(
+                            String.format(
+                                Locale.getDefault(),
+                                getString(R.string.webview_error_message),
+                                description
+                            )
+                        )
                         .setPositiveButton(R.string.confirm1) { dialog, _ ->
 
                         }
@@ -270,19 +282,24 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //            this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
             val cookieString = CookieManager.getInstance()
                 .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
-                if(cookieString != null) {
-//                    this.debugToast("嘗試找CASTGC - $cookieString")
-                    val castGC = extractCastgcValueSplit(cookieString)
-                    if(!castGC.isNullOrEmpty()) {
-                        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
-                    } else {
-//                        this.debugToast("找不到CASTGC")
-                    }
+            if (cookieString != null) {
+//                this.debugToast("嘗試找CASTGC - $cookieString")
+                val castGC = extractCastgcValueSplit(cookieString)
+                if (!castGC.isNullOrEmpty()) {
+                    SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
                 } else {
-//                    this.debugToast("沒有取得CookieString")
+//                    this.debugToast("找不到CASTGC")
                 }
+            } else {
+//                this.debugToast("沒有取得CookieString")
+            }
 
-            loginViewModel.login(getString(R.string.redirect_scheme), pid, ticket, Utils.getDeviceId(this))
+            loginViewModel.login(
+                getString(R.string.redirect_scheme),
+                pid,
+                ticket,
+                Utils.getDeviceId(this)
+            )
         }
     }
 
@@ -343,7 +360,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         viewBinding.loginPatternLockView.isInputEnabled = isRememberMe && pid.length == 10
 
         viewBinding.loginPatternToggleStealthModeButton.setOnClickListener {
-            viewBinding.loginPatternLockView.isInStealthMode = !viewBinding.loginPatternLockView.isInStealthMode
+            viewBinding.loginPatternLockView.isInStealthMode =
+                !viewBinding.loginPatternLockView.isInStealthMode
             if (!viewBinding.loginPatternLockView.isInStealthMode) {
                 viewBinding.loginPatternToggleStealthModeButton.setCompoundDrawablesWithIntrinsicBounds(
                     0, 0, R.drawable.visibility, 0

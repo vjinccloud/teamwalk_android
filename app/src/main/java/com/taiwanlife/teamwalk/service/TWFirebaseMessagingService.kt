@@ -10,9 +10,11 @@ import com.google.firebase.messaging.RemoteMessage
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.ui.main.MainActivity
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
+import timber.log.Timber
 
-class TWFirebaseMessagingService: FirebaseMessagingService() {
-    companion object{
+class TWFirebaseMessagingService : FirebaseMessagingService() {
+    companion object {
         const val KEY_URL = "url"
     }
 
@@ -65,5 +67,14 @@ class TWFirebaseMessagingService: FirebaseMessagingService() {
                 e.printStackTrace()
             }
         }
+    }
+
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+
+        SecuredPreferenceStoreManager.simpleEditAndApply(
+            Config.SP_FCM_IDENTIFIER,
+            token
+        )
     }
 }
