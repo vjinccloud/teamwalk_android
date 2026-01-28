@@ -15,6 +15,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.PatternLockView.Dot
+import com.taiwanlife.teamwalk.Config
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -372,5 +373,13 @@ object Utils {
             e.printStackTrace()
         }
         return null
+    }
+
+    fun stringToNotificationType(value: String?): Config.NotificationType {
+        return when (value) {
+            Config.NotificationType.URL.v -> Config.NotificationType.URL
+            Config.NotificationType.APP_PAGE.v -> Config.NotificationType.APP_PAGE
+            else -> Config.NotificationType.NONE
+        }
     }
 }

@@ -20,7 +20,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
@@ -30,14 +29,14 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
-import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TYPE
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_URL
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
 import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
-import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
@@ -55,8 +54,6 @@ import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_FAILURE
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_SUCCESS
-import com.taiwanlife.teamwalk.ui.main.HostTypes.ONBOARDING
-import com.taiwanlife.teamwalk.ui.main.HostTypes.USER_INFO
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView
 import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
@@ -76,14 +73,13 @@ import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.Utils.stringToNotificationType
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
 import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import kotlin.random.Random
@@ -122,6 +118,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private var isKnowsCovered = false
 
     private var clearCache: Boolean? = null
+
     // 增加一個Flag 初次更新的securityCheck等到檢查版本這隻API走完再做
     private var isCheckVersionDone = false
 
@@ -199,8 +196,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         view: View,
         savedInstanceState: Bundle?
     ) {
-        handleIntent(intent)
-
         // 設置安全Utils
         DeviceUtil.setFlagSecure(this)
 
@@ -244,7 +239,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     } else {
                         Timber.d("Fetching FCM registration token failed")
                         Timber.d(task.exception?.message)
-                        val oldFCMToken = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
+                        val oldFCMToken =
+                            SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
                         if (oldFCMToken.isNotEmpty()) {
                             debugToast("取得新的FCMToken失敗, 但有舊的")
                         } else {
@@ -326,16 +322,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS)
             )
             if (perm) {
-                myNotificationManager.addNotification("測試id :$random", random)
+                myNotificationManager.testFcmNotification()
+//                myNotificationManager.addNotification("測試id :$random", random)
             } else {
                 permissionManager.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { granted, denied ->
                     if (granted) {
-                        myNotificationManager.addNotification("測試id :$random", random)
+                        myNotificationManager.testFcmNotification()
+//                        myNotificationManager.addNotification("測試id :$random", random)
                     }
                 }
             }
         } else {
-            myNotificationManager.addNotification("測試id :$random", random)
+            myNotificationManager.testFcmNotification()
+//            myNotificationManager.addNotification("測試id :$random", random)
         }
     }
 
@@ -380,17 +379,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             patternIntent.putExtra(PatternSetupActivity.KEY_ATTEMPT_ENABLE, "Y")
             patternLauncher.launch(patternIntent)
         }
-        viewBinding.dummyData.setOnClickListener {
-            if (healthConnectViewModel == null) {
-                toast(R.string.main_health_connect_not_available)
-                return@setOnClickListener
-            }
-            healthConnectViewModel?.let { healthConnectViewModel ->
-                healthConnectViewModel.writeAndCleanDummyHealthData {
-                    debugToast("假資料插入完成")
-                }
-            }
-        }
+//        viewBinding.dummyData.setOnClickListener {
+//            if (healthConnectViewModel == null) {
+//                toast(R.string.main_health_connect_not_available)
+//                return@setOnClickListener
+//            }
+//            healthConnectViewModel?.let { healthConnectViewModel ->
+//                healthConnectViewModel.writeAndCleanDummyHealthData {
+//                    debugToast("假資料插入完成")
+//                }
+//            }
+//        }
         viewBinding.deleteData.setOnClickListener {
             if (healthConnectViewModel == null) {
                 toast(R.string.main_health_connect_not_available)
@@ -417,69 +416,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val isCurrentlyHome =
-                    viewBinding.webView.url?.startsWith(getEnvironmentConfig().webUrl)
-                if (isCurrentlyHome != null && isCurrentlyHome) finish()
-
                 if (!viewBinding.webView.backIfValid()) {
                     finish()
                 }
             }
         })
-    }
-
-    private fun checkPermissions() {
-        val permissionList = mutableListOf(
-            Manifest.permission.CAMERA,
-//            Manifest.permission.INTERNET,
-//            Manifest.permission.ACCESS_NETWORK_STATE,
-            // 上面兩個不需要運行時請求
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissionList.add(Manifest.permission.ACTIVITY_RECOGNITION)
-        }
-
-        val requestPermissionFunction = {
-            permissionManager.requestPermissions(permissionList.toTypedArray()) { granted, denied ->
-                if (granted) {
-                    Timber.d("所有權限都已獲得")
-                } else {
-                    denied.forEach {
-                        val deniedText = permissionManager.getPermissionDeniedText(it, this)
-                        if (!deniedText.isNullOrEmpty()) {
-                            toast(deniedText)
-                        }
-                    }
-                }
-            }
-        }
-        if (!permissionManager.hasPermissions(this, permissionList.toTypedArray())) {
-            val atLeastOneRationale =
-                permissionManager.shouldShowRationale(permissionList.toTypedArray()) { permission ->
-                    val rationale = permissionManager.getPermissionRationaleText(permission, this)
-                    if (!rationale.isNullOrEmpty()) {
-                        toast(rationale)
-                    }
-                }
-            if (atLeastOneRationale) {
-                getAlertDialog(
-                    this,
-                    getString(R.string.main_permission_rationale),
-                    false,
-                    true,
-                    getString(R.string.confirm1),
-                    {
-                        requestPermissionFunction()
-                    })
-            } else {
-                requestPermissionFunction()
-            }
-        }
     }
 
     private fun observeApiResultSetUp() {
@@ -523,8 +464,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 // 應該不需要呼叫了?
 //                mainViewModel.getUserInfo()
             }
+            if (!landingResponse.accessToken.isNullOrEmpty() && !landingResponse.refreshToken.isNullOrEmpty() && !landingResponse.jti.isNullOrEmpty()) {
+                val garminData = GarminData(
+                    "",
+                    "",
+                    "",
+                    landingResponse.accessToken,
+                    landingResponse.refreshToken,
+                    landingResponse.jti
+                )
 
-            viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+                SecuredPreferenceStoreManager.simpleEditAndApply(
+                    Config.SP_BIND_GARMIN,
+                    getGson().toJson(garminData)
+                )
+            }
+
+            viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl)
+
+            handleRedirectIntent(intent)
         }
 
         observeOnLifeCycle(mainViewModel.systemParamFlow, onError = {
@@ -539,7 +497,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             // 強制版本更新
                             CommonDialog(this).apply {
                                 oneButtonInit(
-                                    getString(R.string.main_update_title), getString(R.string.main_force_update), R.drawable.alert_1,
+                                    getString(R.string.main_update_title),
+                                    getString(R.string.main_force_update),
+                                    R.drawable.alert_1,
                                     showButtons = true,
                                     canceledOnTouchOutside = false,
                                     text = getString(R.string.main_force_update_confirm),
@@ -554,7 +514,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             // 非強制版本更新
                             CommonDialog(this).apply {
                                 twoButtonInit(
-                                    "", getString(R.string.main_recommend_update), R.drawable.alert_1,
+                                    "",
+                                    getString(R.string.main_recommend_update),
+                                    R.drawable.alert_1,
                                     showButtons = true,
                                     canceledOnTouchOutside = false,
                                     positiveText = getString(R.string.main_force_update_confirm),
@@ -588,9 +550,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleIntent(intent)
-
         setIntent(intent)
+
+        if (isLogin()) {
+            handleRedirectIntent(intent)
+        }
+
 
         val uri = intent.data
         if (uri == null) return
@@ -614,22 +579,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             LOGIN_FAILURE -> {
                 loginFailure()
-            }
-
-            USER_INFO -> {
-                // 新版會透過API取得使用者資料 照理來說不會靠url
-//                val pwPageFlag =
-//                    SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
-//                if (pwPageFlag) {
-//                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
-//                } else {
-//                    viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
-//                }
-            }
-
-            ONBOARDING -> {
-                // 新版不會透過webview走到Onboard 如果真的走到了 取得使用者資訊 看是不是真的有需要走初次流程
-                mainViewModel.getLanding()
             }
         }
     }
@@ -665,22 +614,63 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun sameDeviceCallback(deviceType: DeviceType) {
-//        toast(
-//            String.format(
-//                Locale.getDefault(),
-//                getString(R.string.main_binding_same_device),
-//                deviceType.displayName
-//            )
-//        )
+//        if (deviceType == HEALTH_CONNECT) {
+//            lifecycleScope.launch(Dispatchers.Main.immediate) {
+//                viewBinding.dummyData.visibility = View.VISIBLE
+//            }
+//        }
 
-        if (deviceType == HEALTH_CONNECT) {
-            lifecycleScope.launch(Dispatchers.Main.immediate) {
-                viewBinding.dummyData.visibility = View.VISIBLE
+        // 如果是相同的裝置 取我們的資料並回傳給web 如果取不到資料強制重開綁定流程
+        when (deviceType) {
+            HEALTH_CONNECT -> {
+//                lifecycleScope.launch(Dispatchers.Main.immediate) {
+//                    viewBinding.dummyData.visibility = View.VISIBLE
+//                }
+                // 如果有需要透過JS回傳綁定結果
+                postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
             }
-        }
 
-        // 如果有需要透過JS回傳綁定結果
-        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
+            GARMIN -> {
+                val garminDataString =
+                    SecuredPreferenceStoreManager.getString(Config.SP_BIND_GARMIN, "")
+                if (garminDataString.isNotEmpty()) {
+                    val garminData = getGson().fromJson(garminDataString, GarminData::class.java)
+                    if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
+                        // 如果有需要透過JS回傳綁定結果
+                        val garminModel =
+                            GarminModel(
+                                garminData.oauthToken,
+                                garminData.oauthTokenSecret,
+                                garminData.accessToken,
+                                garminData.refreshToken,
+                                garminData.jti
+                            )
+                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(garminModel))
+                    }
+                } else {
+                    bindingManager.bindNewDevice(GARMIN, true)
+                }
+            }
+
+            FITBIT -> {
+                val fitbitDataString =
+                    SecuredPreferenceStoreManager.getString(Config.SP_BIND_FITBIT, "")
+                if (fitbitDataString.isNotEmpty()) {
+                    val fitbitData = getGson().fromJson(fitbitDataString, FitbitData::class.java)
+
+                    if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
+                        // 如果有需要透過JS回傳綁定結果
+                        val fitbitModel =
+                            FitbitModel(fitbitData.accessToken, fitbitData.refreshToken)
+                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(fitbitModel))
+                    }
+                } else {
+                    bindingManager.bindNewDevice(FITBIT, true)
+                }
+            }
+
+            NONE -> {}
+        }
 
         if (deviceType != NONE) {
             CommonDialog(this).apply {
@@ -703,14 +693,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
-        lifecycleScope.launch(Dispatchers.Main.immediate) {
-            viewBinding.dummyData.visibility = View.GONE
-        }
+//        lifecycleScope.launch(Dispatchers.Main.immediate) {
+//            viewBinding.dummyData.visibility = View.GONE
+//        }
         when (deviceType) {
             HEALTH_CONNECT -> {
-                lifecycleScope.launch(Dispatchers.Main.immediate) {
-                    viewBinding.dummyData.visibility = View.VISIBLE
-                }
+//                lifecycleScope.launch(Dispatchers.Main.immediate) {
+//                    viewBinding.dummyData.visibility = View.VISIBLE
+//                }
                 // 如果有需要透過JS回傳綁定結果
                 postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
             }
@@ -718,10 +708,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             GARMIN -> {
                 val garminData = getGson().fromJson(data, GarminData::class.java)
 
-                if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
+//                if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
+                if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
                     // 如果有需要透過JS回傳綁定結果
                     val garminModel =
-                        GarminModel(garminData.oauthToken, garminData.oauthTokenSecret)
+                        GarminModel(
+                            garminData.oauthToken,
+                            garminData.oauthTokenSecret,
+                            garminData.accessToken,
+                            garminData.refreshToken,
+                            garminData.jti
+                        )
                     postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(garminModel))
                 }
             }
@@ -758,36 +755,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             toast(R.string.onboard_connect_fail)
             Timber.d("Fail to connect google fit, no auth code")
         } else {
-            viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "health/connect?device=google&a=" + googleAuthCode)
+            viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl + "health/connect?device=google&a=" + googleAuthCode)
             toast(R.string.onboard_connect_success)
         }
     }
-
-//    private fun loginSuccess(uri: Uri) {
-//        Timber.d("CSSO Login Success: ${Utils.formatDate()}")
-//        val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET)
-//
-//        if (TextUtils.isEmpty(ticket)) {
-//            Toast.makeText(this, getString(R.string.login_no_ticket), Toast.LENGTH_SHORT).show()
-//            toLogin()
-//        } else {
-//            val pid = intent.getStringExtra(KEY_PID)
-//            SecuredPreferenceStoreManager.editAndApply { prefEditor ->
-//                prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, true)
-//                if (!TextUtils.isEmpty(pid)) {
-//                    prefEditor.putString(Config.PREF_LOGIN_USERNAME, pid)
-//                }
-//                prefEditor.putString(Config.PREF_LOGIN_TICKET, ticket)
-//            }
-//            val pwPageFlag = SecuredPreferenceStoreManager.getBoolean(Config.PW_PAGE_FLAG, false)
-//
-//            if (pwPageFlag) {
-//                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().tcavUrl + "other/user/teamwalk")
-//            } else {
-//                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
-//            }
-//        }
-//    }
 
     private fun loginFailure() {
         Timber.d("Login Failed - ${Utils.formatDate()}")
@@ -821,44 +792,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun doBusiness() {
         // 這邊檢查是否登入
-        val isLogin = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_AUTH, false)
-        if (!isLogin) {
+        if (!isLogin()) {
             toLogin()
             viewBinding.logout.text = getString(R.string.main_not_logged_in)
         } else {
             viewBinding.logout.text = getString(R.string.main_simulate_logout)
 
-//            // 舊有邏輯
-//            val uri = intent.data
-//            if (uri != null) {
-//                intent.data = null
-//            } else {
-//                val url = viewBinding.webView.url
-//                if (url != null) {
-//                    if (url.endsWith(URL_END_LOGOUT)) {
-//                        toLogin()
-//                    }
-//                    if (url.endsWith(URL_END_BLANK)) {
-//                        Timber.d("Logout by blank")
-//                        toLogin()
-//                    }
-//                    if (intent.action != null && intent.action.equals(ON_BOARD_FINISH)) {
-//                        viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "main")
-//                    }
-//
-//                    if (url.endsWith(URL_END_MY_PREFERENCES)) {
-//                        viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl + "my/preferences")
-//                    }
-//                    Timber.d("Current url - $url")
-//                } else {
-//                    checkAuthenticated()
-//                }
-//            }
-
             if (!isOnline()) {
                 showNoInternetAlert()
             }
         }
+    }
+
+    private fun isLogin(): Boolean {
+        return SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_AUTH, false)
     }
 
     private fun isOnline(): Boolean {
@@ -914,7 +861,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun onResume() {
         super.onResume()
 
-        if(isCheckVersionDone) {
+        if (isCheckVersionDone) {
             securityCheck()
         }
 
@@ -1118,15 +1065,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         onLoading(false)
     }
 
-    private fun handleIntent(intent: Intent) {
+    private fun handleRedirectIntent(intent: Intent) {
+        val type = intent.getStringExtra(NOTIFICATION_KEY_TYPE)
+        val url = intent.getStringExtra(NOTIFICATION_KEY_URL)
+        if (!type.isNullOrEmpty() && !url.isNullOrEmpty()) {
+            val notificationType = stringToNotificationType(type)
+
+            when (notificationType) {
+                Config.NotificationType.NONE -> {}
+                Config.NotificationType.URL -> {
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    startActivity(intent)
+                }
+
+                Config.NotificationType.APP_PAGE -> {
+                    val notificationAppPageData =
+                        Config.listOfNotificationAppPageData.find { it.urlValue == url }
+                            ?: Config.NotificationAppPageData("", "")
+                    val uri = getEnvironmentConfig().webUrlBase.toUri()
+                        .buildUpon()
+                        .appendEncodedPath(notificationAppPageData.realPath)
+                        .build()
+                        .toString()
+                    viewBinding.webView.loadUrl(uri)
+                }
+            }
+            intent.putExtra(NOTIFICATION_KEY_TYPE, "")
+            intent.putExtra(NOTIFICATION_KEY_URL, "")
+            setIntent(intent)
+            return
+        }
+
+
         if (intent.data != null) {
             val uri = intent.data!!
             when (uri.host) {
-                "webconnect" ->
+                "webconnect" -> {
                     forwardIntent(intent, ConnectFitbitSuccessActivity::class.java)
+                    return
+                }
 
-                "webconnectgarmin" ->
+                "webconnectgarmin" -> {
                     forwardIntent(intent, ConnectGarminSuccessActivity::class.java)
+                    return
+                }
             }
         }
     }

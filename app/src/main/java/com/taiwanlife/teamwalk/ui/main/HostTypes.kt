@@ -4,9 +4,7 @@ enum class HostTypes(val value: String) {
     HOME("home"),
     LOGIN("login"),
     LOGIN_SUCCESS("loginsuccess"),
-    LOGIN_FAILURE("loginfailure"),
-    USER_INFO("userinfo"),
-    ONBOARDING("onboarding");
+    LOGIN_FAILURE("loginfailure");
 
 
     companion object {

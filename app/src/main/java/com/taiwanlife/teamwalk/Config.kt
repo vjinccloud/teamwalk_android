@@ -6,9 +6,11 @@ object Config {
 
     const val API_CODE_SUCCESS = "0000"
     const val API_BODY_EMPTY_MESSAGE = "Response body is null"
+
     // 沒有帶Token API會給這個code
     const val API_CODE_500_LOG_OUT = "500"
     const val API_CODE_401_LOG_OUT = "401"
+
     // 除了這隻以外的path都需要戴上JWT token
     const val API_LOGIN_PATH = "login"
 
@@ -59,5 +61,30 @@ object Config {
     // 在Cookie內部 用來跟CSSO使用
     const val SP_CASTGC = "SP_CASTGC"
     const val SP_PID = "SP_PID"
+    // end region
+
+    // region 推播相關
+    const val NOTIFICATION_KEY_URL = "url"
+    const val NOTIFICATION_KEY_TITLE = "title"
+    const val NOTIFICATION_KEY_MSG = "msg"
+    const val NOTIFICATION_KEY_TYPE = "type"
+
+    enum class NotificationType(val v: String) {
+        NONE("N"),
+        URL("L"),
+        APP_PAGE("F")
+    }
+
+    data class NotificationAppPageData(
+        val urlValue: String,
+        val realPath: String,
+    )
+
+    val listOfNotificationAppPageData = listOf(
+        NotificationAppPageData("homepage", "main"),
+        NotificationAppPageData("team_challenge", "challenge/team_pk_board"),
+        NotificationAppPageData("my_coins", "my/coin/list"),
+        NotificationAppPageData("coins_store", "my/product/main"),
+    )
     // end region
 }

@@ -1,6 +1,7 @@
 [versions]
 # Android
 agp = "8.9.2"
+datastorePreferences = "1.2.0"
 kotlin = "2.2.21"
 
 # PatternLock 現在Jcenter已經不使用 參考 https://jitpack.io/#aritraroy/PatternLockView 找最新的Tag
@@ -21,6 +22,7 @@ activity = "1.10.1"
 cardview = "1.0.0"
 constraintlayout = "2.2.1"
 recyclerview = "1.4.0"
+tinkAndroid = "1.20.0"
 webkit = "1.14.0"
 browser = "1.8.0"
 
@@ -64,6 +66,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidxActivity" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidxFragment" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 
 #material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
@@ -99,6 +102,8 @@ koin-core = { module = "io.insert-koin:koin-core" }
 koin-android = { module = "io.insert-koin:koin-android" }
 
 jakewharton-timber = { module = "com.jakewharton.timber:timber", version.ref = "timberVersion" }
+
+tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tinkAndroid" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

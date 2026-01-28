@@ -4,9 +4,9 @@
 
     <!--  Health Connect  -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
-    <uses-permission android:name="android.permission.health.WRITE_STEPS" />
+<!--    <uses-permission android:name="android.permission.health.WRITE_STEPS" />-->
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
-    <uses-permission android:name="android.permission.health.WRITE_SLEEP" />
+<!--    <uses-permission android:name="android.permission.health.WRITE_SLEEP" />-->
     <!--    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />-->
     <!--    <uses-permission android:name="android.permission.health.WRITE_TOTAL_CALORIES_BURNED" />-->
 
@@ -83,7 +83,6 @@
                 <data android:host="login" />
                 <data android:host="loginsuccess" />
                 <data android:host="loginfailure" />
-                <data android:host="userinfo" />
             </intent-filter>
 
             <intent-filter

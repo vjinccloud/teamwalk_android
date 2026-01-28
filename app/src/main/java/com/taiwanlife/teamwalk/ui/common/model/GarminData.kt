@@ -4,9 +4,15 @@ import com.google.gson.annotations.SerializedName
 
 data class GarminData(
     @SerializedName("tsGarmin")
-    val tsGarmin: String? = null,
+    val tsGarmin: String = "",
     @SerializedName("oauthToken")
-    val oauthToken: String? = null,
+    val oauthToken: String = "",
     @SerializedName("oauthTokenSecret")
-    val oauthTokenSecret: String? = null,
+    val oauthTokenSecret: String = "",
+    @SerializedName("accessToken")
+    val accessToken: String = "",
+    @SerializedName("refreshToken")
+    val refreshToken: String = "",
+    @SerializedName("jti")
+    val jti: String = "",
 )

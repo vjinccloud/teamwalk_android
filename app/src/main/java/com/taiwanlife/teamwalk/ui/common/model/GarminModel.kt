@@ -10,4 +10,10 @@ data class GarminModel(
     val oauthToken: String,
     @SerializedName("oauthTokenSecret")
     val oauthTokenSecret: String,
+    @SerializedName("accessToken")
+    val accessToken: String,
+    @SerializedName("refreshToken")
+    val refreshToken: String,
+    @SerializedName("jti")
+    val jti: String,
 )

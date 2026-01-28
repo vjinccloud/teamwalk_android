@@ -93,13 +93,13 @@
                 android:padding="8dp"
                 android:text="刪除假資料" />
 
-            <TextView
-                android:id="@+id/dummy_data"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:padding="8dp"
-                android:text="@string/main_simulate_health_connect_fake_data" />
+<!--            <TextView-->
+<!--                android:id="@+id/dummy_data"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="4dp"-->
+<!--                android:padding="8dp"-->
+<!--                android:text="@string/main_simulate_health_connect_fake_data" />-->
 
         </LinearLayout>
     </HorizontalScrollView>

@@ -23,6 +23,13 @@ data class LandingResponse(
      */
     @SerializedName("complete_onboarding")
     val completeOnboarding: Boolean?,
+
+    @SerializedName("accessToken")
+    val accessToken: String?,
+    @SerializedName("refreshToken")
+    val refreshToken: String?,
+    @SerializedName("jti")
+    val jti: String?,
 ) {
     fun getAvailableNickName():String {
         return nick_name ?: nickName ?: nickname ?: ""

@@ -67,11 +67,17 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
             toast(R.string.onboard_connect_fail)
             finish()
         }) { garminAccessTokenResponse ->
-            if (garminAccessTokenResponse.accessToken.isEmpty() || garminAccessTokenResponse.refreshToken.isEmpty()) {
-                garminData = garminData.copy(
-                    oauthToken = garminAccessTokenResponse.accessToken,
-                    oauthTokenSecret = garminAccessTokenResponse.refreshToken
+            if (garminAccessTokenResponse.accessToken.isNotEmpty() && garminAccessTokenResponse.refreshToken.isNotEmpty() && garminAccessTokenResponse.jti.isNotEmpty()) {
+                garminData = GarminData(
+                    oauthToken = "",
+                    oauthTokenSecret = "",
+                    accessToken = garminAccessTokenResponse.accessToken,
+                    refreshToken = garminAccessTokenResponse.refreshToken,
+                    jti = garminAccessTokenResponse.jti
                 )
+
+                postEvent(Config.EVENT_GARMIN_CONNECT_DONE, getGson().toJson(garminData))
+                finish()
             } else {
                 failedEnd()
             }

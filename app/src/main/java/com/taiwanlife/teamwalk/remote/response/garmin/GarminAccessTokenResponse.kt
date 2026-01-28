@@ -16,5 +16,8 @@ data class GarminAccessTokenResponse(
     val expiresIn: Long,
 
     @SerializedName("scope")
-    val scope: String
+    val scope: String,
+
+    @SerializedName("jti")
+    val jti: String
 )

@@ -125,110 +125,110 @@ class HealthConnectViewModel(
     /**
      *  模擬30天前的資料 插入之前會先把所有來自我們APP的插入資料都先刪除 避免混亂
      */
-    fun writeAndCleanDummyHealthData(callback: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                healthConnectRepository.deleteStepsDataByTimeRange(
-                    earliestPossibleStartTime,
-                    defaultEndTime
-                )
-                healthConnectRepository.deleteSleepDataByTimeRange(
-                    earliestPossibleStartTime,
-                    defaultEndTime
-                )
-//                healthConnectRepository.deleteTotalCaloriesBurnedDataByTimeRange(
+//    fun writeAndCleanDummyHealthData(callback: () -> Unit) {
+//        viewModelScope.launch {
+//            try {
+//                healthConnectRepository.deleteStepsDataByTimeRange(
 //                    earliestPossibleStartTime,
 //                    defaultEndTime
 //                )
-                val now = Instant.now().atZone(ZoneId.systemDefault())
-                val stepsRecords = mutableListOf<StepsRecord>()
-                val sleepRecords = mutableListOf<SleepSessionRecord>()
-
-                for (i in 1 until 100) {
-                    val targetDay = now.minusDays(i.toLong())
-
-                    val periods = listOf(8 to 10, 12 to 14, 18 to 21) // 定義活動時段
-                    periods.forEach { (startHour, endHour) ->
-                        // 在時段內隨機取時間點
-                        val randomStartHour = Random.nextInt(startHour, endHour)
-                        val randomStartMin = Random.nextInt(0, 60)
-                        val durationMin = Random.nextInt(10, 45) // 每次走 10~45 分鐘
-
-                        val sTime = targetDay.withHour(randomStartHour).withMinute(randomStartMin)
-                            .toInstant()
-                        val eTime = sTime.plus(durationMin.toLong(), ChronoUnit.MINUTES)
-
-                        stepsRecords.add(
-                            StepsRecord(
-                                count = Random.nextLong(500, 3000), // 該時段步數
-                                startTime = sTime,
-                                endTime = eTime,
-                                startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sTime),
-                                endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(eTime),
-                                metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_WATCH))
-                            )
-                        )
-                    }
-
-                    val sleepStartHour = if (Random.nextBoolean()) 22 + Random.nextInt(0, 2) else 0
-                    val sleepStartMin = Random.nextInt(0, 60)
-                    val sleepDurationHours = Random.nextInt(6, 9) // 睡 6~9 小時
-
-                    val sleepStart =
-                        targetDay.minusDays(1).withHour(sleepStartHour).withMinute(sleepStartMin)
-                            .toInstant()
-                    val sleepEnd = sleepStart.plus(sleepDurationHours.toLong(), ChronoUnit.HOURS)
-                        .plus(Random.nextInt(0, 60).toLong(), ChronoUnit.MINUTES)
-
-                    val stages = mutableListOf<SleepSessionRecord.Stage>()
-                    var stageStart = sleepStart
-
-                    val part = Duration.between(sleepStart, sleepEnd).dividedBy(3)
-
-                    stages.add(
-                        SleepSessionRecord.Stage(
-                            stageStart,
-                            stageStart.plus(part),
-                            SleepSessionRecord.STAGE_TYPE_LIGHT
-                        )
-                    )
-                    stageStart = stageStart.plus(part)
-                    stages.add(
-                        SleepSessionRecord.Stage(
-                            stageStart,
-                            stageStart.plus(part),
-                            SleepSessionRecord.STAGE_TYPE_DEEP
-                        )
-                    )
-                    stageStart = stageStart.plus(part)
-                    stages.add(
-                        SleepSessionRecord.Stage(
-                            stageStart,
-                            sleepEnd,
-                            SleepSessionRecord.STAGE_TYPE_REM
-                        )
-                    )
-
-                    sleepRecords.add(
-                        SleepSessionRecord(
-                            startTime = sleepStart,
-                            endTime = sleepEnd,
-                            startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sleepStart),
-                            endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sleepEnd),
-                            stages = stages,
-                            metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_WATCH))
-                        )
-                    )
-                }
-
-                // 寫入資料
-                healthConnectRepository.writeData(stepsRecords) { Timber.d("完成分段步數假資料") }
-                healthConnectRepository.writeData(sleepRecords) { Timber.d("完成多階段睡眠假資料") }
-
-                callback()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
+//                healthConnectRepository.deleteSleepDataByTimeRange(
+//                    earliestPossibleStartTime,
+//                    defaultEndTime
+//                )
+////                healthConnectRepository.deleteTotalCaloriesBurnedDataByTimeRange(
+////                    earliestPossibleStartTime,
+////                    defaultEndTime
+////                )
+//                val now = Instant.now().atZone(ZoneId.systemDefault())
+//                val stepsRecords = mutableListOf<StepsRecord>()
+//                val sleepRecords = mutableListOf<SleepSessionRecord>()
+//
+//                for (i in 1 until 100) {
+//                    val targetDay = now.minusDays(i.toLong())
+//
+//                    val periods = listOf(8 to 10, 12 to 14, 18 to 21) // 定義活動時段
+//                    periods.forEach { (startHour, endHour) ->
+//                        // 在時段內隨機取時間點
+//                        val randomStartHour = Random.nextInt(startHour, endHour)
+//                        val randomStartMin = Random.nextInt(0, 60)
+//                        val durationMin = Random.nextInt(10, 45) // 每次走 10~45 分鐘
+//
+//                        val sTime = targetDay.withHour(randomStartHour).withMinute(randomStartMin)
+//                            .toInstant()
+//                        val eTime = sTime.plus(durationMin.toLong(), ChronoUnit.MINUTES)
+//
+//                        stepsRecords.add(
+//                            StepsRecord(
+//                                count = Random.nextLong(500, 3000), // 該時段步數
+//                                startTime = sTime,
+//                                endTime = eTime,
+//                                startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sTime),
+//                                endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(eTime),
+//                                metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_WATCH))
+//                            )
+//                        )
+//                    }
+//
+//                    val sleepStartHour = if (Random.nextBoolean()) 22 + Random.nextInt(0, 2) else 0
+//                    val sleepStartMin = Random.nextInt(0, 60)
+//                    val sleepDurationHours = Random.nextInt(6, 9) // 睡 6~9 小時
+//
+//                    val sleepStart =
+//                        targetDay.minusDays(1).withHour(sleepStartHour).withMinute(sleepStartMin)
+//                            .toInstant()
+//                    val sleepEnd = sleepStart.plus(sleepDurationHours.toLong(), ChronoUnit.HOURS)
+//                        .plus(Random.nextInt(0, 60).toLong(), ChronoUnit.MINUTES)
+//
+//                    val stages = mutableListOf<SleepSessionRecord.Stage>()
+//                    var stageStart = sleepStart
+//
+//                    val part = Duration.between(sleepStart, sleepEnd).dividedBy(3)
+//
+//                    stages.add(
+//                        SleepSessionRecord.Stage(
+//                            stageStart,
+//                            stageStart.plus(part),
+//                            SleepSessionRecord.STAGE_TYPE_LIGHT
+//                        )
+//                    )
+//                    stageStart = stageStart.plus(part)
+//                    stages.add(
+//                        SleepSessionRecord.Stage(
+//                            stageStart,
+//                            stageStart.plus(part),
+//                            SleepSessionRecord.STAGE_TYPE_DEEP
+//                        )
+//                    )
+//                    stageStart = stageStart.plus(part)
+//                    stages.add(
+//                        SleepSessionRecord.Stage(
+//                            stageStart,
+//                            sleepEnd,
+//                            SleepSessionRecord.STAGE_TYPE_REM
+//                        )
+//                    )
+//
+//                    sleepRecords.add(
+//                        SleepSessionRecord(
+//                            startTime = sleepStart,
+//                            endTime = sleepEnd,
+//                            startZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sleepStart),
+//                            endZoneOffset = ZoneOffset.systemDefault().rules.getOffset(sleepEnd),
+//                            stages = stages,
+//                            metadata = Metadata.autoRecorded(device = Device(type = Device.TYPE_WATCH))
+//                        )
+//                    )
+//                }
+//
+//                // 寫入資料
+//                healthConnectRepository.writeData(stepsRecords) { Timber.d("完成分段步數假資料") }
+//                healthConnectRepository.writeData(sleepRecords) { Timber.d("完成多階段睡眠假資料") }
+//
+//                callback()
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 }

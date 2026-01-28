@@ -96,9 +96,9 @@ class BindingManager(
     /**
      * 開始綁定裝置流程
      */
-    fun bindNewDevice(deviceType: DeviceType) {
+    fun bindNewDevice(deviceType: DeviceType, forced: Boolean = false) {
         val currentDeviceType = getCurrentDeviceType()
-        if (deviceType == currentDeviceType) {
+        if (deviceType == currentDeviceType && !forced) {
             // 現在想要綁定的裝置已經是目前的裝置了 不做動作
             sameDeviceCallback(currentDeviceType)
             return
@@ -252,8 +252,13 @@ class BindingManager(
     private fun onReceivedEvent(eventName: String?, result: String) {
         if (eventName == Config.EVENT_GARMIN_CONNECT_DONE) {
             val garminData = getGson().fromJson(result, GarminData::class.java)
-            if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
+//            if (garminData.oauthToken != null && garminData.oauthTokenSecret != null) {
+            if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
 
+                SecuredPreferenceStoreManager.simpleEditAndApply(
+                    Config.SP_BIND_GARMIN,
+                    getGson().toJson(garminData)
+                )
                 bindProcessFinished(GARMIN, result)
             }
         } else if (eventName == Config.EVENT_FITBIT_CONNECT_DONE) {
@@ -261,6 +266,10 @@ class BindingManager(
 
             if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
 
+                SecuredPreferenceStoreManager.simpleEditAndApply(
+                    Config.SP_BIND_FITBIT,
+                    getGson().toJson(fitbitData)
+                )
                 bindProcessFinished(FITBIT, result)
             }
         }

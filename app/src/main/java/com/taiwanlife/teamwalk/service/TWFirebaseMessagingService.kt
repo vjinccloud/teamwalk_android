@@ -3,21 +3,18 @@ package com.taiwanlife.teamwalk.service
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.taiwanlife.teamwalk.Config
-import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_MSG
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TITLE
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TYPE
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_URL
 import com.taiwanlife.teamwalk.ui.main.MainActivity
+import com.taiwanlife.teamwalk.utils.MyNotificationManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
-import timber.log.Timber
 
 class TWFirebaseMessagingService : FirebaseMessagingService() {
-    companion object {
-        const val KEY_URL = "url"
-    }
-
     /**
      *
      * @param remoteMessage
@@ -28,8 +25,15 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
         if (remoteMessage.getNotification() != null) {
             val notification = remoteMessage.getNotification()
             val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra(KEY_URL, remoteMessage.getData()["url"])
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val title = remoteMessage.getData()[NOTIFICATION_KEY_TITLE]
+            val msg = remoteMessage.getData()[NOTIFICATION_KEY_MSG]
+
+
+            intent.putExtra(NOTIFICATION_KEY_URL, remoteMessage.getData()[NOTIFICATION_KEY_URL])
+            intent.putExtra(NOTIFICATION_KEY_TYPE, remoteMessage.getData()[NOTIFICATION_KEY_TYPE])
+            intent.putExtra(NOTIFICATION_KEY_TITLE, title)
+            intent.putExtra(NOTIFICATION_KEY_MSG, msg)
+            intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
 
             val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 PendingIntent.getActivity(
@@ -47,25 +51,9 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
                 )
             }
 
-
-            val builder: NotificationCompat.Builder =
-                NotificationCompat.Builder(this, Config.CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_firebase)
-                    .setContentTitle(notification!!.title)
-                    .setContentText(notification.body)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setContentIntent(pendingIntent)
-                    .setAutoCancel(true)
-                    .setVibrate(LongArray(0))
-
-            val notificationManager = NotificationManagerCompat.from(this)
-
-            try {
-                // 到這裡如果使用者沒有給權限可能會出現錯誤 把他接起來
-                notificationManager.notify(remoteMessage.getSentTime().toInt(), builder.build())
-            } catch (e: SecurityException) {
-                e.printStackTrace()
-            }
+            val notificationId = remoteMessage.sentTime.toInt()
+            val myNotificationManager = MyNotificationManager(this)
+            myNotificationManager.sendFcmNotification(notificationId, title, msg, pendingIntent)
         }
     }
 

@@ -22,9 +22,9 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
 
     private val healthConnectPermissions = setOf(
         HealthPermission.getReadPermission(SleepSessionRecord::class),
-        HealthPermission.getWritePermission(SleepSessionRecord::class),
+//        HealthPermission.getWritePermission(SleepSessionRecord::class),
         HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getWritePermission(StepsRecord::class),
+//        HealthPermission.getWritePermission(StepsRecord::class),
 //        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
 //        HealthPermission.getWritePermission(TotalCaloriesBurnedRecord::class)
     )

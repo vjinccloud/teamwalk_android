@@ -2,12 +2,16 @@ package com.taiwanlife.teamwalk.utils
 
 import android.app.Notification
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.taiwanlife.teamwalk.Config.BADGE_NOTIFICATION_ID
 import com.taiwanlife.teamwalk.Config.CHANNEL_ID
 import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.ui.main.MainActivity
 
 class MyNotificationManager(private val context: Context) {
 
@@ -60,5 +64,59 @@ class MyNotificationManager(private val context: Context) {
         }
 
         return builder.build()
+    }
+
+    fun testFcmNotification() {
+        val testTitle = "TeamWalk"
+        val testMsg = "推播"
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra("url", "my_coins")
+            putExtra("type", "F")
+            putExtra("title", testTitle)
+            putExtra("msg", testMsg)
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
+        val notificationId = System.currentTimeMillis().toInt()
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            intent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+        )
+
+        sendFcmNotification(
+            notificationId = notificationId,
+            title = testTitle,
+            message = testMsg,
+            pendingIntent = pendingIntent
+        )
+    }
+
+    fun sendFcmNotification(
+        notificationId: Int,
+        title: String?,
+        message: String?,
+        pendingIntent: PendingIntent
+    ) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_firebase)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(LongArray(0))
+
+        try {
+            notificationManager.notify(notificationId, builder.build())
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
     }
 }

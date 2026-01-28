@@ -26,6 +26,25 @@
     },
     {
       "client_info": {
+        "mobilesdk_app_id": "1:856731538479:android:b217f4273c7358f0c762da",
+        "android_client_info": {
+          "package_name": "com.taiwanlife.teamwalk.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACiYvvhMIuuRK0iCJCMvA7rSH9Ba_E9CA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:856731538479:android:7663599f6fc5e27ac762da",
         "android_client_info": {
           "package_name": "com.taiwanlife.teamwalk.uat"

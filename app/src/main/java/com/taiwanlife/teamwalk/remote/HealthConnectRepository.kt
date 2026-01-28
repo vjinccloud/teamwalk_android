@@ -116,15 +116,15 @@ class HealthConnectRepository(private val healthConnectClient: HealthConnectClie
         }
     }
 
-    suspend fun writeData(records: List<Record>, callback: () -> Unit) {
-        try {
-            healthConnectClient.insertRecords(records)
-            callback()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        }
-    }
+//    suspend fun writeData(records: List<Record>, callback: () -> Unit) {
+//        try {
+//            healthConnectClient.insertRecords(records)
+//            callback()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            throw e
+//        }
+//    }
 
     suspend fun deleteSleepDataByTimeRange(startTime: Instant, endTime: Instant) {
         try {
