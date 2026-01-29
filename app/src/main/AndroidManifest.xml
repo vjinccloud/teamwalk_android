@@ -85,6 +85,24 @@
                 <data android:host="loginfailure" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.connect.ConnectGarminSuccessActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/TransparentActivityTheme"
+            android:windowSoftInputMode="adjustPan" >
+
             <intent-filter
                 android:autoVerify="true"
                 tools:ignore="AppLinkUrlError">
@@ -98,6 +116,14 @@
                     android:host="webconnectgarmin"
                     android:scheme="@string/redirect_scheme" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.connect.ConnectFitbitSuccessActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/TransparentActivityTheme"
+            android:windowSoftInputMode="adjustPan" >
 
             <intent-filter
                 android:autoVerify="true"
@@ -112,31 +138,7 @@
                     android:host="webconnect"
                     android:scheme="@string/redirect_scheme" />
             </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.connect.ConnectGarminSuccessActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/TransparentActivityTheme"
-            android:windowSoftInputMode="adjustPan" />
-
-        <activity
-            android:name=".ui.connect.ConnectFitbitSuccessActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/TransparentActivityTheme"
-            android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".ui.login.LoginActivity"

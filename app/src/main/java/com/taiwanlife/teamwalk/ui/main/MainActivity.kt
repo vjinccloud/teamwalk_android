@@ -693,6 +693,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
+        if(SecuredPreferenceStoreManager.getBoolean(Config.SP_BINDING_FROM_ONBOARD, false)) {
+            // 來自OnBoarding 交由那邊處理
+            return
+        }
 //        lifecycleScope.launch(Dispatchers.Main.immediate) {
 //            viewBinding.dummyData.visibility = View.GONE
 //        }
@@ -836,6 +840,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
             prefEditor.putString(Config.SP_LOGIN_JWT, "")
             prefEditor.putString(Config.SP_CASTGC, "")
+            prefEditor.putString(Config.SP_BIND_GARMIN, "")
+            prefEditor.putString(Config.SP_BIND_FITBIT, "")
+            prefEditor.putString(Config.SP_BIND_CURRENT_DEVICE, "")
+            prefEditor.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
         }
 
         viewBinding.webView.post {
@@ -1096,39 +1104,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             return
         }
 
-
-        if (intent.data != null) {
-            val uri = intent.data!!
-            when (uri.host) {
-                "webconnect" -> {
-                    forwardIntent(intent, ConnectFitbitSuccessActivity::class.java)
-                    return
-                }
-
-                "webconnectgarmin" -> {
-                    forwardIntent(intent, ConnectGarminSuccessActivity::class.java)
-                    return
-                }
-            }
-        }
+//
+//        if (intent.data != null) {
+//            val uri = intent.data!!
+//            when (uri.host) {
+//                "webconnect" -> {
+//                    forwardIntent(intent, ConnectFitbitSuccessActivity::class.java)
+//                    return
+//                }
+//
+//                "webconnectgarmin" -> {
+//                    forwardIntent(intent, ConnectGarminSuccessActivity::class.java)
+//                    return
+//                }
+//            }
+//        }
     }
 
-    private fun forwardIntent(
-        original: Intent,
-        target: Class<out BaseActivity<*>>
-    ) {
-        val newIntent = Intent(original).apply {
-            setClass(this@MainActivity, target)
-
-            // 避免返回 PortalActivity
-            addFlags(
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-            )
-        }
-
-        startActivity(newIntent)
-    }
+//    private fun forwardIntent(
+//        original: Intent,
+//        target: Class<out BaseActivity<*>>
+//    ) {
+//        val newIntent = Intent(original).apply {
+//            setClass(this@MainActivity, target)
+//
+//            // 避免返回 PortalActivity
+////            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+//        }
+//
+//        startActivity(newIntent)
+//    }
 
     private fun openPlayStoreAndExit() {
         try {

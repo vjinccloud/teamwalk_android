@@ -246,7 +246,10 @@ class BindingManager(
     }
 
     private fun startFitbitProcess() {
-        baseActivity.startActivity(fitbitViewModel.getUrlIntent(baseActivity.getString(R.string.redirect_scheme)))
+        val url = fitbitViewModel.getUrl(baseActivity.getString(R.string.redirect_scheme))
+        val urlIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+
+        baseActivity.startActivity(urlIntent)
     }
 
     private fun onReceivedEvent(eventName: String?, result: String) {

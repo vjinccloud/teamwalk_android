@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
+import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityConnectBinding
@@ -26,6 +27,7 @@ import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
 import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
 import com.taiwanlife.teamwalk.utils.DeviceType.NONE
 import com.taiwanlife.teamwalk.utils.HealthConnectHelper
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
@@ -58,6 +60,9 @@ class ConnectActivity :
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
+        SecuredPreferenceStoreManager.editAndApply {
+            it.putBoolean(Config.SP_BINDING_FROM_ONBOARD, true)
+        }
 
         intent.getStringExtra(KEY_USER_INFO)?.let {
             userInfo = getGson().fromJson(it, UserInfo::class.java)
@@ -124,6 +129,14 @@ class ConnectActivity :
         setCheckBoxAndNext()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        SecuredPreferenceStoreManager.editAndApply {
+            it.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
+        }
+    }
+
     fun saveUserAndFinishAll() {
         onBoardingViewModel.saveLandingInfo(userInfo)
     }
@@ -150,10 +163,10 @@ class ConnectActivity :
             GARMIN -> {
                 if (!TextUtils.isEmpty(data)) {
                     val garminData = getGson().fromJson(data, GarminData::class.java)
-                    if (!garminData.oauthToken.isNullOrEmpty()) {
+                    if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
                         userInfo = userInfo.copy(
                             bindingType = deviceType.value,
-                            bindingToken = garminData.oauthToken,
+                            bindingToken = garminData.accessToken,
                         )
                     }
                 }
