@@ -1,7 +1,6 @@
 package com.taiwanlife.teamwalk.utils
 
 import android.content.Intent
-import android.text.TextUtils
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -57,32 +56,6 @@ class BindingManager(
                 sharedEventViewModel.eventFlow.collect { (eventName, result) ->
                     onReceivedEvent(eventName, result)
                 }
-            }
-        }
-
-        baseActivity.observeOnLifeCycle(
-            garminViewModel.getAuthCodeFlow,
-            unSubscribeOnComplete = true,
-            onError = {
-                baseActivity.toast(R.string.onboard_connect_fail)
-            }) { response ->
-            // 處理成功結果
-            val responseString = response.string()
-            if (!TextUtils.isEmpty(responseString)) {
-                GarminHelper.parseGetAuthCodeString(baseActivity.getString(R.string.redirect_scheme), responseString, getTsGarminCallback = {
-                    val garminData = GarminData(tsGarmin = it)
-                    SecuredPreferenceStoreManager.simpleEditAndApply(
-                        Config.SP_BIND_GARMIN,
-                        getGson().toJson(garminData)
-                    )
-                }, showFailedToast = {
-                    baseActivity.toast(R.string.onboard_connect_fail)
-                }, getUrlCallback = { url ->
-                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                    baseActivity.startActivity(intent)
-                })
-            } else {
-                baseActivity.toast(R.string.onboard_connect_fail)
             }
         }
     }

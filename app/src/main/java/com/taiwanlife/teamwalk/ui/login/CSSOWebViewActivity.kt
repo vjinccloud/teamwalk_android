@@ -145,10 +145,10 @@ class CSSOWebViewActivity :
 //        if (TextUtils.equals(getString(R.string.csso_forget_pwd_key), csso)) {
 //            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoForgetMimaUrl();
 //        }
-        webView.addJavascriptInterface(
-            WebAppInterface(webView),
-            WebAppInterface(webView).appBridgeJsName
-        )
+//        webView.addJavascriptInterface(
+//            WebAppInterface(webView),
+//            WebAppInterface(webView).appBridgeJsName
+//        )
 
 
         webView.loadUrl(cssoURL)

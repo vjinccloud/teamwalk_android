@@ -47,11 +47,11 @@ class MyApplication : Application() {
         super.onCreate()
         context = applicationContext
 
-//        if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
 //            FileLoggingTree.clearLogs(this)
-//            Timber.plant(Timber.DebugTree())
+            Timber.plant(Timber.DebugTree())
 //            Timber.plant(FileLoggingTree(this))
-//        }
+        }
 
         startKoin {
             modules(appModule)

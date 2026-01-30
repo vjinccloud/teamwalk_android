@@ -2,13 +2,11 @@ package com.taiwanlife.teamwalk.ui.connect
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.View
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityConnectSuccessBinding
-import com.taiwanlife.teamwalk.remote.GarminHelper
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
@@ -36,34 +34,6 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
 
         // 觀察呼叫Garmin getToken的結果
         observeOnLifeCycle(garminViewModel.getTokenFlow, onError = {
-            toast(R.string.onboard_connect_fail)
-            finish()
-        }) { response ->
-            // 處理成功結果
-            val responseString = response.string()
-            if (!TextUtils.isEmpty(responseString)) {
-                val result = GarminHelper.parseGetTokenString(responseString) {
-                    toast(R.string.onboard_connect_fail)
-                }
-                if (result != null) {
-                    val (oauthToken, oauthTokenSecret) = result
-
-                    garminData = garminData.copy(
-                        oauthToken = oauthToken,
-                        oauthTokenSecret = oauthTokenSecret
-                    )
-
-                    postEvent(Config.EVENT_GARMIN_CONNECT_DONE, getGson().toJson(garminData))
-                    finish()
-
-                } else {
-                    failedEnd()
-                }
-            } else {
-                failedEnd()
-            }
-        }
-        observeOnLifeCycle(garminViewModel.getTokenFlow2, onError = {
             toast(R.string.onboard_connect_fail)
             finish()
         }) { garminAccessTokenResponse ->
@@ -113,47 +83,12 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
     }
 
     private fun getToken(code: String, verifier: String) {
-        garminViewModel.getGarminToken2(
+        garminViewModel.getGarminToken(
             "${getString(R.string.redirect_scheme)}://webconnectgarmin",
             code,
             verifier
         )
     }
-
-//    private fun handleDeepLink(intent: Intent) {
-//        val garminDataString = SecuredPreferenceStoreManager.getString(Config.SP_BIND_GARMIN, "")
-//        if (TextUtils.isEmpty(garminDataString)) {
-//            failedEnd()
-//        }
-//        garminData = getGson().fromJson(garminDataString, GarminData::class.java)
-//
-//        val uri = intent.data
-//        if (uri == null) {
-//            failedEnd()
-//            return
-//        }
-//
-//        connectGarmin(uri)
-//    }
-//
-//    private fun connectGarmin(uri: Uri) {
-//        Timber.d("Connecting garmin - ${Utils.formatDate()}")
-//        if (TextUtils.isEmpty(garminData.tsGarmin)) {
-//            failedEnd()
-//            return
-//        }
-//
-//        val authorization =
-//            GarminHelper.getGarminAuthorizationForAccessToken(
-//                uri,
-//                garminData.tsGarmin!!
-//            ) { reloadWebView ->
-//                failedEnd()
-//            }
-//        if (!TextUtils.isEmpty(authorization)) {
-//            garminViewModel.getGarminToken(authorization!!)
-//        }
-//    }
 
     private fun failedEnd() {
         toast(R.string.onboard_connect_fail)

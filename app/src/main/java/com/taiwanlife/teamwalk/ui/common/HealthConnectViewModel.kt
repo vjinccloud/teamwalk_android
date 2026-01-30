@@ -1,6 +1,5 @@
 package com.taiwanlife.teamwalk.ui.common
 
-import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.metadata.Device
@@ -12,31 +11,31 @@ import com.taiwanlife.teamwalk.ui.common.model.TeamWalkRecordModel
 import com.taiwanlife.teamwalk.utils.toSleepTeamWalkRecord
 import com.taiwanlife.teamwalk.utils.toStepTeamWalkRecord
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import kotlin.random.Random
 
 class HealthConnectViewModel(
     private val healthConnectRepository: HealthConnectRepository
 ) : ViewModel() {
-    // 設定結束時間為現在
-    private val defaultEndTime = Instant.now()
+    private val zoneId = ZoneId.systemDefault()
 
     // 設定一個足夠早的開始時間。
     // 這裡使用 2020 年 1 月 1 日作為範例，因為這通常遠遠早於 30 天的預設限制。
     private val earliestPossibleStartTime =
-        LocalDateTime.of(2025, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC)
+        LocalDateTime.of(2020, 1, 1, 0, 0, 0).toInstant(ZoneOffset.UTC)
 
 
     fun getAllData(
         startTime: Instant = Instant.now().minus(30, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
-        endTime: Instant = defaultEndTime,
+//        startTime: Instant = LocalDate.now(zoneId).atStartOfDay(zoneId).toInstant(),
+        endTime: Instant =  Instant.now(),
         callback: (List<TeamWalkRecordModel>, List<TeamWalkRecordModel>) -> Unit
     ) {
         viewModelScope.launch {
@@ -52,6 +51,16 @@ class HealthConnectViewModel(
 //                record.metadata.recordingMethod != Metadata.RECORDING_METHOD_MANUAL_ENTRY
 //            }.map { it.toTeamWalkRecord() }
 
+//            val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+//                .withZone(ZoneId.systemDefault()) // 使用系統時區
+//            Timber.d(
+//                "第${i}次 呼叫時間 => ${formatter.format(Instant.now())} / startTime = ${
+//                    formatter.format(
+//                        startTime
+//                    )
+//                } endTime = ${formatter.format(endTime)}"
+//            )
+
             val sleepDataDeferred =
                 async { healthConnectRepository.readSleepDataAsBuckets(startTime, endTime) }
             val sleepData = sleepDataDeferred.await().map { bucket ->
@@ -63,8 +72,14 @@ class HealthConnectViewModel(
             val stepData = stepDataDeferred.await().map { bucket ->
                 bucket.toStepTeamWalkRecord()
             }.filter { record -> record.data > 0 }
-
+//            Timber.d(
+//                "第${i}次 步數共 ${stepData.sumOf { it.data }}"
+//            )
+//
+//            delay(1000)
+//            getAllData { _, _ -> }
             callback(sleepData, stepData)
+
         }
     }
 
@@ -93,7 +108,7 @@ class HealthConnectViewModel(
 
     fun readTotalCaloriesBurnedData(
         startTime: Instant = earliestPossibleStartTime,
-        endTime: Instant = defaultEndTime,
+        endTime: Instant =  Instant.now(),
         callback: (List<TotalCaloriesBurnedRecord>) -> Unit
     ) {
         viewModelScope.launch {
@@ -108,11 +123,11 @@ class HealthConnectViewModel(
             try {
                 healthConnectRepository.deleteStepsDataByTimeRange(
                     earliestPossibleStartTime,
-                    defaultEndTime
+                    Instant.now()
                 )
                 healthConnectRepository.deleteSleepDataByTimeRange(
                     earliestPossibleStartTime,
-                    defaultEndTime
+                    Instant.now()
                 )
 
                 callback()
@@ -122,6 +137,44 @@ class HealthConnectViewModel(
         }
     }
 
+    fun insertManualSteps(
+        startStr: String = "2026/01/30 14:05:20", // 格式: "yyyy/MM/dd HH:mm:ss"
+        endStr: String = "2026/01/30 14:40:20",   // 格式: "yyyy/MM/dd HH:mm:ss"
+        steps: Int = 30000
+    ) {
+        viewModelScope.launch {
+            try {
+                val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+                val zoneId = ZoneId.systemDefault()
+
+                // 1. 將字串解析為 LocalDateTime，並根據系統時區轉為 Instant
+                val sTime = LocalDateTime.parse(startStr, formatter).atZone(zoneId).toInstant()
+                val eTime = LocalDateTime.parse(endStr, formatter).atZone(zoneId).toInstant()
+
+                // 2. 取得時區偏移量 (Offset)
+                val sOffset = zoneId.rules.getOffset(sTime)
+                val eOffset = zoneId.rules.getOffset(eTime)
+
+                // 3. 建立 StepsRecord
+                val record = StepsRecord(
+                    count = steps.toLong(),
+                    startTime = sTime,
+                    endTime = eTime,
+                    startZoneOffset = sOffset,
+                    endZoneOffset = eOffset,
+                    // 標記為手動輸入或由手錶紀錄
+                    metadata = Metadata.manualEntry(device = Device(type = Device.TYPE_WATCH))
+                )
+
+                // 4. 寫入 Health Connect
+                healthConnectRepository.writeData(listOf(record)) {
+                    Timber.d("成功手動插入步數: $steps 步 ($startStr ~ $endStr)")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "插入步數資料失敗")
+            }
+        }
+    }
     /**
      *  模擬30天前的資料 插入之前會先把所有來自我們APP的插入資料都先刪除 避免混亂
      */

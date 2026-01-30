@@ -8,12 +8,11 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
+
 
 class HealthConnectRepository(private val healthConnectClient: HealthConnectClient) {
 
@@ -77,14 +76,14 @@ class HealthConnectRepository(private val healthConnectClient: HealthConnectClie
     suspend fun readStepDataAsBuckets(
         startTime: Instant,
         endTime: Instant,
-        bucketMinutes: Long = 60
+        bucketHours: Long = 1
     ): List<AggregationResultGroupedByDuration> {
         try {
             val response = healthConnectClient.aggregateGroupByDuration(
                 AggregateGroupByDurationRequest(
                     metrics = setOf(StepsRecord.COUNT_TOTAL),
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
-                    timeRangeSlicer = Duration.ofMinutes(bucketMinutes) // 設定分段間隔
+                    timeRangeSlicer = Duration.ofHours(bucketHours) // 設定分段間隔
                 )
             )
 
@@ -98,14 +97,14 @@ class HealthConnectRepository(private val healthConnectClient: HealthConnectClie
     suspend fun readSleepDataAsBuckets(
         startTime: Instant,
         endTime: Instant,
-        bucketMinutes: Long = 60
+        bucketHours: Long = 1
     ): List<AggregationResultGroupedByDuration> {
         try {
             val response = healthConnectClient.aggregateGroupByDuration(
                 AggregateGroupByDurationRequest(
                     metrics = setOf(SleepSessionRecord.SLEEP_DURATION_TOTAL),
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
-                    timeRangeSlicer = Duration.ofMinutes(bucketMinutes) // 設定分段間隔
+                    timeRangeSlicer = Duration.ofHours(bucketHours) // 設定分段間隔
                 )
             )
 
@@ -116,15 +115,15 @@ class HealthConnectRepository(private val healthConnectClient: HealthConnectClie
         }
     }
 
-//    suspend fun writeData(records: List<Record>, callback: () -> Unit) {
-//        try {
-//            healthConnectClient.insertRecords(records)
-//            callback()
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            throw e
-//        }
-//    }
+    suspend fun writeData(records: List<Record>, callback: () -> Unit) {
+        try {
+            healthConnectClient.insertRecords(records)
+            callback()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
+        }
+    }
 
     suspend fun deleteSleepDataByTimeRange(startTime: Instant, endTime: Instant) {
         try {

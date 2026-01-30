@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.15"
+        versionName = "3.0.16"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -235,7 +235,7 @@ dependencies {
 //    implementation(libs.material)
 
 
-    implementation(libs.facebook.sdk)
+//    implementation(libs.facebook.sdk)
 
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)

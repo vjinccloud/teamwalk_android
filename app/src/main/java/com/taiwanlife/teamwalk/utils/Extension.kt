@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
+import androidx.health.connect.client.aggregate.AggregationResultGroupedByPeriod
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.google.gson.Gson
@@ -21,6 +22,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalQueries.zoneId
 import java.util.Locale
 
 fun String.enableToBoolean(): Boolean {
@@ -127,20 +129,23 @@ fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
 }
 
 fun AggregationResultGroupedByDuration.toStepTeamWalkRecord(): TeamWalkRecordModel {
+    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.systemDefault()) // 使用系統時區
+
     val startSeconds = startTime.epochSecond.toString()
     val endSeconds = endTime.epochSecond.toString()
 
     val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-        .withLocale(Locale.US)
         .withZone(ZoneId.of("UTC"))
 
     // 匯總資料通常建議使用系統預設時區，因為匯總物件本身不帶 zoneOffset
     val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-        .withLocale(Locale.US)
         .withZone(ZoneId.systemDefault())
 
     // 從 result 中提取步數總和
     val totalSteps = result[StepsRecord.COUNT_TOTAL] ?: 0L
+    if(totalSteps > 0) {
+        Timber.d("totalSteps = $totalSteps startTime = ${formatter.format(startTime)} endTime = ${formatter.format(endTime)}")
+    }
 
     return TeamWalkRecordModel(
         startTimestamp = startSeconds,
@@ -156,11 +161,9 @@ fun AggregationResultGroupedByDuration.toSleepTeamWalkRecord(): TeamWalkRecordMo
     val endSeconds = endTime.epochSecond.toString()
 
     val utcFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-        .withLocale(Locale.US)
         .withZone(ZoneId.of("UTC"))
 
     val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-        .withLocale(Locale.US)
         .withZone(ZoneId.systemDefault())
 
     // 提取睡眠總時長，並轉為秒數 (Long)

@@ -24,6 +24,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.security.ProviderInstaller
+import com.google.firebase.FirebaseApp
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
@@ -47,8 +48,6 @@ import com.taiwanlife.teamwalk.ui.common.model.FitbitModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.ui.common.model.GarminModel
 import com.taiwanlife.teamwalk.ui.common.model.SyncHealthDataModel
-import com.taiwanlife.teamwalk.ui.connect.ConnectFitbitSuccessActivity
-import com.taiwanlife.teamwalk.ui.connect.ConnectGarminSuccessActivity
 import com.taiwanlife.teamwalk.ui.login.LoginActivity
 import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
@@ -226,6 +225,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //            checkPermissions()
 //        }, 100)
 
+        val options = FirebaseApp.getInstance().options
+        debugToast("ProjectID: ${options.projectId}")
+
         // FCM Firebase Token
         try {
             FirebaseMessaging.getInstance().token
@@ -372,6 +374,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             bindingManager.bindNewDevice(DeviceType.HEALTH_CONNECT)
         }
         viewBinding.test.setOnClickListener {
+//            healthConnectViewModel?.i = 0
+//            healthConnectViewModel?.getAllData{ _, _ -> }
             startActivity(Intent(this, TestActivity::class.java))
         }
         viewBinding.patternLcokTest.setOnClickListener {
