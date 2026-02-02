@@ -513,6 +513,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                                         openPlayStoreAndExit()
                                     }
                                 )
+                                setCancelable(false)
                             }.show()
                         } else {
                             // 非強制版本更新
@@ -534,6 +535,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                                         securityCheck()
                                     }
                                 )
+                                setCancelable(false)
                             }.show()
                         }
                     }

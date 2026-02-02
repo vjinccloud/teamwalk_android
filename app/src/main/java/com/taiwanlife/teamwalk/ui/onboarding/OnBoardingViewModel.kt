@@ -13,7 +13,10 @@ class OnBoardingViewModel(repository: Repository) : BaseViewModel(repository) {
                 userInfo.referrerCode,
                 userInfo.nickname,
                 userInfo.bindingType,
-                userInfo.bindingToken
+                userInfo.bindingToken,
+                userInfo.accessToken,
+                userInfo.refreshToken,
+                userInfo.jti
             )
         }
     }

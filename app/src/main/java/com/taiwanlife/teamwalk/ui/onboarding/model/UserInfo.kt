@@ -18,4 +18,14 @@ data class UserInfo(
     // 新的API沒這個欄位 不知道是否後面會需要
     @SerializedName("userAvatar")
     val userAvatar: String? = null,
+
+
+    @SerializedName("accessToken")
+    val accessToken: String = "",
+
+    @SerializedName("refreshToken")
+    val refreshToken: String = "",
+
+    @SerializedName("jti")
+    val jti: String = "",
 )

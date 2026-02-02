@@ -58,40 +58,6 @@ object Utils {
         return sb.toString()
     }
 
-    /**
-     * 使用 HmacSHA1 演算法對給定的字串進行 SHA1 加密，並使用提供的密鑰。
-     * 結果會以 Base64 編碼的字串形式返回。
-     *
-     * @param s 要加密的原始字串。
-     * @param keyString 用於 HMAC 加密的密鑰字串。
-     * @return 經過 HmacSHA1 加密並 Base64 編碼後的字串。
-     * @throws UnsupportedEncodingException 如果 UTF-8 編碼不受支持。
-     * @throws NoSuchAlgorithmException 如果 HmacSHA1 演算法不可用。
-     * @throws InvalidKeyException 如果提供的密鑰無效。
-     */
-    @Throws(
-        UnsupportedEncodingException::class,
-        NoSuchAlgorithmException::class,
-        InvalidKeyException::class
-    )
-    fun sha1(s: String, keyString: String): String {
-        // 將密鑰字串和原始字串轉換為 UTF-8 字節數組
-        // SecretKeySpec 用於創建加密密鑰
-        val key = SecretKeySpec(keyString.toByteArray(charset("UTF-8")), "HmacSHA1")
-
-        // 獲取 HmacSHA1 演算法的 Mac 實例
-        val mac = Mac.getInstance("HmacSHA1")
-        // 使用創建的密鑰初始化 Mac 實例
-        mac.init(key)
-
-        // 對原始字串的 UTF-8 字節數組進行加密
-        val bytes = mac.doFinal(s.toByteArray(charset("UTF-8")))
-
-        // 將結果字節數組進行 Base64 編碼 (不包含換行符)，然後轉換為字串返回
-        // Base64.NO_WRAP 確保輸出字串中沒有換行符，通常在傳輸或儲存時使用
-        return Base64.encodeToString(bytes, Base64.NO_WRAP)
-    }
-
     fun patternToSha256(
         patternLockView: PatternLockView,
         pattern: MutableList<Dot>, fid: String

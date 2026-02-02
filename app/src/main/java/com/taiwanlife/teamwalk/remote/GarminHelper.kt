@@ -42,9 +42,10 @@ object GarminHelper {
     }
 
     fun generateCodeChallenge(verifier: String): String {
-        val bytes = MessageDigest
-            .getInstance("SHA-256")
-            .digest(verifier.toByteArray(Charsets.US_ASCII))
+        // Cryptographic hash finalized without update 避免資安誤判沒有呼叫update 直接呼叫update => digest
+        val messageDigest = MessageDigest.getInstance("SHA-256")
+        messageDigest.update(verifier.toByteArray(Charsets.US_ASCII))
+        val bytes = messageDigest.digest()
 
         return Base64.encodeToString(
             bytes,

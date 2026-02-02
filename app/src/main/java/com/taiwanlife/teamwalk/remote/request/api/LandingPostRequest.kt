@@ -25,4 +25,13 @@ data class LandingPostRequest(
      */
     @SerializedName("binding_token")
     val bindingToken: String?,
+
+    @SerializedName("accessToken")
+    val accessToken: String?,
+
+    @SerializedName("refreshToken")
+    val refreshToken: String?,
+
+    @SerializedName("jti")
+    val jti: String?,
 ) : BaseRequest()

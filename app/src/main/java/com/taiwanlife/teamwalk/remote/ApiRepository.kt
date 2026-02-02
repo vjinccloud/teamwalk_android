@@ -60,7 +60,17 @@ class ApiRepository(
         deviceId: String,
         pushId: String
     ): Response<ResponseWrapper<LoginResponse>> {
-        return apiService.login(LoginRequest(applId, ticket, service, appUuid, deviceId, pushId, "Android"))
+        return apiService.login(
+            LoginRequest(
+                applId,
+                ticket,
+                service,
+                appUuid,
+                deviceId,
+                pushId,
+                "Android"
+            )
+        )
     }
 
     /**
@@ -78,13 +88,19 @@ class ApiRepository(
         nickname: String?,
         bindingType: String?,
         bindingToken: String?,
+        accessToken: String?,
+        refreshToken: String?,
+        jti: String?,
     ): Response<ResponseWrapper<Unit>> {
         return apiService.saveLandingInfo(
             LandingPostRequest(
                 referrerCode,
                 nickname,
                 bindingType,
-                bindingToken
+                bindingToken,
+                accessToken,
+                refreshToken,
+                jti
             )
         )
     }

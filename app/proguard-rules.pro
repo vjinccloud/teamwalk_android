@@ -102,3 +102,9 @@
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn com.google.android.gms.common.annotation.NoNullnessRewrite
 -dontwarn org.apache.cordova.engine.SystemWebViewClient
+
+
+-dontwarn com.google.android.material.tabs.TabLayout$BaseOnTabSelectedListener
+-dontwarn com.google.android.material.tabs.TabLayout$OnTabSelectedListener
+-dontwarn com.google.android.material.tabs.TabLayout$Tab
+-dontwarn com.google.android.material.tabs.TabLayout

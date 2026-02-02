@@ -49,7 +49,7 @@ class MyApplication : Application() {
 
         if (BuildConfig.DEBUG) {
 //            FileLoggingTree.clearLogs(this)
-            Timber.plant(Timber.DebugTree())
+//            Timber.plant(Timber.DebugTree())
 //            Timber.plant(FileLoggingTree(this))
         }
 

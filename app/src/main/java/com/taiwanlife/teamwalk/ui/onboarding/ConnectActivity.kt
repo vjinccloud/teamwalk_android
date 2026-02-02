@@ -166,7 +166,10 @@ class ConnectActivity :
                     if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
                         userInfo = userInfo.copy(
                             bindingType = deviceType.value,
-                            bindingToken = garminData.accessToken,
+                            bindingToken = "",
+                            accessToken = garminData.accessToken,
+                            refreshToken = garminData.refreshToken,
+                            jti = garminData.jti,
                         )
                     }
                 }
@@ -179,6 +182,7 @@ class ConnectActivity :
                         userInfo = userInfo.copy(
                             bindingType = deviceType.value,
                             bindingToken = fitbitData.accessToken,
+                            refreshToken = fitbitData.refreshToken ?: "",
                         )
                     }
                 }
