@@ -6,10 +6,12 @@ import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.base.BaseViewModel
 import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.response.api.LoginResponse
+import com.taiwanlife.teamwalk.remote.response.api.SysParamInfoResponse
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 
 class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
     val loginFlow = ApiFlow<LoginResponse>(this)
+    val systemParamFlow = ApiFlow<SysParamInfoResponse>(this)
 
     fun login(redirectScheme: String, userId: String, ticket: String, deviceId: String) {
         val appUuid =
@@ -18,4 +20,11 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
 
         loginFlow.execute { repository.api.login(userId, ticket, redirectScheme, appUuid, deviceId, pushId) }
     }
+
+    fun getSysParam() {
+        systemParamFlow.execute {
+            repository.api.getSysParam()
+        }
+    }
+
 }

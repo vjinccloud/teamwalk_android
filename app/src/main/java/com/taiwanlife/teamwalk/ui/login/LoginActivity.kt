@@ -35,6 +35,8 @@ import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
+import com.taiwanlife.teamwalk.utils.enableToBoolean
 import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -90,6 +92,52 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             setResult(RESULT_OK)
             finish()
+        }
+        observeOnLifeCycle(loginViewModel.systemParamFlow) { systemParamResponse ->
+            systemParamResponse.forceUpdateVerAndroid?.let { ver ->
+                if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
+                    // 需要版本更新
+                    systemParamResponse.androidIsForced?.let { forced ->
+                        if (forced.enableToBoolean() && false) {
+                            // 強制版本更新
+                            CommonDialog(this).apply {
+                                oneButtonInit(
+                                    getString(R.string.main_update_title),
+                                    getString(R.string.main_force_update),
+                                    R.drawable.alert_1,
+                                    showButtons = true,
+                                    canceledOnTouchOutside = false,
+                                    text = getString(R.string.main_force_update_confirm),
+                                    onClick = {
+                                        openPlayStoreAndExit(this@LoginActivity)
+                                    },
+                                )
+                                setCancelable(false)
+                            }.show()
+                        } else {
+                            // 非強制版本更新
+                            CommonDialog(this).apply {
+                                twoButtonInit(
+                                    getString(R.string.main_update_title),
+                                    getString(R.string.main_recommend_update),
+                                    R.drawable.alert_1,
+                                    showButtons = true,
+                                    canceledOnTouchOutside = false,
+                                    positiveText = getString(R.string.main_force_update_confirm),
+                                    positiveOnClick = {
+                                        openPlayStoreAndExit(this@LoginActivity)
+                                    },
+                                    negativeText = getString(R.string.close),
+                                    negativeOnClick = {
+
+                                    }
+                                )
+                                setCancelable(false)
+                            }.show()
+                        }
+                    }
+                }
+            }
         }
 //        observeOnLifeCycle(loginViewModel.patternFlow) { ticketUrl ->
 //            val uri = ticketUrl.toUri()
@@ -177,6 +225,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         ) {
             toForgetPassword()
         }
+
+        loginViewModel.getSysParam()
     }
 
     @SuppressLint("SetJavaScriptEnabled")

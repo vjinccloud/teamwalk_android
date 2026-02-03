@@ -11,11 +11,16 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import android.util.Base64
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.PatternLockView.Dot
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.base.BaseActivity
+import com.taiwanlife.teamwalk.remote.response.api.model.Activity
+import com.taiwanlife.teamwalk.ui.main.MainActivity
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -346,6 +351,27 @@ object Utils {
             Config.NotificationType.URL.v -> Config.NotificationType.URL
             Config.NotificationType.APP_PAGE.v -> Config.NotificationType.APP_PAGE
             else -> Config.NotificationType.NONE
+        }
+    }
+
+    fun openPlayStoreAndExit(activity: BaseActivity<*>) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "market://details?id=com.taiwanlife.teamwalk".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data =
+                    "https://play.google.com/store/apps/details?id=com.taiwanlife.teamwalk".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(webIntent)
+        } finally {
+            activity.finishAffinity()
+            // 用這個會讓登出資料沒辦法清乾淨
+//            exitProcess(0)
         }
     }
 }

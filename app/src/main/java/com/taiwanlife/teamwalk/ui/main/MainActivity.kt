@@ -72,6 +72,7 @@ import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
 import com.taiwanlife.teamwalk.utils.Utils.stringToNotificationType
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
@@ -118,8 +119,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private var clearCache: Boolean? = null
 
-    // 增加一個Flag 初次更新的securityCheck等到檢查版本這隻API走完再做
-    private var isCheckVersionDone = false
 
     // 提供登入的LoginActivity之資料回傳
     private val loginLauncher =
@@ -310,9 +309,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         if (isLogin) {
             // 取得使用者資料
             mainViewModel.getLanding()
+        } else {
+            toLogin()
         }
-
-        mainViewModel.getSysParam()
+        // 檢查版本 改為登入頁檢查 如果webview存在時會由webview做檢查並踢到登入頁
+//            mainViewModel.getSysParam()
     }
 
 
@@ -487,63 +488,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl)
 
             handleRedirectIntent(intent)
-        }
-
-        observeOnLifeCycle(mainViewModel.systemParamFlow, onError = {
-            isCheckVersionDone = true
-            securityCheck()
-        }) { systemParamResponse ->
-            systemParamResponse.forceUpdateVerAndroid?.let { ver ->
-                if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
-                    // 需要版本更新
-                    systemParamResponse.androidIsForced?.let { forced ->
-                        if (forced.enableToBoolean()) {
-                            // 強制版本更新
-                            CommonDialog(this).apply {
-                                oneButtonInit(
-                                    getString(R.string.main_update_title),
-                                    getString(R.string.main_force_update),
-                                    R.drawable.alert_1,
-                                    showButtons = true,
-                                    canceledOnTouchOutside = false,
-                                    text = getString(R.string.main_force_update_confirm),
-                                    onClick = {
-                                        isCheckVersionDone = true
-                                        clearLoginData()
-                                        openPlayStoreAndExit()
-                                    }
-                                )
-                                setCancelable(false)
-                            }.show()
-                        } else {
-                            // 非強制版本更新
-                            CommonDialog(this).apply {
-                                twoButtonInit(
-                                    "",
-                                    getString(R.string.main_recommend_update),
-                                    R.drawable.alert_1,
-                                    showButtons = true,
-                                    canceledOnTouchOutside = false,
-                                    positiveText = getString(R.string.main_force_update_confirm),
-                                    positiveOnClick = {
-                                        clearLoginData()
-                                        openPlayStoreAndExit()
-                                    },
-                                    negativeText = getString(R.string.close),
-                                    negativeOnClick = {
-                                        isCheckVersionDone = true
-                                        securityCheck()
-                                    }
-                                )
-                                setCancelable(false)
-                            }.show()
-                        }
-                    }
-                } else {
-                    isCheckVersionDone = true
-                    securityCheck()
-                }
-            }
         }
     }
 
@@ -875,9 +819,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun onResume() {
         super.onResume()
 
-        if (isCheckVersionDone) {
-            securityCheck()
-        }
+        securityCheck()
 
         viewBinding.webView.post {
             viewBinding.webView.evaluateJavascript(
@@ -1140,27 +1082,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //
 //        startActivity(newIntent)
 //    }
-
-    private fun openPlayStoreAndExit() {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = "market://details?id=${BuildConfig.APPLICATION_ID}".toUri()
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            startActivity(intent)
-        } catch (e: Exception) {
-            val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                data =
-                    "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}".toUri()
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            startActivity(webIntent)
-        } finally {
-            finishAffinity()
-            // 用這個會讓登出資料沒辦法清乾淨
-//            exitProcess(0)
-        }
-    }
 
     fun registerNetworkCallback(
         onAvailable: () -> Unit,

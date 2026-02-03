@@ -35,7 +35,7 @@ class PatternSetupActivity :
 
     private val patternSetupViewModel: PatternSetupViewModel by viewModel()
     private var attemptEnable: Boolean = true
-    private var patternProgress: PatternProgress = PatternProgress.ORIGINAL
+    private var patternProgress: PatternProgress = PatternProgress.NEW_FIRST
 
     // 使用者是否再確認Pattern與第一次相符
     private var originalPattern: String = ""
