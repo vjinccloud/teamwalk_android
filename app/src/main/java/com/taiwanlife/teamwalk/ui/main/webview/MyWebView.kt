@@ -22,7 +22,6 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface.AsyncCallbacks
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import timber.log.Timber
 import java.util.Locale
@@ -96,7 +95,7 @@ class MyWebView : WebView {
     fun setUp(
         lifecycleOwner: LifecycleOwner,
         webviewLoadingCallback: WebviewLoadingCallback,
-        asyncCallbacks: AsyncCallbacks,
+        asyncCallbacks: MyWebMessageListener.AsyncCallbacks,
         finishCallback: () -> Unit,
         fileChooserCallback: (
             filePathCallback: ValueCallback<Array<Uri>>,

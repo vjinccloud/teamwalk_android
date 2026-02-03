@@ -53,7 +53,7 @@ import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_FAILURE
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_SUCCESS
-import com.taiwanlife.teamwalk.ui.main.webview.MyWebAppInterface
+import com.taiwanlife.teamwalk.ui.main.webview.MyWebMessageListener
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView
 import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
@@ -86,7 +86,7 @@ import kotlin.random.Random
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
     ProviderInstaller.ProviderInstallListener,
-    MyWebAppInterface.AsyncCallbacks, MyWebView.WebviewLoadingCallback {
+    MyWebMessageListener.AsyncCallbacks, MyWebView.WebviewLoadingCallback {
 
     companion object {
         const val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 4

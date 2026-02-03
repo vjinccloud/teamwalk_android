@@ -47,8 +47,21 @@ import timber.log.Timber
 class MyWebMessageListener(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val asyncCallbacks: MyWebAppInterface.AsyncCallbacks
+    private val asyncCallbacks: AsyncCallbacks
 ) {
+
+    interface AsyncCallbacks {
+        fun setGraphicalLogin(enable: String)
+        fun bindingGoogleHealth(enable: String)
+        fun bindingGarminHealth(enable: String)
+        fun bindingFitbitHealth(enable: String)
+        fun setPushMessageStatus(enable: String)
+        fun syncHealthData()
+        fun updatePushCount(notifyCount: Int)
+        fun logout()
+
+        fun saveDataToFile(data: String, fileName: String)
+    }
 
     private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
     private var currentWaitingCallbackName = ""

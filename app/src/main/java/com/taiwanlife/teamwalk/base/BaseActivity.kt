@@ -83,11 +83,11 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityBaseBinding = ActivityBaseBinding.inflate(layoutInflater)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-            )
             activityBaseBinding.root.filterTouchesWhenObscured = true
         }
         setContentView(activityBaseBinding.root)
