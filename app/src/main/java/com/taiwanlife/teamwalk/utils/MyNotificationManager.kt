@@ -111,6 +111,7 @@ class MyNotificationManager(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .setNumber(0)
             .setVibrate(LongArray(0))
 
         try {

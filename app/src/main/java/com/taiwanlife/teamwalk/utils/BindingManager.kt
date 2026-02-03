@@ -71,8 +71,9 @@ class BindingManager(
      */
     fun bindNewDevice(deviceType: DeviceType, forced: Boolean = false) {
         val currentDeviceType = getCurrentDeviceType()
+        // 可能是相同裝置但是想綁不同帳號 所以還是讓他重綁
         if (deviceType == currentDeviceType && !forced) {
-            // 現在想要綁定的裝置已經是目前的裝置了 不做動作
+            // 現在想要綁定的裝置已經是目前的裝置了
             sameDeviceCallback(currentDeviceType)
             return
         }
