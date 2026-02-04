@@ -8,7 +8,6 @@ data class EnvironmentConfig(
     val apiUrl: String,
     val webUrlBase: String,
     val webUrl: String,
-    val origin: String,
     val taiwanlifeMemberUrl: String,
     val connectGoogleClientId: String,
     val connectFitbitClientId: String,

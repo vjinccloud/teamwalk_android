@@ -54,11 +54,11 @@ public class SensitiveDataUtil {
     private final static String cookieBackupPrefsFileName = "webview_cookie_backup_prefs";
     private static List<String> getWebViewCookiesUrls(Context context){
         String csso_url = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoUrl();
-        String web_origin_url = EnvironmentManager.INSTANCE.getEnvironmentConfig().getOrigin();
+//        String web_origin_url = EnvironmentManager.INSTANCE.getEnvironmentConfig().getOrigin();
         String tcav_url = EnvironmentManager.INSTANCE.getEnvironmentConfig().getTcavUrl();
         List<String>retVal = new ArrayList<>();
         retVal.add(csso_url);
-        retVal.add(web_origin_url);
+//        retVal.add(web_origin_url);
         retVal.add(tcav_url);
         return retVal;
     }

@@ -15,7 +15,7 @@ import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
- * 專門拿來處理Garmin綁定完成之後的流程 避免同時在MainActivity和ConnectActivity要處理DeepLink會出現衝突
+ * 專門拿來處理Garmin綁定完成之後的流程 避免同時在MainActivity和ConnectActivity要處理DeepLink會出現衝突 同時獨立處理流程 避免影響其他元件
  * 這個Activity 使用 TransparentActivityTheme 會是透明的 減少突兀感
  */
 class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>({
@@ -46,13 +46,13 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
                     jti = garminAccessTokenResponse.jti
                 )
 
+                // 只有在這裡依切都沒問題才視為成功 回傳得到的Token 繼續後續流程
                 postEvent(Config.EVENT_GARMIN_CONNECT_DONE, getGson().toJson(garminData))
                 finish()
             } else {
                 failedEnd()
             }
         }
-
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -68,12 +68,14 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
             return
         }
 
+        // 得到Garmin回傳的驗證參數 拿來與儲存的驗證參數比較 並確定來源正確
         val code = uri.getQueryParameter("code")
         val returnedState = uri.getQueryParameter("state")
 
         val state = SecuredPreferenceStoreManager.getString(Config.SP_GARMIN_STATE, "")
         val verifier = SecuredPreferenceStoreManager.getString(Config.SP_GARMIN_VERIFIER, "")
 
+        // 如果有任何驗證參數不同 視為綁定失敗
         if (state.isEmpty() || verifier.isEmpty() || code == null || returnedState == null || state != returnedState) {
             failedEnd()
             return

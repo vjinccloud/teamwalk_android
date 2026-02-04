@@ -24,7 +24,6 @@ object EnvironmentManager {
         apiUrl = MyApplication.context.getString(R.string.api_url),
         webUrlBase = MyApplication.context.getString(R.string.web_url_base),
         webUrl = MyApplication.context.getString(R.string.web_url),
-        origin = MyApplication.context.getString(R.string.origin),
         taiwanlifeMemberUrl = MyApplication.context.getString(R.string.taiwanlife_member_url),
         connectGoogleClientId = MyApplication.context.getString(R.string.connect_google_client_id),
         connectFitbitClientId = MyApplication.context.getString(R.string.connect_fitbit_client_id),

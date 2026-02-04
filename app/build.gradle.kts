@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.18"
+        versionName = "3.0.19"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,7 +31,6 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
-            isMinifyEnabled = false
             applicationIdSuffix = ".debug"
 
             signingConfig = signingConfigs.getByName("debug")
@@ -48,7 +47,6 @@ android {
             resValue("string", "api_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
             resValue("string", "web_url_base", "https://demo.mutron.com.tw/teamwalk/")
             resValue("string", "web_url", "https://demo.mutron.com.tw/teamwalk/bridge/")
-            resValue("string", "origin", "http://teamwork-frontend.bestamina.net:8080")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
             resValue("string", "connect_google_client_id", "773524163063-6je6tkpag1qgcapsn7kuv6s0h85tkct4.apps.googleusercontent.com")
             resValue("string", "connect_fitbit_client_id", "22BZQG")
@@ -58,11 +56,6 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
-
-            //FB SDK
-            resValue("string", "facebook_app_id", "1151503809061491")
-            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
-            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
         }
         create("sit") {
             isDebuggable = true
@@ -76,32 +69,33 @@ android {
             // 綁定成功時的domain(scheme)
             resValue("string", "redirect_scheme", "teamwalksit")
 
-            resValue("string", "csso_url", "https://cssouat.taiwanlife.com/csso/")
+            resValue("string", "csso_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
             resValue("string", "csso_forget_mima_url", "https://cssouat.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
             resValue("string", "csso_sign_up_url", "https://cssouat.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
             resValue("string", "tcav_url", "https://tcavuat.taiwanlife.com/")
-            resValue("string", "api_url", "http://10.1.242.55:9080/frontend/api/")
-            resValue("string", "web_url_base", "http://10.1.242.55:9080/frontend/")
-            resValue("string", "web_url", "http://10.1.242.55:9080/frontend/")
-            resValue("string", "origin", "http://10.1.242.55:9080")
+            resValue("string", "api_url", "https://demo.mutron.com.tw/teamwalk-fe-api/")
+            resValue("string", "web_url_base", "https://demo.mutron.com.tw/teamwalk/")
+            resValue("string", "web_url", "https://demo.mutron.com.tw/teamwalk/bridge/")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
             resValue("string", "connect_google_client_id", "773524163063-6je6tkpag1qgcapsn7kuv6s0h85tkct4.apps.googleusercontent.com")
-            resValue("string", "connect_fitbit_client_id", "23B3KR")
-            resValue("string", "connect_fitbit_client_s", "c586771e4f9a4ae17ec0b1de15f38ef6")
+            resValue("string", "connect_fitbit_client_id", "22BZQG")
+            resValue("string", "connect_fitbit_client_s", "565d1f1a0822d1fbf50cedae0041d3ee")
             resValue("string", "connect_garmin_consumer_key", "0fe5a7c0-bc5b-41f5-aa05-97978415d272")
             resValue("string", "connect_garmin_consumer_s", "nsQkfD0nwCq2SHAwiIlhQatmAqYtWV/bRjQewaPZ+vM")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
-
-            //FB SDK
-            resValue("string", "facebook_app_id", "1151503809061491")
-            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
-            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
         }
         create("uat") {
             isDebuggable = true
             isMinifyEnabled = false
+            // 如要做UAT資安檢測 請將下面註解部分打開
+//            isDebuggable = false
+//            isMinifyEnabled = true
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
             applicationIdSuffix = ".uat"
 
             signingConfig = signingConfigs.getByName("debug")
@@ -118,7 +112,6 @@ android {
             resValue("string", "api_url", "https://teamwalk2uat.taiwanlife.com/teamwalk-fe-api/")
             resValue("string", "web_url_base", "https://teamwalk2uat.taiwanlife.com/")
             resValue("string", "web_url", "https://teamwalk2uat.taiwanlife.com/bridge/")
-            resValue("string", "origin", "https://teamwalkuat.taiwanlife.com")
             resValue("string", "taiwanlife_member_url", "https://uatnew.taiwanlife.com/member?service=https:%2F%2Ftcavuat.taiwanlife.com%2Flogin")
             resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
             resValue("string", "connect_fitbit_client_id", "23B3KR")
@@ -128,11 +121,6 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
-
-            //FB SDK
-            resValue("string", "facebook_app_id", "1151503809061491")
-            resValue("string", "fb_login_protocol_scheme", "fb1151503809061491")
-            resValue("string", "facebook_client_token", "2183e7d396168d09c4799adb16c4f276")
         }
         release {
             isDebuggable = false
@@ -153,7 +141,6 @@ android {
             resValue("string", "api_url", "https://teamwalk.taiwanlife.com/frontend/api/")
             resValue("string", "web_url_base", "https://teamwalk.taiwanlife.com/frontend/")
             resValue("string", "web_url", "https://teamwalk.taiwanlife.com/frontend/")
-            resValue("string", "origin", "https://teamwalk.taiwanlife.com")
             resValue("string", "taiwanlife_member_url", "https://www.taiwanlife.com/member?service=https%3A%2F%2Ftcav.taiwanlife.com%2Flogin")
             resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
             resValue("string", "connect_fitbit_client_id", "22BVVM")
@@ -163,11 +150,6 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
-
-            //FB SDK
-            resValue("string", "facebook_app_id", "707814117610778")
-            resValue("string", "fb_login_protocol_scheme", "fb707814117610778")
-            resValue("string", "facebook_client_token", "accb9d67a13fc31412f9694e3bfe2e87")
         }
     }
     namespace = "com.taiwanlife.teamwalk"

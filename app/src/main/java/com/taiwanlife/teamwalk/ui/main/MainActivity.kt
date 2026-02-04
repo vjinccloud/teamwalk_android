@@ -57,7 +57,6 @@ import com.taiwanlife.teamwalk.ui.main.webview.MyWebMessageListener
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView
 import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
-import com.taiwanlife.teamwalk.ui.test.TestActivity
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.BindingManager
 import com.taiwanlife.teamwalk.utils.DeviceType
@@ -209,7 +208,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             garminViewModel,
             fitbitViewModel,
             healthConnectHelper,
-            ::sameDeviceCallback,
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
@@ -296,6 +294,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         // 如果以前分享的圖片還在 刪除
         ShareUtil.delShareImage(this)
 
+        // 重置OnBoarding Flag
+        SecuredPreferenceStoreManager.editAndApply {
+            it.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
+        }
+
         // 以前會在這裡初始化 GooglePlayCore類別 已經直接取代掉 詳見scoreGooglePlay
         // 檢查Google Play
         ProviderInstaller.installIfNeededAsync(this, this)
@@ -377,7 +380,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         viewBinding.test.setOnClickListener {
 //            healthConnectViewModel?.i = 0
 //            healthConnectViewModel?.getAllData{ _, _ -> }
-            startActivity(Intent(this, TestActivity::class.java))
         }
         viewBinding.patternLcokTest.setOnClickListener {
             val patternIntent = Intent(this, PatternSetupActivity::class.java)
@@ -561,85 +563,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             // onPostResume.
             retryProviderInstall = true
         }
-    }
-
-    private fun sameDeviceCallback(deviceType: DeviceType) {
-        SecuredPreferenceStoreManager.editAndApply {
-            it.putString(Config.SP_BIND_CURRENT_DEVICE, "")
-            it.putString(Config.SP_BIND_FITBIT, "")
-            it.putString(Config.SP_BIND_GARMIN, "")
-        }
-        bindingManager.bindNewDevice(deviceType)
-////        if (deviceType == HEALTH_CONNECT) {
-////            lifecycleScope.launch(Dispatchers.Main.immediate) {
-////                viewBinding.dummyData.visibility = View.VISIBLE
-////            }
-////        }
-//
-//        // 如果是相同的裝置 取我們的資料並回傳給web 如果取不到資料強制重開綁定流程
-//        when (deviceType) {
-//            HEALTH_CONNECT -> {
-////                lifecycleScope.launch(Dispatchers.Main.immediate) {
-////                    viewBinding.dummyData.visibility = View.VISIBLE
-////                }
-//                // 如果有需要透過JS回傳綁定結果
-//                postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, true.enableToString().quoteJS())
-//            }
-//
-//            GARMIN -> {
-//                val garminDataString =
-//                    SecuredPreferenceStoreManager.getString(Config.SP_BIND_GARMIN, "")
-//                if (garminDataString.isNotEmpty()) {
-//                    val garminData = getGson().fromJson(garminDataString, GarminData::class.java)
-//                    if (garminData.accessToken.isNotEmpty() && garminData.refreshToken.isNotEmpty() && garminData.jti.isNotEmpty()) {
-//                        // 如果有需要透過JS回傳綁定結果
-//                        val garminModel =
-//                            GarminModel(
-//                                garminData.oauthToken,
-//                                garminData.oauthTokenSecret,
-//                                garminData.accessToken,
-//                                garminData.refreshToken,
-//                                garminData.jti
-//                            )
-//                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(garminModel))
-//                    }
-//                } else {
-//                    bindingManager.bindNewDevice(GARMIN, true)
-//                }
-//            }
-//
-//            FITBIT -> {
-//                val fitbitDataString =
-//                    SecuredPreferenceStoreManager.getString(Config.SP_BIND_FITBIT, "")
-//                if (fitbitDataString.isNotEmpty()) {
-//                    val fitbitData = getGson().fromJson(fitbitDataString, FitbitData::class.java)
-//
-//                    if (fitbitData.accessToken != null && fitbitData.refreshToken != null) {
-//                        // 如果有需要透過JS回傳綁定結果
-//                        val fitbitModel =
-//                            FitbitModel(fitbitData.accessToken, fitbitData.refreshToken)
-//                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(fitbitModel))
-//                    }
-//                } else {
-//                    bindingManager.bindNewDevice(FITBIT, true)
-//                }
-//            }
-//
-//            NONE -> {}
-//        }
-//
-//        if (deviceType != NONE) {
-//            CommonDialog(this).apply {
-//                oneButtonInit(
-//                    getString(R.string.binding_success_title),
-//                    getString(R.string.binding_success_body),
-//                    R.drawable.alert_1,
-//                    showButtons = true,
-//                    canceledOnTouchOutside = true,
-//                    text = getString(R.string.ok)
-//                )
-//            }.show()
-//        }
     }
 
 

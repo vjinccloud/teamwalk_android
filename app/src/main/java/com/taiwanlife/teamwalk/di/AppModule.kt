@@ -20,10 +20,10 @@ import com.taiwanlife.teamwalk.ui.login.LoginViewModel
 import com.taiwanlife.teamwalk.ui.main.MainViewModel
 import com.taiwanlife.teamwalk.ui.onboarding.OnBoardingViewModel
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupViewModel
-import com.taiwanlife.teamwalk.ui.test.TestViewModel
 import com.taiwanlife.teamwalk.utils.getGson
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -116,11 +116,10 @@ val appModule = module {
         Repository(get(), get(), get(), get())
     }
 
-    viewModelOf(::MainViewModel)
-    viewModelOf(::GarminViewModel)
-    viewModelOf(::FitbitViewModel)
-    viewModelOf(::LoginViewModel)
-    viewModelOf(::OnBoardingViewModel)
-    viewModelOf(::TestViewModel)
-    viewModelOf(::PatternSetupViewModel)
+    viewModel { MainViewModel(get()) }
+    viewModel { GarminViewModel(get()) }
+    viewModel { FitbitViewModel(get()) }
+    viewModel { LoginViewModel(get()) }
+    viewModel { OnBoardingViewModel(get()) }
+    viewModel { PatternSetupViewModel(get()) }
 }

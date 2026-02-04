@@ -56,7 +56,6 @@ class ConnectActivity :
             garminViewModel,
             fitbitViewModel,
             healthConnectHelper,
-            ::sameDeviceCallback,
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
@@ -114,20 +113,6 @@ class ConnectActivity :
         }
     }
 
-    private fun sameDeviceCallback(deviceType: DeviceType) {
-        if (deviceType != NONE) {
-            CommonDialog(this).apply {
-                oneButtonInit(
-                    getString(R.string.binding_success_title), getString(R.string.binding_success_body), R.drawable.alert_1,
-                    showButtons = true,
-                    canceledOnTouchOutside = true,
-                    text = getString(R.string.ok)
-                )
-            }.show()
-        }
-
-        setCheckBoxAndNext()
-    }
 
     override fun onDestroy() {
         super.onDestroy()

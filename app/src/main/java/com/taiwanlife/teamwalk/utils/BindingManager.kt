@@ -42,7 +42,6 @@ class BindingManager(
     private val garminViewModel: GarminViewModel,
     private val fitbitViewModel: FitbitViewModel,
     private val healthConnectHelper: HealthConnectHelper,
-    private val sameDeviceCallback: (deviceType: DeviceType) -> Unit = {},
     private val bindingRemovedCallback: (deviceType: DeviceType) -> Unit,
     private val bindingNewDeviceSuccessCallback: (newDeviceType: DeviceType, data: String?) -> Unit
 ) {
@@ -69,14 +68,14 @@ class BindingManager(
     /**
      * 開始綁定裝置流程
      */
-    fun bindNewDevice(deviceType: DeviceType, forced: Boolean = false) {
+    fun bindNewDevice(deviceType: DeviceType) {
         val currentDeviceType = getCurrentDeviceType()
-        // 可能是相同裝置但是想綁不同帳號 所以還是讓他重綁
-        if (deviceType == currentDeviceType && !forced) {
-            // 現在想要綁定的裝置已經是目前的裝置了
-            sameDeviceCallback(currentDeviceType)
-            return
-        }
+//        // 可能是相同裝置但是想綁不同帳號 所以還是讓他重綁
+//        if (deviceType == currentDeviceType) {
+//            // 現在想要綁定的裝置已經是目前的裝置了
+//            sameDeviceCallback(currentDeviceType)
+//            return
+//        }
 
         // 根據不同的裝置啟動不同的綁定流程 注意點是如果現有綁訂其他裝置 要先解除所有裝置在綁定
         if (currentDeviceType != NONE) {
@@ -95,8 +94,6 @@ class BindingManager(
                     positiveOnClick = {
                         removeAllDevice()
 
-                        // 移除裝置之後呼叫callback去處理刪除的邏輯
-                        bindingRemovedCallback(currentDeviceType)
 
                         // 移除現有裝置之後 開始綁定新裝置
                         startBindingProcess(deviceType)
@@ -151,6 +148,8 @@ class BindingManager(
 
         // 模擬成功後結果
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_BIND_CURRENT_DEVICE, NONE.value)
+        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_BIND_FITBIT, "")
+        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_BIND_GARMIN, "")
     }
 
     /**
@@ -199,13 +198,11 @@ class BindingManager(
     }
 
     private fun startGarminProcess() {
-//        val authorization = GarminHelper.getGarminAuthorizationForAuthCode()
-//        garminViewModel.getGarminAuthCode(authorization)
-
         val verifier = GarminHelper.generateCodeVerifier()
         val challenge = GarminHelper.generateCodeChallenge(verifier)
         val state = UUID.randomUUID().toString()
 
+        // 加密後儲存驗證參數 在deepLink後驗證避免中間人攻擊
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_GARMIN_VERIFIER, verifier)
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_GARMIN_STATE, state)
 

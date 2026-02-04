@@ -31,6 +31,7 @@ object SecurityCheckManager {
     var rootStatus: SecurityStatus = SecurityStatus.INIT
     var deviceLockStatus: SecurityStatus = SecurityStatus.INIT
     var emulatorStatus: SecurityStatus = SecurityStatus.INIT
+    var antiReverseStatus: SecurityStatus = SecurityStatus.INIT
 
     fun runAll(context: Context): SecurityCheckResult {
         val errors = mutableListOf<String>()
@@ -54,6 +55,9 @@ object SecurityCheckManager {
         }
         if (emulatorStatus == SecurityStatus.INIT) {
             checkEmulator(context)?.let { errors.add(it) }
+        }
+        if (antiReverseStatus == SecurityStatus.INIT) {
+            checkAntiReverse(context)?.let { errors.add(it) }
         }
 //        checkAppDebuggable(context)?.let { return it }
 //        checkInstallSource(context)?.let { return it }
@@ -283,4 +287,106 @@ object SecurityCheckManager {
             false
         }
     }
+
+    private fun checkAntiReverse(context: Context): String? {
+
+        val hitCount = listOf(
+            detectFridaProcess(),
+            detectFridaPorts(),
+            detectFridaLibraries(),
+            detectXposed(),
+            detectDebugger(),
+            detectPtrace(),
+        ).count { it }
+
+        // 命中 >= 2 才視為風險
+        if (hitCount >= 2) {
+            antiReverseStatus = SecurityStatus.NOTIFIED
+            return String.format(
+                Locale.getDefault(),
+                context.getString(R.string.main_security_check),
+                context.getString(R.string.main_security_check_reverse)
+            )
+        }
+
+        antiReverseStatus = SecurityStatus.PASSED
+        return null
+    }
+
+    private fun detectFridaProcess(): Boolean {
+        return try {
+            val suspiciousProcesses = listOf(
+                "frida", "gum-js-loop", "gdbus", "frida-server"
+            )
+            val process = Runtime.getRuntime().exec("ps")
+            val output = process.inputStream.bufferedReader().readText()
+            suspiciousProcesses.any { output.contains(it, ignoreCase = true) }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectFridaPorts(): Boolean {
+        return try {
+            val tcpFile = File("/proc/net/tcp")
+            if (!tcpFile.exists()) return false
+
+            val fridaPorts = listOf("69CE", "69D2") // 27042, 27090 的十六進制
+            tcpFile.readLines().any { line ->
+                fridaPorts.any { port -> line.contains(":$port ", ignoreCase = true) }
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectFridaLibraries(): Boolean {
+        return try {
+            val maps = File("/proc/self/maps")
+            if (!maps.exists()) return false
+
+            maps.readLines().any {
+                it.contains("frida", ignoreCase = true) ||
+                        it.contains("gum-js-loop") ||
+                        it.contains("libfrida")
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectXposed(): Boolean {
+        return try {
+            // 1. 檢測 XposedBridge 類
+            Class.forName("de.robv.android.xposed.XposedBridge")
+            true
+        } catch (_: ClassNotFoundException) {
+            // 2. 檢測 Xposed 相關堆疊
+            Thread.currentThread().stackTrace.any {
+                it.className?.contains("xposed", ignoreCase = true) == true
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectDebugger(): Boolean {
+        return android.os.Debug.isDebuggerConnected() ||
+                android.os.Debug.waitingForDebugger()
+    }
+
+    private fun detectPtrace(): Boolean {
+        return try {
+            val status = File("/proc/self/status")
+            if (!status.exists()) return false
+
+            status.readLines().any {
+                it.startsWith("TracerPid:") &&
+                        it.substringAfter(":").trim() != "0"
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
 }

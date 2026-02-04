@@ -149,8 +149,6 @@ class PatternSetupActivity :
     }
 
     private fun callSetPatternApi() {
-        val castGC = SecuredPreferenceStoreManager.getString(Config.SP_CASTGC, "")
-        val userName = SecuredPreferenceStoreManager.getString(Config.SP_PID, "")
 
         when (BuildConfig.BUILD_TYPE) {
             "debug" -> {
@@ -159,6 +157,9 @@ class PatternSetupActivity :
             }
 
             else -> {
+                val castGC = SecuredPreferenceStoreManager.getString(Config.SP_CASTGC, "")
+                val userName = SecuredPreferenceStoreManager.getString(Config.SP_PID, "")
+
                 patternSetupViewModel.setPatternLock(castGC, userName, originalPattern, secondNewPattern)
             }
         }

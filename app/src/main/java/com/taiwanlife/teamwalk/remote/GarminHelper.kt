@@ -12,6 +12,9 @@ object GarminHelper {
     private const val CHARSET =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 
+    /**
+     * Garmin驗證用網址
+     */
     fun buildGarminAuthUrl(
         redirectUri: String,
 //        scope: String,
@@ -34,6 +37,9 @@ object GarminHelper {
             .toString()
     }
 
+    /**
+     * 建立隨機驗證碼
+     */
     fun generateCodeVerifier(): String {
         val secureRandom = SecureRandom()
         return (1..VERIFIER_LENGTH)
@@ -41,6 +47,9 @@ object GarminHelper {
             .joinToString("")
     }
 
+    /**
+     * 加密隨機碼
+     */
     fun generateCodeChallenge(verifier: String): String {
         // Cryptographic hash finalized without update 避免資安誤判沒有呼叫update 直接呼叫update => digest
         val messageDigest = MessageDigest.getInstance("SHA-256")

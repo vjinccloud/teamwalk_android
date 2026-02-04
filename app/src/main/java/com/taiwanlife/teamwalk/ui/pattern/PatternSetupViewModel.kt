@@ -21,12 +21,4 @@ class PatternSetupViewModel(repository: Repository) : BaseViewModel(repository) 
             }
         }
     }
-
-    fun disablePattern() {
-        val pid = SecuredPreferenceStoreManager.getString(Config.SP_PID, "")
-
-        viewModelScope.launch {
-            patternFlow.execute { repository.cssoRepository.disablePatternLock(pid) }
-        }
-    }
 }

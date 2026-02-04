@@ -6,15 +6,18 @@ import android.content.Context.DOWNLOAD_SERVICE
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
+import android.os.Message
 import android.util.AttributeSet
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleOwner
@@ -22,7 +25,10 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
+import com.taiwanlife.teamwalk.ui.common.CommonDialog
+import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
+import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
 import timber.log.Timber
 import java.util.Locale
 
@@ -64,6 +70,11 @@ class MyWebView : WebView {
 //    }
 
     private var finishCallback: () -> Unit = {}
+    private val allowedDomains = setOf(
+        context.getString(R.string.web_url).toUri().host,
+        context.getString(R.string.api_url).toUri().host,
+        context.getString(R.string.csso_url).toUri().host,
+    ).filterNotNull() // 去掉 null
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -133,19 +144,13 @@ class MyWebView : WebView {
         }
 
         webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                url: String?
-            ): Boolean {
-                url?.let { view?.loadUrl(it) }
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                url?.let { safeLoadUrl(view, it) }
                 return true
             }
 
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                request?.url?.toString()?.let { view?.loadUrl(it) }
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                request?.url?.toString()?.let { safeLoadUrl(view, it) }
                 return true
             }
 
@@ -214,6 +219,11 @@ class MyWebView : WebView {
                 fileChooserCallback(filePathCallback, fileChooserParams)
                 return true
             }
+
+            override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
+                // 阻止新視窗
+                return false
+            }
         }
 
         setDownloadListener { url, userAgent, contentDisposition, mimeType, contentLength ->
@@ -250,6 +260,30 @@ class MyWebView : WebView {
         myWebMessageListener.init(this)
 
 //        loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
+    }
+
+    private fun safeLoadUrl(view: WebView?, url: String) {
+        val uri = url.toUri()
+        val host = uri.host ?: ""
+
+        val isAllowed = allowedDomains.any { allowedHost ->
+            host.equals(allowedHost, ignoreCase = true) || host.endsWith(".$allowedHost")
+        }
+
+        if (isAllowed) {
+            view?.loadUrl(url)
+        } else {
+            CommonDialog(context).apply {
+                oneButtonInit(
+                    context.getString(R.string.webview_not_allowed_host),
+                    host,
+                    R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = context.getString(R.string.ok)
+                )
+            }.show()
+        }
     }
 
     fun backIfValid(): Boolean {
