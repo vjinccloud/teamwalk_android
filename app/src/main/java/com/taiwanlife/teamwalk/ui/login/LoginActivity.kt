@@ -1,7 +1,9 @@
 package com.taiwanlife.teamwalk.ui.login
 
+import android.R.attr.text
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.Paint
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.TextPaint
@@ -203,10 +205,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         viewBinding.loginButton.setOnClickListener {
             login()
         }
-//        viewBinding.loginEditTextPasswordPid.setText("A127393470")
-//        viewBinding.loginEditTextPassword.setText("Titan123")
-//        viewBinding.loginEditTextPasswordPid.setText("A107529143")
-//        viewBinding.loginEditTextPassword.setText("abc12345")
 
 
         tabSettings()
@@ -220,19 +218,22 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 it.putBoolean(Config.SP_LOGIN_REMEMBER_ME, isRememberMe)
             }
         }
-        // 註冊
-        setSpannable(
-            viewBinding.loginSignupTextView, getString(R.string.sign_up), R.color.colorLinkText
-        ) {
-            toRegister()
+
+        viewBinding.loginSignupTextView.apply {
+            // 加上底線
+            paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+
+            setOnClickListener {
+                toRegister()
+            }
         }
-        // 忘記密碼
-        setSpannable(
-            viewBinding.loginForgetPassTextView,
-            getString(R.string.forget_pass),
-            R.color.colorLinkSecondaryText
-        ) {
-            toForgetPassword()
+        viewBinding.loginForgetPassTextView.apply {
+            // 加上底線
+            paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+
+            setOnClickListener {
+                toForgetPassword()
+            }
         }
 
         loginViewModel.getSysParam()
@@ -664,24 +665,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     private fun toForgetPassword() {
         val intent = CSSOWebViewActivity.forgetPassword(this)
         startActivity(intent)
-    }
-
-    private fun setSpannable(textView: TextView, text: String, color: Int, onClick: () -> Unit) {
-        val ss = SpannableString(text)
-        val cs: ClickableSpan = object : ClickableSpan() {
-            override fun updateDrawState(ds: TextPaint) {
-                super.updateDrawState(ds)
-                ds.color = getColor(color)
-            }
-
-            override fun onClick(widget: View) {
-                onClick()
-            }
-        }
-
-        ss.setSpan(cs, 0, text.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
-        textView.text = ss
-        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 
     override fun onStop() {

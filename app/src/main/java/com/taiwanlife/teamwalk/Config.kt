@@ -30,8 +30,11 @@ object Config {
 
     // region 推播設定參數
     const val CHANNEL_ID = "teamwalk"
+    const val CHANNEL_ID_FOR_BADGE = "teamwalk_badge"
     const val CHANNEL_NAME = "Teamwalk 推播"
+    const val CHANNEL_NAME_FOR_BADGE = "Teamwalk 未讀提醒推播"
     const val CHANNEL_DESCRIPTION = "用來傳遞 Teamwalk 推播"
+    const val CHANNEL_DESCRIPTION_FOR_BADGE = "用來傳遞 Teamwalk 未讀訊息的推播"
     const val BADGE_NOTIFICATION_ID = 1001
     // end region
 
@@ -69,6 +72,7 @@ object Config {
     const val NOTIFICATION_KEY_TITLE = "title"
     const val NOTIFICATION_KEY_MSG = "msg"
     const val NOTIFICATION_KEY_TYPE = "type"
+    const val NOTIFICATION_KEY_BADGE = "badge"
 
     enum class NotificationType(val v: String) {
         NONE("N"),

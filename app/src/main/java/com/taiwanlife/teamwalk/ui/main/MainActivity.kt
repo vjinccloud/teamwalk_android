@@ -1,8 +1,10 @@
 package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
+import android.R.attr.type
 import android.app.Activity
 import android.app.ComponentCaller
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
@@ -30,6 +32,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_MSG
+import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TITLE
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TYPE
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_URL
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
@@ -39,6 +43,7 @@ import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
 import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
+import com.taiwanlife.teamwalk.service.TWFirebaseMessagingService
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
@@ -71,7 +76,6 @@ import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
 import com.taiwanlife.teamwalk.utils.Utils
-import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
 import com.taiwanlife.teamwalk.utils.Utils.stringToNotificationType
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
@@ -81,6 +85,7 @@ import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
+import java.util.Locale
 import kotlin.random.Random
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
@@ -95,7 +100,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         private const val KEY_PID = "pid"
     }
 
-    private var badgeCount = 0;
     private lateinit var myNotificationManager: MyNotificationManager
     private val permissionManager = PermissionManager(this)
     private val mainViewModel: MainViewModel by viewModel()
@@ -345,24 +349,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun updateBadge(badgeCount: Int) {
+        val pendingIntent = MyNotificationManager.getPendingIntentForBadge(this, 1002, badgeCount)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val perm = permissionManager.hasPermissions(
                 this,
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS)
             )
             if (perm) {
-                myNotificationManager.updateBadge(badgeCount)
+                myNotificationManager.updateBadge(pendingIntent, badgeCount)
             } else {
                 permissionManager.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { granted, denied ->
                     if (granted) {
-                        myNotificationManager.updateBadge(badgeCount)
+                        myNotificationManager.updateBadge(pendingIntent, badgeCount)
                     }
                 }
             }
         } else {
-            myNotificationManager.updateBadge(badgeCount)
+            myNotificationManager.updateBadge(pendingIntent, badgeCount)
         }
-        this.badgeCount = badgeCount
         viewBinding.updateBadge.text =
             "${getString(R.string.main_simulate_update_badge)}(${badgeCount})"
     }
@@ -576,7 +580,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
-        if(SecuredPreferenceStoreManager.getBoolean(Config.SP_BINDING_FROM_ONBOARD, false)) {
+        if (SecuredPreferenceStoreManager.getBoolean(Config.SP_BINDING_FROM_ONBOARD, false)) {
             // 來自OnBoarding 交由那邊處理
             return
         }
@@ -908,7 +912,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun updatePushCount(notifyCount: Int) {
-        myNotificationManager.updateBadge(notifyCount)
+        myNotificationManager.updateBadge(MyNotificationManager.getPendingIntentForBadge(this, 1003, notifyCount),notifyCount)
     }
 
     override fun logout() {
@@ -963,8 +967,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             when (notificationType) {
                 Config.NotificationType.NONE -> {}
                 Config.NotificationType.URL -> {
-                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                    startActivity(intent)
+                    CommonDialog(this).apply {
+                        twoButtonInit(
+                            getString(R.string.notification_url_alert_title),
+                            getString(R.string.notification_url_alert_message),
+                            R.drawable.alert_1,
+                            showButtons = true,
+                            canceledOnTouchOutside = false,
+                            positiveText = getString(R.string.confirm2),
+                            positiveOnClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                                startActivity(intent)
+                            },
+                            negativeText = getString(R.string.cancel),
+                            negativeOnClick = {
+
+                            }
+                        )
+                    }.show()
                 }
 
                 Config.NotificationType.APP_PAGE -> {

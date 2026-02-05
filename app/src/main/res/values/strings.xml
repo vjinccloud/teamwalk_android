@@ -86,6 +86,11 @@
     <string name="binding_success_title">綁定成功</string>
     <string name="binding_success_body">設備綁定成功</string>
 
+    <string name="notification_url_alert_title">請注意</string>
+    <string name="notification_url_alert_message">您即將離開TeamWalk APP\n請確認是否執行？</string>
+    <string name="notification_badge_title">新訊息</string>
+    <string name="notification_badge_message" formatted="true">你有 %d 則未讀訊息</string>
+
     <string name="test">teamwalkdebug</string>
 
     <!--  加入原本的String  -->
