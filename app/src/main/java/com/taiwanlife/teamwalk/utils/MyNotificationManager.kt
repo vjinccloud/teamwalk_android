@@ -129,7 +129,6 @@ class MyNotificationManager(private val context: Context) {
             .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_MIN)
             .setContentIntent(pendingIntent)
             .setSound(null)
             .setVibrate(null)
@@ -185,8 +184,9 @@ class MyNotificationManager(private val context: Context) {
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_NONE)
             .setNumber(0)
+            .setAutoCancel(true)
             .setVibrate(LongArray(0))
 
         try {

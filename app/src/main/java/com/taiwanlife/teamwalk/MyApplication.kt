@@ -28,6 +28,7 @@ class MyApplication : Application() {
                 NotificationManager.IMPORTANCE_HIGH // 設定通知的重要性
             ).apply {
                 description = CHANNEL_DESCRIPTION
+                setShowBadge(false)
                 // 其他可選設定：
                 // enableLights(true) // 是否開啟指示燈
                 // lightColor = Color.RED // 指示燈顏色

@@ -115,25 +115,25 @@ class BindingManager(
         removeAllDevice()
 
         // 如果是Health Connect 需要多問是否要去關閉權限
-        if (deviceType == HEALTH_CONNECT) {
-            CommonDialog(baseActivity).apply {
-                twoButtonInit(
-                    title = baseActivity.getString(R.string.binding_change_health_connect_title),
-                    body = baseActivity.getString(R.string.binding_change_health_connect_message),
-                    image = R.drawable.alert_1,
-                    positiveText = baseActivity.getString(R.string.binding_change_health_connect_confirm),
-                    positiveOnClick = {
-                        baseActivity.startActivity(
-                            healthConnectHelper.createManagePermissionsIntent(baseActivity)
-                        )
-                    },
-                    negativeText = baseActivity.getString(R.string.binding_change_health_connect_cancel),
-                    negativeOnClick = {},
-                    showButtons = true,
-                    canceledOnTouchOutside = true
-                )
-            }.show()
-        }
+//        if (deviceType == HEALTH_CONNECT) {
+//            CommonDialog(baseActivity).apply {
+//                twoButtonInit(
+//                    title = baseActivity.getString(R.string.binding_change_health_connect_title),
+//                    body = baseActivity.getString(R.string.binding_change_health_connect_message),
+//                    image = R.drawable.alert_1,
+//                    positiveText = baseActivity.getString(R.string.binding_change_health_connect_confirm),
+//                    positiveOnClick = {
+//                        baseActivity.startActivity(
+//                            healthConnectHelper.createManagePermissionsIntent(baseActivity)
+//                        )
+//                    },
+//                    negativeText = baseActivity.getString(R.string.binding_change_health_connect_cancel),
+//                    negativeOnClick = {},
+//                    showButtons = true,
+//                    canceledOnTouchOutside = true
+//                )
+//            }.show()
+//        }
 
 
         // 成功後結果
