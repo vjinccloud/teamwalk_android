@@ -19,24 +19,50 @@ import kotlinx.coroutines.runBlocking
 
 object SecuredPreferenceStoreManager {
     private const val KEYSET_NAME = "teamwalk2_master_keyset"
-    private const val PREF_NAME = "secure_teamwalk2_tink_keyset_prefs"
+    private const val KEYSET_PREF_NAME = "teamwalk2_tink_keyset_prefs"
+    private const val DATASTORE_NAME = "teamwalk2_secure_datastore"
     private const val MASTER_KEY_URI = "android-keystore://teamwalk2_tink_master_key"
 
     private lateinit var dataStore: DataStore<Preferences>
-    private val aead: Aead by lazy {
+    private lateinit var aead: Aead
+
+    private fun createOrResetAead(context: Context): Aead {
+        return try {
+            createAead(context)
+        } catch (e: Exception) {
+            // 舊的Keystore或keyset因系統更新/螢幕加解密方法更換等等原因無法使用了 重新建立
+            e.printStackTrace()
+
+            context.getSharedPreferences(
+                KEYSET_PREF_NAME,
+                Context.MODE_PRIVATE
+            ).edit().clear()
+                // 這裡故意使用commit因為apply為非同步 極小機率可能出現keyset還沒清乾淨就又被讀到的狀況
+                .commit()
+
+            // keyset失效 將原本資料清除
+            context.deleteFile(
+                context.preferencesDataStoreFile(DATASTORE_NAME).name
+            )
+
+            createAead(context)
+        }
+    }
+
+    private fun createAead(context: Context): Aead {
         val keysetHandle =
             AndroidKeysetManager.Builder()
                 .withSharedPref(
-                    MyApplication.context,
+                    context,
                     KEYSET_NAME,
-                    PREF_NAME
+                    KEYSET_PREF_NAME
                 )
                 .withKeyTemplate(AeadKeyTemplates.AES256_GCM)
                 .withMasterKeyUri(MASTER_KEY_URI)
                 .build()
                 .keysetHandle
 
-        keysetHandle.getPrimitive(
+        return keysetHandle.getPrimitive(
             RegistryConfiguration.get(),
             Aead::class.java
         )
@@ -45,19 +71,11 @@ object SecuredPreferenceStoreManager {
     fun init(context: Context) {
         TinkConfig.register()
 
-        AndroidKeysetManager.Builder()
-            .withSharedPref(
-                context,
-                KEYSET_NAME,
-                PREF_NAME
-            )
-            .withKeyTemplate(AeadKeyTemplates.AES256_GCM)
-            .withMasterKeyUri(MASTER_KEY_URI)
-            .build()
+        aead = createOrResetAead(context)
 
         dataStore = PreferenceDataStoreFactory.create(
             produceFile = {
-                context.preferencesDataStoreFile(PREF_NAME)
+                context.preferencesDataStoreFile(DATASTORE_NAME)
             }
         )
     }

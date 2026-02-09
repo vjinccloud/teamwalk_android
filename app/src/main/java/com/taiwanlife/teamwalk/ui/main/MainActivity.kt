@@ -501,6 +501,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //        super.onReceivedEvent(eventName, result)
         if (eventName == Config.EVENT_NO_ID_TO_LOGIN) {
             toLogin()
+        } else if(eventName == Config.EVENT_ONBOARDING_CONNECT_COMPLETE_REFRESH_HOME) {
+            viewBinding.webView.reload()
         }
     }
 

@@ -108,6 +108,9 @@ class ConnectActivity :
         observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
             debugToast(R.string.onboarding_connect_done)
 
+            // 有綁定完的話需要通知首頁做重新整理才會正確顯示綁定裝置
+            postEvent(Config.EVENT_ONBOARDING_CONNECT_COMPLETE_REFRESH_HOME, "")
+
             // 最後關閉所有頁面
             OnBoardingActivityManage.finishAll()
         }
