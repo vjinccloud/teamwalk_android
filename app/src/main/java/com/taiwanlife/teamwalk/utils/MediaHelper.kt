@@ -6,6 +6,7 @@ import android.os.Environment
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import com.taiwanlife.teamwalk.Config
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -51,7 +52,7 @@ class MediaPickerHelper(
     }
 
     private fun createImageFile(): File {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Config.TAIWAN_LOCALE).format(Date())
         val fileName = "JPEG_${timestamp}_"
         val storageDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(fileName, ".jpg", storageDir)

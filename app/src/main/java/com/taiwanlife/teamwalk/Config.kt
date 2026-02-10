@@ -1,8 +1,13 @@
 package com.taiwanlife.teamwalk
 
+import java.time.ZoneId
+import java.util.Locale
+
 object Config {
     // 除了正式版不顯示 額外在新增一個個參數控制是否顯示Toast
     const val SHOW_DEBUG_TOAST = false
+    val TAIWAN_ZONE_ID = ZoneId.of("Asia/Taipei")
+    val TAIWAN_LOCALE = Locale.TAIWAN
 
     const val API_CODE_SUCCESS = "0000"
     const val API_BODY_EMPTY_MESSAGE = "Response body is null"

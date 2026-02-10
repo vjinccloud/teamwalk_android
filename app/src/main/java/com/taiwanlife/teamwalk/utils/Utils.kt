@@ -118,24 +118,6 @@ object Utils {
     }
 
     /**
-     * 將 Date 物件格式化為指定字串，或回傳當前時間的預設格式字串。
-     *
-     * @param date 要格式化的 Date 物件。如果為 null，則使用當前時間。
-     * @param format 格式字串，例如 "yyyy/MM/dd HH:mm:ss"。如果為 null，則使用預設格式。
-     * @return 格式化後的日期時間字串。
-     */
-    fun formatDate(date: Date? = null, format: String? = "yyyy/MM/dd HH:mm:ss"): String {
-        // 如果 date 為 null，則使用當前時間
-        val dateToFormat = date ?: Date()
-
-        // 建立 SimpleDateFormat 物件，並設定語系為當前系統預設
-        val formatter = SimpleDateFormat(format, Locale.getDefault())
-
-        // 格式化並回傳
-        return formatter.format(dateToFormat)
-    }
-
-    /**
      * 將 LocalDateTime 物件格式化為指定字串，或回傳當前時間的預設格式字串。
      *
      * @param dateTime 要格式化的 LocalDateTime 物件。如果為 null，則使用當前時間。

@@ -654,8 +654,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun loginFailure() {
-        Timber.d("Login Failed - ${Utils.formatDate()}")
-
         toLogin()
     }
 

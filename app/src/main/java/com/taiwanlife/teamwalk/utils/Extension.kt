@@ -11,6 +11,7 @@ import androidx.health.connect.client.records.StepsRecord
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.taiwanlife.teamwalk.BuildConfig
+import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.SHOW_DEBUG_TOAST
 import com.taiwanlife.teamwalk.remote.adapter.InstantAdapter
 import com.taiwanlife.teamwalk.remote.adapter.ZoneOffsetAdapter
@@ -129,8 +130,6 @@ fun StepsRecord.toTeamWalkRecord(): TeamWalkRecordModel {
 }
 
 fun AggregationResultGroupedByDuration.toStepTeamWalkRecord(): TeamWalkRecordModel {
-    val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.systemDefault()) // 使用系統時區
-
     val startSeconds = startTime.epochSecond.toString()
     val endSeconds = endTime.epochSecond.toString()
 
@@ -139,13 +138,10 @@ fun AggregationResultGroupedByDuration.toStepTeamWalkRecord(): TeamWalkRecordMod
 
     // 匯總資料通常建議使用系統預設時區，因為匯總物件本身不帶 zoneOffset
     val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-        .withZone(ZoneId.systemDefault())
+        .withZone(Config.TAIWAN_ZONE_ID)
 
     // 從 result 中提取步數總和
     val totalSteps = result[StepsRecord.COUNT_TOTAL] ?: 0L
-    if(totalSteps > 0) {
-        Timber.d("totalSteps = $totalSteps startTime = ${formatter.format(startTime)} endTime = ${formatter.format(endTime)}")
-    }
 
     return TeamWalkRecordModel(
         startTimestamp = startSeconds,
@@ -164,7 +160,7 @@ fun AggregationResultGroupedByDuration.toSleepTeamWalkRecord(): TeamWalkRecordMo
         .withZone(ZoneId.of("UTC"))
 
     val localFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-        .withZone(ZoneId.systemDefault())
+        .withZone(Config.TAIWAN_ZONE_ID)
 
     // 提取睡眠總時長，並轉為秒數 (Long)
     val sleepDurationInSeconds = result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.seconds ?: 0L

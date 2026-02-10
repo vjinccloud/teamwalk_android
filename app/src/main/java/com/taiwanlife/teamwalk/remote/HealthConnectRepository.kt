@@ -16,63 +16,6 @@ import java.time.Instant
 
 class HealthConnectRepository(private val healthConnectClient: HealthConnectClient) {
 
-    suspend fun readSleepData(
-        startTime: Instant,
-        endTime: Instant
-    ): List<SleepSessionRecord> {
-        try {
-            val response = healthConnectClient.readRecords(
-                ReadRecordsRequest(
-                    SleepSessionRecord::class,
-                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
-                )
-            )
-            return response.records
-        } catch (e: Exception) {
-            // Run error handling here
-            e.printStackTrace()
-        }
-        return emptyList()
-    }
-
-    suspend fun readStepData(
-        startTime: Instant,
-        endTime: Instant
-    ): List<StepsRecord> {
-        try {
-            val response = healthConnectClient.readRecords(
-                ReadRecordsRequest(
-                    StepsRecord::class,
-                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
-                )
-            )
-            return response.records
-        } catch (e: Exception) {
-            // Run error handling here
-            e.printStackTrace()
-        }
-        return emptyList()
-    }
-
-    suspend fun readTotalCaloriesBurnedData(
-        startTime: Instant,
-        endTime: Instant
-    ): List<TotalCaloriesBurnedRecord> {
-        try {
-            val response = healthConnectClient.readRecords(
-                ReadRecordsRequest(
-                    TotalCaloriesBurnedRecord::class,
-                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
-                )
-            )
-            return response.records
-        } catch (e: Exception) {
-            // Run error handling here
-            e.printStackTrace()
-        }
-        return emptyList()
-    }
-
     suspend fun readStepDataAsBuckets(
         startTime: Instant,
         endTime: Instant,
