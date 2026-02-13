@@ -92,6 +92,8 @@ object Config {
         val realPath: String,
     )
 
+    // 目前收到NONE時其實也要導頁 到我的的通知頁面
+    val noneAppPageData = NotificationAppPageData("", "my/notification/list")
     val listOfNotificationAppPageData = listOf(
         NotificationAppPageData("homepage", "main"),
         NotificationAppPageData("team_challenge", "challenge/team_pk_board"),

@@ -965,7 +965,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             val notificationType = stringToNotificationType(type)
 
             when (notificationType) {
-                Config.NotificationType.NONE -> {}
                 Config.NotificationType.URL -> {
                     CommonDialog(this).apply {
                         twoButtonInit(
@@ -985,6 +984,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             }
                         )
                     }.show()
+                }
+
+                Config.NotificationType.NONE -> {
+                    val uri = getEnvironmentConfig().webUrlBase.toUri()
+                        .buildUpon()
+                        .appendEncodedPath(Config.noneAppPageData.realPath)
+                        .build()
+                        .toString()
+                    viewBinding.webView.loadUrl(uri)
                 }
 
                 Config.NotificationType.APP_PAGE -> {
