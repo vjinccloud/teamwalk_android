@@ -58,23 +58,15 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         val pendingIntent = if (notificationType == Config.NotificationType.URL && !url.isNullOrEmpty()) {
-            val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
 
-             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                PendingIntent.getActivity(
-                    this,
-                    remoteMessage.getSentTime().toInt(),
-                    browserIntent,
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            } else {
-                PendingIntent.getActivity(
-                    this,
-                    remoteMessage.getSentTime().toInt(),
-                    browserIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            }
+            // 收到需要外開瀏覽器的URL的網址 交由外面瀏覽器開啟
+            val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+            PendingIntent.getActivity(
+                this,
+                remoteMessage.getSentTime().toInt(),
+                browserIntent,
+                flags
+            )
         } else {
             intent.putExtra(NOTIFICATION_KEY_URL, url)
             intent.putExtra(NOTIFICATION_KEY_TYPE, type)
@@ -82,21 +74,12 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
             intent.putExtra(NOTIFICATION_KEY_MSG, msg)
             intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                PendingIntent.getActivity(
-                    this,
-                    remoteMessage.getSentTime().toInt(),
-                    intent,
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            } else {
-                PendingIntent.getActivity(
-                    this,
-                    remoteMessage.getSentTime().toInt(),
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            }
+            PendingIntent.getActivity(
+                this,
+                remoteMessage.getSentTime().toInt(),
+                intent,
+                flags
+            )
         }
         val notificationId = remoteMessage.sentTime.toInt()
         myNotificationManager.sendFcmNotification(notificationId, title, msg, pendingIntent)
