@@ -1,8 +1,11 @@
 package com.taiwanlife.teamwalk.base
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -28,12 +31,15 @@ import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityBaseBinding
+import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
+import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 import java.io.File
 
 abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInflater) -> VB) :
@@ -42,6 +48,8 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
     private val sharedEventViewModel: SharedEventViewModel by inject()
     private lateinit var activityBaseBinding: ActivityBaseBinding
     lateinit var viewBinding: VB
+
+    private var overlayWarningShown = false
 
     /**
      * 在子類呼叫時指定 StatusBar 顏色
@@ -83,13 +91,18 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         activityBaseBinding = ActivityBaseBinding.inflate(layoutInflater)
+
         window.setFlags(
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            activityBaseBinding.root.filterTouchesWhenObscured = true
-        }
+
+        activityBaseBinding.root.filterTouchesWhenObscured = true
+
+//        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+//        startActivity(intent)
+            // 舊版也無法跳出警示
+//        DeviceUtil.setFlagSecure(this)
         setContentView(activityBaseBinding.root)
         viewBinding = inflateVB.invoke(layoutInflater)
         activityBaseBinding.baseContainer.addView(viewBinding.root)
@@ -212,16 +225,41 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            if (ev.flags and MotionEvent.FLAG_WINDOW_IS_OBSCURED != 0) {
-                return true
+        val isObscured =
+            ev.flags and MotionEvent.FLAG_WINDOW_IS_OBSCURED != 0 ||
+                    ev.flags and MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED != 0
+
+        if (isObscured) {
+
+            if (!overlayWarningShown) {
+                overlayWarningShown = true
+                showOverlayWarning()
             }
 
-            if (ev.flags and MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED != 0) {
-                return true
-            }
+            return true
         }
+
         return super.dispatchTouchEvent(ev)
+    }
+
+    private fun showOverlayWarning() {
+        getAlertDialog(
+            context = this,
+            message = getString(R.string.main_security_check_overlay),
+            icon = R.mipmap.ic_launcher,
+            isCancelable = false,
+            shouldShow = true,
+            positiveText = getString(R.string.go_to_setting),
+            positiveOnClick = {
+                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                startActivity(intent)
+                overlayWarningShown = false
+            },
+            negativeText = getString(R.string.understand_and_continue),
+            negativeOnClick = {
+                overlayWarningShown = false
+            }
+        )
     }
 
     /**

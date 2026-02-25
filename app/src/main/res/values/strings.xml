@@ -61,6 +61,7 @@
     <string name="alert_reverse_tool_message">提醒您，有逆向工具運行，APP可能會有資訊外流的風險"</string>
     <string name="alert_covered_message">提醒您，屏幕被覆蓋，APP可能會有資訊外流的風險"</string>
     <string name="understand_and_continue">我知道了並繼續使用</string>
+    <string name="go_to_setting">前往設定</string>
 
     <string name="onboarding_connect_skip">暫時先不綁定，開始您的健康生活</string>
     <string name="onboarding_connect_next">開始您的健康生活</string>

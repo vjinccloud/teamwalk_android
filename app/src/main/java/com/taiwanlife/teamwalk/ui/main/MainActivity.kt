@@ -3,9 +3,13 @@ package com.taiwanlife.teamwalk.ui.main
 import android.Manifest
 import android.R.attr.type
 import android.app.Activity
+import android.app.AppOpsManager
 import android.app.ComponentCaller
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -13,6 +17,7 @@ import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.text.TextUtils
 import android.view.View
 import android.webkit.CookieManager
@@ -215,7 +220,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             ::bindingRemoved,
             ::bindNewDeviceSuccess
         )
+//        val startTime = System.currentTimeMillis()
+//        val riskyApps = getAppsWithOverlayPermission(this)
+//
+//        if (riskyApps.isNotEmpty()) {
+//            val appListString = riskyApps.joinToString(", ")
+//            getAlertDialog(
+//                context = this,
+//                message = "偵測到以下應用程式具有『螢幕覆蓋』權限：\n[$appListString]\n\n為確保您的交易安全，請先關閉或移除這些 App 的懸浮視窗權限。",
+//                positiveText = "前往設定",
+//                isCancelable = false,
+//                shouldShow = true,
+//                positiveOnClick = {
+//                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+//                    startActivity(intent)
+//                }
+//            )
+//        }
+//        val endTime = System.currentTimeMillis()
+//        val totalTime = endTime - startTime
 
+//        Timber.d(totalTime.toString())
         registerNetworkCallback({}) {
             showNoInternetAlert()
         }
@@ -317,7 +342,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             // 取得使用者資料
             mainViewModel.getLanding()
         } else {
-            toLogin()
+            // 在onResume先檢查完資安檢查再進入登入頁
+//            toLogin()
         }
         // 檢查版本 改為登入頁檢查 如果webview存在時會由webview做檢查並踢到登入頁
 //            mainViewModel.getSysParam()
@@ -1089,4 +1115,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             )
         }.show()
     }
+//
+//    fun getAppsWithOverlayPermission(context: Context): List<String> {
+//        val pm = context.packageManager
+//        // 取得所有安裝的 Package，並包含權限資訊
+//        val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
+//        val appsWithPermission = mutableListOf<String>()
+//
+//        for (pkg in packages) {
+//            // 1. 安全取得 ApplicationInfo，若為 null 則跳過
+//            val appInfo = pkg.applicationInfo ?: continue
+//
+//            // 2. 排除系統 App (FLAG_SYSTEM)
+//            val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+//            if (isSystemApp) continue
+//
+//            // 3. 安全取得請求的權限清單
+//            val requestedPermissions = pkg.requestedPermissions ?: continue
+//
+//            // 4. 判斷是否申請了覆蓋權限
+//            if (requestedPermissions.contains(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+//                // 5. 檢查該權限目前是否被使用者開啟
+//                if (hasOverlayPermission(context, pkg.packageName)) {
+//                    // 使用已經確認非空的 appInfo
+//                    val appName = pm.getApplicationLabel(appInfo).toString()
+//                    appsWithPermission.add(appName)
+//                }
+//            }
+//        }
+//        return appsWithPermission
+//    }
+//
+//    // 檢查特定 Package 是否真的「目前」擁有執行權限
+//    private fun hasOverlayPermission(context: Context, packageName: String): Boolean {
+//        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+//        val mode =
+//            appOps.unsafeCheckOpNoThrow(
+//                AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW,
+//                context.packageManager.getPackageUid(packageName, 0),
+//                packageName
+//            )
+//        return mode == AppOpsManager.MODE_ALLOWED
+//    }
 }

@@ -48,6 +48,7 @@ object SecurityCheckManager {
             checkUsbDebug(context)?.let { errors.add(it) }
         }
         if(rootStatus == SecurityStatus.INIT) {
+            // 每次都檢查
             checkRoot(context)?.let { errors.add(it) }
         }
         if (deviceLockStatus == SecurityStatus.INIT) {
@@ -57,6 +58,7 @@ object SecurityCheckManager {
             checkEmulator(context)?.let { errors.add(it) }
         }
         if (antiReverseStatus == SecurityStatus.INIT) {
+            // 每次都檢查
             checkAntiReverse(context)?.let { errors.add(it) }
         }
 //        checkAppDebuggable(context)?.let { return it }
@@ -136,7 +138,7 @@ object SecurityCheckManager {
         ).count { it }
 
         if (hitCount >= 2) {
-            rootStatus = SecurityStatus.NOTIFIED
+            rootStatus = SecurityStatus.INIT
 //            SecuredPreferenceStoreManager.editAndApply {
 //                it.putInt(Config.SP_KNOWS_ROOT, rootStatus.v)
 //            }
@@ -146,7 +148,7 @@ object SecurityCheckManager {
                 context.getString(R.string.main_security_check_root)
             )
         }
-        rootStatus = SecurityStatus.PASSED
+        rootStatus = SecurityStatus.INIT
 //        SecuredPreferenceStoreManager.editAndApply {
 //            it.putInt(Config.SP_KNOWS_ROOT, rootStatus.v)
 //        }
@@ -170,47 +172,22 @@ object SecurityCheckManager {
         return null
     }
 
-//    private fun checkAppDebuggable(context: Context): SecurityCheckResult? {
-//        val debuggable =
-//            (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-//
-//        if (debuggable) {
-//            return SecurityCheckResult(
-//                false,
-//                "應用程式目前為除錯模式，基於安全性無法執行"
-//            )
-//        }
-//        return null
-//    }
-
-//    private fun checkInstallSource(context: Context): SecurityCheckResult? {
-//        val installer = context.packageManager
-//            .getInstallSourceInfo(context.packageName)
-//            .installingPackageName
-//
-//        val allowed = setOf(
-//            "com.android.vending",              // Play Store
-//            "com.google.android.packageinstaller"
-//        )
-//
-//        if (installer !in allowed) {
-//            return SecurityCheckResult(
-//                false,
-//                "應用程式來源不明，請透過官方管道安裝"
-//            )
-//        }
-//        return null
-//    }
-
     private fun checkEmulator(context: Context): String? {
+
         val isEmulator =
-            Build.FINGERPRINT.contains("generic") ||
+            Build.FINGERPRINT.startsWith("generic") ||
+                    Build.FINGERPRINT.contains("vbox") ||
+                    Build.FINGERPRINT.contains("test-keys") ||
                     Build.MODEL.contains("google_sdk") ||
                     Build.MODEL.contains("Emulator") ||
+                    Build.MODEL.contains("Android SDK built for x86") ||
                     Build.MANUFACTURER.contains("Genymotion") ||
-                    Build.BRAND.startsWith("generic") ||
-                    Build.DEVICE.startsWith("generic") ||
-                    Build.PRODUCT.contains("sdk")
+                    Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic") ||
+                    "google_sdk" == Build.PRODUCT ||
+                    Build.HARDWARE.contains("goldfish") ||
+                    Build.HARDWARE.contains("ranchu") ||
+                    File("/dev/socket/qemud").exists() ||
+                    File("/dev/qemu_pipe").exists()
 
         if (isEmulator) {
             emulatorStatus = SecurityStatus.NOTIFIED
@@ -220,6 +197,7 @@ object SecurityCheckManager {
                 context.getString(R.string.main_security_check_emulator)
             )
         }
+
         emulatorStatus = SecurityStatus.PASSED
         return null
     }
@@ -294,6 +272,9 @@ object SecurityCheckManager {
             detectFridaProcess(),
             detectFridaPorts(),
             detectFridaLibraries(),
+            detectFridaThreads(),
+            detectSuspiciousProps(),
+            detectNativeBridge(),
             detectXposed(),
             detectDebugger(),
             detectPtrace(),
@@ -301,7 +282,7 @@ object SecurityCheckManager {
 
         // 命中 >= 2 才視為風險
         if (hitCount >= 2) {
-            antiReverseStatus = SecurityStatus.NOTIFIED
+            antiReverseStatus = SecurityStatus.INIT
             return String.format(
                 Locale.getDefault(),
                 context.getString(R.string.main_security_check),
@@ -309,8 +290,50 @@ object SecurityCheckManager {
             )
         }
 
-        antiReverseStatus = SecurityStatus.PASSED
+        antiReverseStatus = SecurityStatus.INIT
         return null
+    }
+
+    private fun detectNativeBridge(): Boolean {
+        return try {
+            val maps = File("/proc/self/maps")
+            if (!maps.exists()) return false
+
+            maps.readText().contains("libhoudini", ignoreCase = true)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectSuspiciousProps(): Boolean {
+        return try {
+            val process = Runtime.getRuntime().exec("getprop")
+            val output = process.inputStream.bufferedReader().readText()
+
+            output.contains("ro.debuggable=1") ||
+                    output.contains("ro.secure=0") ||
+                    output.contains("service.adb.root=1")
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun detectFridaThreads(): Boolean {
+        return try {
+            val taskDir = File("/proc/self/task")
+            if (!taskDir.exists()) return false
+
+            taskDir.listFiles()?.any { task ->
+                val commFile = File(task, "comm")
+                if (commFile.exists()) {
+                    val name = commFile.readText()
+                    name.contains("frida", ignoreCase = true) ||
+                            name.contains("gum", ignoreCase = true)
+                } else false
+            } ?: false
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun detectFridaProcess(): Boolean {

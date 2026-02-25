@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.ui.main.webview
 
+import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Context.DOWNLOAD_SERVICE
@@ -26,6 +27,7 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
+import com.taiwanlife.teamwalk.ui.login.CSSOWebViewActivity.Companion.CSSO_WEBVIEW_DOMAINS
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
@@ -55,19 +57,6 @@ class MyWebView : WebView {
             getEnvironmentConfig().webUrlBase + "bridge",
         )
     }
-//    companion object {
-//        const val CALLBACK_DEVICE_INFO_RESOLVER = "deviceInfoResolver"
-//        const val CALLBACK_JWT_TOKEN_RESOLVER = "jwtTokenResolver"
-//        const val CALLBACK_APP_VERSION_RESOLVER = "appVersionResolver"
-//        const val CALLBACK_GRAPHICAL_LOGIN_RESOLVER = "graphicalLoginResolver"
-//        const val CALLBACK_BIND_GOOGLE_HEALTH_CONNECT_RESOLVER = "bindGoogleHealthConnectResolver"
-//        const val CALLBACK_BIND_APPLE_IOS_HEALTH_RESOLVER = "bindAppleiOSHealthResolver"
-//        const val CALLBACK_BIND_GARMIN_HEALTH_RESOLVER = "bindGarminHealthResolver"
-//        const val CALLBACK_BIND_FITBIT_HEALTH_RESOLVER = "bindFitbitHealthResolver"
-//        const val CALLBACK_OPEN_NOTIFICATION_RESOLVER = "openNotificationResolver"
-//        const val CALLBACK_SYNC_HEALTH_DATA_RESOLVER = "syncHealthDataResolver"
-//        const val CALLBACK_CASTGC_RESOLVER = "WebAppBridge.receiveCastgcInfo"
-//    }
 
     private var finishCallback: () -> Unit = {}
     private val allowedDomains = setOf(
@@ -161,6 +150,13 @@ class MyWebView : WebView {
             ) {
                 super.onPageStarted(view, url, favicon)
                 Timber.d("Start loading $url")
+
+                url?.toUri()?.host?.let { host ->
+                    if (!allowedDomains.contains(host)) {
+                        view?.stopLoading()
+                        unSafeUrl(host)
+                    }
+                }
                 webviewLoadingCallback.onWebviewPageStarted()
 
             }
@@ -245,17 +241,6 @@ class MyWebView : WebView {
 //            Toast.makeText(context, context.getString(R.string.webview_start_download), Toast.LENGTH_SHORT).show()
         }
 
-//        val webAppInterface = WebAppInterface(this)
-//        addJavascriptInterface(webAppInterface, webAppInterface.appBridgeJsName)
-
-//        addJavascriptInterface(
-//            MyWebAppInterface(
-//                context,
-//                lifecycleOwner,
-//                this,
-//                asyncCallbacks
-//            ), Config.JAVASCRIPT_BRIDGE_NAME
-//        )
         val myWebMessageListener = MyWebMessageListener(context, lifecycleOwner, asyncCallbacks)
         myWebMessageListener.init(this)
 
@@ -273,17 +258,25 @@ class MyWebView : WebView {
         if (isAllowed) {
             view?.loadUrl(url)
         } else {
-            CommonDialog(context).apply {
-                oneButtonInit(
-                    context.getString(R.string.webview_not_allowed_host),
-                    host,
-                    R.drawable.alert_1,
-                    showButtons = true,
-                    canceledOnTouchOutside = true,
-                    text = context.getString(R.string.ok)
-                )
-            }.show()
+            unSafeUrl(host)
         }
+    }
+
+    private fun unSafeUrl(host: String) {
+        CommonDialog(context).apply {
+            oneButtonInit(
+                context.getString(R.string.webview_not_allowed_host),
+                host,
+                R.drawable.alert_1,
+                showButtons = true,
+                canceledOnTouchOutside = true,
+                text = context.getString(R.string.ok),
+                onClick = {
+                    // 非授權網域 關閉APP
+                    finishCallback()
+                }
+            )
+        }.show()
     }
 
     fun backIfValid(): Boolean {

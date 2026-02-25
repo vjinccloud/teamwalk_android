@@ -1,9 +1,11 @@
 package com.taiwanlife.teamwalk.ui.login
 
+import android.R.attr.host
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
@@ -17,7 +19,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
-import com.speed_trap.android.WebAppInterface
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -26,7 +27,8 @@ import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.Config
-import com.taiwanlife.teamwalk.EnvironmentManager
+import com.taiwanlife.teamwalk.MyApplication
+import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import timber.log.Timber
 import java.util.Locale
 
@@ -37,6 +39,12 @@ class CSSOWebViewActivity :
         private const val KEY_PURPOSE: String = "KEY_PURPOSE"
         private const val PURPOSE_REGISTER: String = "REGISTER"
         private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
+
+        val CSSO_WEBVIEW_DOMAINS = setOf(
+            MyApplication.context.getString(R.string.web_url).toUri().host,
+            MyApplication.context.getString(R.string.api_url).toUri().host,
+            MyApplication.context.getString(R.string.csso_url).toUri().host,
+        ).filterNotNull() // 去掉 null
 
         // 進來是為了註冊
         fun register(context: Context?): Intent {
@@ -145,10 +153,6 @@ class CSSOWebViewActivity :
 //        if (TextUtils.equals(getString(R.string.csso_forget_pwd_key), csso)) {
 //            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoForgetMimaUrl();
 //        }
-//        webView.addJavascriptInterface(
-//            WebAppInterface(webView),
-//            WebAppInterface(webView).appBridgeJsName
-//        )
 
 
         webView.loadUrl(cssoURL)
@@ -260,6 +264,17 @@ class CSSOWebViewActivity :
             return true
         }
 
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+
+            url?.toUri()?.host?.let { host ->
+                if (!CSSO_WEBVIEW_DOMAINS.contains(host)) {
+                    view?.stopLoading()
+                    unSafeUrl(host)
+                }
+            }
+        }
+
         @Override
         override fun onReceivedError(
             view: WebView?,
@@ -283,6 +298,22 @@ class CSSOWebViewActivity :
                     .setCancelable(true)
                     .show()
             }
+        }
+
+        private fun unSafeUrl(host: String) {
+            CommonDialog(context).apply {
+                oneButtonInit(
+                    context.getString(R.string.webview_not_allowed_host),
+                    host,
+                    R.drawable.alert_1,
+                    showButtons = true,
+                    canceledOnTouchOutside = true,
+                    text = context.getString(R.string.ok),
+                    onClick = {
+                        (this@CSSOWebViewClient.context as Activity).finish()
+                    }
+                )
+            }.show()
         }
     }
 }
