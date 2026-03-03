@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.25"
+        versionName = "3.0.26"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,6 +54,8 @@ android {
             resValue("string", "connect_garmin_consumer_key", "0fe5a7c0-bc5b-41f5-aa05-97978415d272")
             resValue("string", "connect_garmin_consumer_s", "nsQkfD0nwCq2SHAwiIlhQatmAqYtWV/bRjQewaPZ+vM")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
+            resValue("string", "connect_garmin_redirect_url", "https://demo.mutron.com.tw/webconnectgarmin")
+            resValue("string", "app_link_host", "demo.mutron.com.tw")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -83,6 +85,8 @@ android {
             resValue("string", "connect_garmin_consumer_key", "0fe5a7c0-bc5b-41f5-aa05-97978415d272")
             resValue("string", "connect_garmin_consumer_s", "nsQkfD0nwCq2SHAwiIlhQatmAqYtWV/bRjQewaPZ+vM")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
+            resValue("string", "connect_garmin_redirect_url", "https://demo.mutron.com.tw/webconnectgarmin")
+            resValue("string", "app_link_host", "demo.mutron.com.tw")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -119,6 +123,8 @@ android {
             resValue("string", "connect_garmin_consumer_key", "0fe5a7c0-bc5b-41f5-aa05-97978415d272")
             resValue("string", "connect_garmin_consumer_s", "nsQkfD0nwCq2SHAwiIlhQatmAqYtWV/bRjQewaPZ+vM")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
+            resValue("string", "connect_garmin_redirect_url", "https://teamwalk2uat.taiwanlife.com/webconnectgarmin")
+            resValue("string", "app_link_host", "teamwalk2uat.taiwanlife.com")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -148,6 +154,8 @@ android {
             resValue("string", "connect_garmin_consumer_key", "4a08c804-fbd9-41f7-87f7-b7bcd44d430a")
             resValue("string", "connect_garmin_consumer_s", "DJ1wEi3uNk0rbBDdalerp6ZYqmFJ2D4kf4t")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
+            resValue("string", "connect_garmin_redirect_url", "https://teamwalk.taiwanlife.com/webconnectgarmin")
+            resValue("string", "app_link_host", "teamwalk.taiwanlife.com")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }

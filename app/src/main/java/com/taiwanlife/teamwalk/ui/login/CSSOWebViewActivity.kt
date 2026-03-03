@@ -3,6 +3,7 @@ package com.taiwanlife.teamwalk.ui.login
 import android.R.attr.host
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -29,6 +30,8 @@ import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
+import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
+import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import timber.log.Timber
 import java.util.Locale
 
@@ -157,6 +160,7 @@ class CSSOWebViewActivity :
 
         webView.loadUrl(cssoURL)
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
+//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
 //        webView.postDelayed({
 //            webView.evaluateJavascript( "window.location.href = '${getString(R.string.redirect_scheme)}://login';", null)
 //        }, 1000L)
@@ -177,6 +181,38 @@ class CSSOWebViewActivity :
             true
         } else {
             false
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
+        if(!emulatorResult.passed) {
+            getAlertDialog(
+                context = this,
+                message = emulatorResult.errorMessage ?: "",
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.confirm1),
+                positiveOnClick = {
+                    finishAffinity()
+                }
+            )
+            return
+        }
+        val result = SecurityCheckManager.runSecurityCheck(this)
+        if (!result.passed) {
+            getAlertDialog(
+                context = this,
+                message = result.errorMessage ?: "",
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {}
+            )
         }
     }
 
@@ -252,10 +288,30 @@ class CSSOWebViewActivity :
                 return false
             }
 
-            Timber.d(request.url.toString())
-            val intent = Intent(Intent.ACTION_VIEW, request.url)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            context.startActivity(intent)
+            try {
+                val pm = context.packageManager
+                val intent = Intent(Intent.ACTION_VIEW, request.url).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                }
+
+                val activities = pm.queryIntentActivities(intent, 0)
+                if (activities.isEmpty()) {
+                    // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
+                    if (context is Activity) {
+                        context.finish()
+                    }
+                } else {
+                    val chooser = Intent.createChooser(intent, "選擇開啟方式")
+                    context.startActivity(chooser)
+                }
+
+            } catch (e: Exception) {
+                // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
+                if (context is Activity) {
+                    context.finish()
+                }
+            }
+
 //            if(request.url.toString() == "teamwalk://login") {
 //                if (context is Activity) {
 //                    context.finish()

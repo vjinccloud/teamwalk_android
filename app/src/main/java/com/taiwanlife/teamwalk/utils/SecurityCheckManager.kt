@@ -4,6 +4,7 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import java.io.File
@@ -33,10 +34,10 @@ object SecurityCheckManager {
     var emulatorStatus: SecurityStatus = SecurityStatus.INIT
     var antiReverseStatus: SecurityStatus = SecurityStatus.INIT
 
-    fun runAll(context: Context): SecurityCheckResult {
+    fun runSecurityCheck(context: Context): SecurityCheckResult {
         val errors = mutableListOf<String>()
-//        val root = SecuredPreferenceStoreManager.getInt(Config.SP_KNOWS_ROOT, SecurityStatus.INIT.v)
-//        rootStatus = SecurityStatus.fromValue(root)
+        val root = SecuredPreferenceStoreManager.getInt(Config.SP_KNOWS_ROOT, SecurityStatus.INIT.v)
+        rootStatus = SecurityStatus.fromValue(root)
 
         if (overlayStatus == SecurityStatus.INIT) {
             checkOverlay(context)?.let { errors.add(it) }
@@ -47,27 +48,42 @@ object SecurityCheckManager {
         if (usbDebugStatus == SecurityStatus.INIT) {
             checkUsbDebug(context)?.let { errors.add(it) }
         }
-        if(rootStatus == SecurityStatus.INIT) {
-            // 每次都檢查
+        if (rootStatus == SecurityStatus.INIT) {
             checkRoot(context)?.let { errors.add(it) }
         }
         if (deviceLockStatus == SecurityStatus.INIT) {
             checkDeviceLock(context)?.let { errors.add(it) }
         }
-        if (emulatorStatus == SecurityStatus.INIT) {
-            checkEmulator(context)?.let { errors.add(it) }
-        }
+        // 模擬器較嚴重 有的話就需要關閉
+//        if (emulatorStatus == SecurityStatus.INIT) {
+//            checkEmulator(context)?.let { errors.add(it) }
+//        }
         if (antiReverseStatus == SecurityStatus.INIT) {
             // 每次都檢查
             checkAntiReverse(context)?.let { errors.add(it) }
         }
-//        checkAppDebuggable(context)?.let { return it }
-//        checkInstallSource(context)?.let { return it }
 
         return if (errors.isNotEmpty()) {
             SecurityCheckResult(
                 false,
-                errors.joinToString(separator = "\n\n")
+                errorMessage = errors.joinToString(separator = "\n\n")
+            )
+        } else {
+            SecurityCheckResult(true)
+        }
+    }
+
+    fun runEmulatorCheck(context: Context): SecurityCheckResult {
+        val errors = mutableListOf<String>()
+        if (emulatorStatus == SecurityStatus.INIT) {
+            // 每次都會執行
+            checkEmulator(context)?.let { errors.add(it) }
+        }
+
+        return if (errors.isNotEmpty()) {
+            SecurityCheckResult(
+                false,
+                errorMessage = errors.joinToString(separator = "\n\n")
             )
         } else {
             SecurityCheckResult(true)
@@ -129,29 +145,33 @@ object SecurityCheckManager {
 
     fun checkRoot(context: Context): String? {
 
-        val hitCount = listOf(
-            hasTestKeys(),
-            isSelinuxEnforced(),
-            hasSuBinary(),
-            hasRootManagementApp(context),
-            isSystemWritable(),
+        val highRisk = listOf(
+            hasSuBinary(),                 // 有 su 幾乎可確定 root
+            isSystemWritable(),            // system 可寫
+            detectSuspiciousProps()        // ro.debuggable=1 等
+        ).any { it }
+
+        val mediumRiskCount = listOf(
+            hasTestKeys(),                 // test-keys
+            !isSelinuxEnforced(),          // SELinux 非 Enforcing 才算命中
+            hasRootManagementApp(context)  // Magisk / KernelSU / LSPosed
         ).count { it }
 
-        if (hitCount >= 2) {
-            rootStatus = SecurityStatus.INIT
-//            SecuredPreferenceStoreManager.editAndApply {
-//                it.putInt(Config.SP_KNOWS_ROOT, rootStatus.v)
-//            }
+        val emulatorRoot = detectNoxRoot() && hasSuBinary()
+
+        if (highRisk || mediumRiskCount >= 2 || emulatorRoot) {
+            rootStatus = SecurityStatus.NOTIFIED
+            SecuredPreferenceStoreManager.editAndApply {
+                it.putInt(Config.SP_KNOWS_ROOT, SecurityStatus.NOTIFIED.v)
+            }
             return String.format(
                 Locale.getDefault(),
                 context.getString(R.string.main_security_check),
                 context.getString(R.string.main_security_check_root)
             )
         }
-        rootStatus = SecurityStatus.INIT
-//        SecuredPreferenceStoreManager.editAndApply {
-//            it.putInt(Config.SP_KNOWS_ROOT, rootStatus.v)
-//        }
+
+        rootStatus = SecurityStatus.PASSED
         return null
     }
 
@@ -178,6 +198,7 @@ object SecurityCheckManager {
             Build.FINGERPRINT.startsWith("generic") ||
                     Build.FINGERPRINT.contains("vbox") ||
                     Build.FINGERPRINT.contains("test-keys") ||
+                    Build.FINGERPRINT.contains("unknown") ||
                     Build.MODEL.contains("google_sdk") ||
                     Build.MODEL.contains("Emulator") ||
                     Build.MODEL.contains("Android SDK built for x86") ||
@@ -186,22 +207,33 @@ object SecurityCheckManager {
                     "google_sdk" == Build.PRODUCT ||
                     Build.HARDWARE.contains("goldfish") ||
                     Build.HARDWARE.contains("ranchu") ||
-                    File("/dev/socket/qemud").exists() ||
-                    File("/dev/qemu_pipe").exists()
+                    File("/dev/socket/qemud").exists()
 
-        if (isEmulator) {
-            emulatorStatus = SecurityStatus.NOTIFIED
+        val fileIsEmulator = listOf(
+            "/dev/socket/qemud",
+            "/dev/socket/genyd",
+            "/dev/socket/baseband_genyd",
+            "/dev/qemu_pipe",
+            "/system/qemu_trace",
+            "/system/bin/qemu_props",
+            "/system/bin/nox-prop",
+            "/system/lib/libc_malloc_debug_qemu.so",
+            "/data/property/persist.nox.render",
+            "/sys/module/vboxguest"
+        ).any { File(it).exists() }
+
+        if (isEmulator || fileIsEmulator) {
+            emulatorStatus = SecurityStatus.INIT
             return String.format(
                 Locale.getDefault(),
-                context.getString(R.string.main_security_check),
+                context.getString(R.string.main_security_force_close),
                 context.getString(R.string.main_security_check_emulator)
             )
         }
 
-        emulatorStatus = SecurityStatus.PASSED
+        emulatorStatus = SecurityStatus.INIT
         return null
     }
-
 
     private fun hasTestKeys(): Boolean {
         return Build.TAGS?.contains("test-keys") == true
@@ -223,17 +255,25 @@ object SecurityCheckManager {
             "/system/xbin/su",
             "/sbin/su",
             "/vendor/bin/su",
-            "/system/bin/.ext/.su"
+            "/system/bin/.ext/.su",
+            "/bin/su",
+            "/xbin/su",
+            "/system/app/Superuser.apk"
         )
 
-        return paths.any { path ->
-            try {
-                File(path).exists()
-            } catch (_: Exception) {
-                false
-            }
+        if (paths.any { File(it).exists() }) return true
+
+        return try {
+            Runtime.getRuntime()
+                .exec(arrayOf("which", "su"))
+                .inputStream
+                .bufferedReader()
+                .readLine() != null
+        } catch (_: Exception) {
+            false
         }
     }
+
 
     private fun hasRootManagementApp(context: Context): Boolean {
         val pkgs = listOf(
@@ -266,22 +306,31 @@ object SecurityCheckManager {
         }
     }
 
-    private fun checkAntiReverse(context: Context): String? {
+    private fun detectNoxRoot(): Boolean {
+        return Build.HARDWARE.contains("nox", ignoreCase = true) ||
+                Build.BOARD.contains("nox", ignoreCase = true) ||
+                Build.BOOTLOADER.contains("nox", ignoreCase = true) ||
+                File("/system/bin/nox-prop").exists() ||
+                File("/system/bin/nox-vbox-guest").exists()
+    }
 
-        val hitCount = listOf(
+    private fun checkAntiReverse(context: Context): String? {
+        val highRisk = listOf(
+            detectPtrace(),    // Native 劫持
+            detectXposed() // Xposed 注入
+        ).any { it }
+
+        val mediumRiskCount = listOf(
+            detectDebugger(),
             detectFridaProcess(),
             detectFridaPorts(),
             detectFridaLibraries(),
             detectFridaThreads(),
-            detectSuspiciousProps(),
-            detectNativeBridge(),
-            detectXposed(),
-            detectDebugger(),
-            detectPtrace(),
+            detectSuspiciousProps(), // ro.debuggable=1 等
+            detectNativeBridge() // 模擬器轉譯層
         ).count { it }
 
-        // 命中 >= 2 才視為風險
-        if (hitCount >= 2) {
+        if (highRisk || mediumRiskCount >= 2) {
             antiReverseStatus = SecurityStatus.INIT
             return String.format(
                 Locale.getDefault(),
@@ -351,10 +400,13 @@ object SecurityCheckManager {
 
     private fun detectFridaPorts(): Boolean {
         return try {
+            // 讀取 /proc/net/tcp 檢查所有正在 LISTEN 的本地端口
             val tcpFile = File("/proc/net/tcp")
             if (!tcpFile.exists()) return false
 
-            val fridaPorts = listOf("69CE", "69D2") // 27042, 27090 的十六進制
+            // 不只檢查 69CE(27042)，只要有異常的本地監聽都該警覺
+            // 但為了避免誤傷，這裡維持檢查清單，並建議加入 27047 (常用的跳轉 Port)
+            val fridaPorts = listOf("69CE", "69D2", "69A7")
             tcpFile.readLines().any { line ->
                 fridaPorts.any { port -> line.contains(":$port ", ignoreCase = true) }
             }
@@ -368,10 +420,16 @@ object SecurityCheckManager {
             val maps = File("/proc/self/maps")
             if (!maps.exists()) return false
 
-            maps.readLines().any {
-                it.contains("frida", ignoreCase = true) ||
-                        it.contains("gum-js-loop") ||
-                        it.contains("libfrida")
+            maps.readLines().any { line ->
+                // 檢查關鍵字
+                val hasKeyword = line.contains("frida", ignoreCase = true) ||
+                        line.contains("gum-js", ignoreCase = true)
+
+                // 進階：檢查是否存在刪除後的檔案映射 (Frida 注入後常會刪除 temp 檔)
+                val isDeleted =
+                    line.contains("(deleted)") && (line.contains(".so") || line.contains("tmp"))
+
+                hasKeyword || isDeleted
             }
         } catch (_: Exception) {
             false
@@ -380,20 +438,27 @@ object SecurityCheckManager {
 
     private fun detectXposed(): Boolean {
         return try {
-            // 1. 檢測 XposedBridge 類
+            // 檢查類別
             Class.forName("de.robv.android.xposed.XposedBridge")
             true
-        } catch (_: ClassNotFoundException) {
-            // 2. 檢測 Xposed 相關堆疊
+        } catch (_: Exception) {
+            // 檢查環境變數
+            val classpath = System.getProperty("java.class.path")
+            if (classpath?.contains("XposedBridge") == true) return true
+
+            // 檢查堆疊
             Thread.currentThread().stackTrace.any {
                 it.className?.contains("xposed", ignoreCase = true) == true
             }
-        } catch (_: Exception) {
-            false
         }
     }
 
     private fun detectDebugger(): Boolean {
+        if (BuildConfig.DEBUG) {
+            // Debug版本打開為正常
+            return false
+        }
+
         return android.os.Debug.isDebuggerConnected() ||
                 android.os.Debug.waitingForDebugger()
     }

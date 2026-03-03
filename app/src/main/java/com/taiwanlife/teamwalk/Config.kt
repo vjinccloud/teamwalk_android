@@ -67,7 +67,7 @@ object Config {
     const val SP_GARMIN_VERIFIER = "SP_USER_INFO"
     const val SP_GARMIN_STATE = "SP_GARMIN_STATE"
     const val SP_BINDING_FROM_ONBOARD = "SP_BINDING_FROM_ONBOARD"
-//    const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
+    const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
 
     // 在Cookie內部 用來跟CSSO使用
     const val SP_CASTGC = "SP_CASTGC"

@@ -1,15 +1,9 @@
 package com.taiwanlife.teamwalk.ui.main
 
 import android.Manifest
-import android.R.attr.type
 import android.app.Activity
-import android.app.AppOpsManager
 import android.app.ComponentCaller
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -17,7 +11,6 @@ import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.text.TextUtils
 import android.view.View
 import android.webkit.CookieManager
@@ -37,8 +30,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
-import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_MSG
-import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TITLE
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TYPE
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_URL
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
@@ -48,7 +39,6 @@ import com.taiwanlife.teamwalk.databinding.ActivityMainBinding
 import com.taiwanlife.teamwalk.java_utils.CelebrusCSAUtil
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.remote.HealthConnectRepository
-import com.taiwanlife.teamwalk.service.TWFirebaseMessagingService
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.common.FitbitViewModel
 import com.taiwanlife.teamwalk.ui.common.GarminViewModel
@@ -80,7 +70,6 @@ import com.taiwanlife.teamwalk.utils.PermissionManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.ShareUtil
-import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.Utils.stringToNotificationType
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
@@ -90,7 +79,6 @@ import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
-import java.util.Locale
 import kotlin.random.Random
 
 class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inflate(it) }),
@@ -544,10 +532,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         val uri = intent.data
         if (uri == null) return
         if (TextUtils.isEmpty(uri.host)) return
-        val hostTypes = HostTypes.getFromValue(uri.host!!)
-        if (hostTypes == null) return
+        val hostTypeString = uri.lastPathSegment ?: return
+        val hostType = HostTypes.getFromValue(hostTypeString) ?: return
 
-        when (hostTypes) {
+        when (hostType) {
             HOME -> {
 //                viewBinding.webView.loadUrl(EnvironmentManager.getEnvironmentConfig().webUrl)
             }
@@ -689,7 +677,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun securityCheck() {
-        val result = SecurityCheckManager.runAll(this)
+        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
+        if(!emulatorResult.passed) {
+            getAlertDialog(
+                context = this,
+                message = emulatorResult.errorMessage ?: "",
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.confirm1),
+                positiveOnClick = {
+                    finishAffinity()
+                }
+            )
+            return
+        }
+        val result = SecurityCheckManager.runSecurityCheck(this)
         if (!result.passed) {
             getAlertDialog(
                 context = this,

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityConnectSuccessBinding
@@ -86,7 +87,8 @@ class ConnectGarminSuccessActivity : BaseActivity<ActivityConnectSuccessBinding>
 
     private fun getToken(code: String, verifier: String) {
         garminViewModel.getGarminToken(
-            "${getString(R.string.redirect_scheme)}://webconnectgarmin",
+//            "${getString(R.string.redirect_scheme)}://webconnectgarmin",
+            EnvironmentManager.getEnvironmentConfig().connectGarminRedirectUrl,
             code,
             verifier
         )

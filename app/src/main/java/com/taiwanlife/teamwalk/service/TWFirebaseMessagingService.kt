@@ -57,14 +57,25 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
-        val pendingIntent = if (notificationType == Config.NotificationType.URL && !url.isNullOrEmpty()) {
-
-            // 收到需要外開瀏覽器的URL的網址 交由外面瀏覽器開啟
+        val pendingIntent = if (notificationType == Config.NotificationType.URL /* "L" */ && !url.isNullOrEmpty()) {
+            // 收到需要外開瀏覽器的URL的網址 準備交由外面瀏覽器開啟
             val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+            // 先檢查是否有 Chrome 並將Package指定由Chrome開啟(Explicit Intent)
+            val chromePackage = "com.android.chrome"
+            browserIntent.setPackage(chromePackage)
+
+            val finalIntent = if (isPackageInstalled(chromePackage)) {
+                // 如果有 Chrome，直接使用
+                browserIntent
+            } else {
+                // 如果沒有 Chrome，清除 package 設定並建立選擇器(Intent Chooser)
+                browserIntent.setPackage(null)
+                Intent.createChooser(browserIntent, "請選擇瀏覽器")
+            }
             PendingIntent.getActivity(
                 this,
                 remoteMessage.getSentTime().toInt(),
-                browserIntent,
+                finalIntent,
                 flags
             )
         } else {
@@ -83,6 +94,15 @@ class TWFirebaseMessagingService : FirebaseMessagingService() {
         }
         val notificationId = remoteMessage.sentTime.toInt()
         myNotificationManager.sendFcmNotification(notificationId, title, msg, pendingIntent)
+    }
+
+    private fun isPackageInstalled(packageName: String): Boolean {
+        return try {
+            packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     override fun onNewToken(token: String) {

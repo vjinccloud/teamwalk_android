@@ -37,10 +37,11 @@
     <string name="main_security_check_overlay">偵測到其他應用程式顯示於本應用程式上方</string>
     <string name="main_security_check_developer">偵測到系統已開啟開發者模式</string>
     <string name="main_security_check_usb">偵測到 USB 偵錯已啟用</string>
-    <string name="main_security_check_root">偵測到裝置可能以被(Root/Jailbreak/刷機)</string>
+    <string name="main_security_check_root">偵測到裝置可能已被(Root/Jailbreak/刷機)</string>
     <string name="main_security_check_no_secure">手機未設定密碼，有資安疑慮請設定密碼</string>
-    <string name="main_security_check_emulator">偵測到裝置可能為模擬器</string>
     <string name="main_security_check_reverse">偵測到系統可能存在逆向工程或注入工具</string>
+    <string name="main_security_check_emulator">偵測到裝置可能為模擬器</string>
+    <string name="main_security_force_close" formatted="true">提醒您，%s，APP可能會有資訊外流的風險，為確保您的帳戶安全，系統將自動結束程式。</string>
 
     <string name="webview_start_download">開始下載 - </string>
     <string name="webview_not_allowed_host">未授權的網域</string>
@@ -60,7 +61,7 @@
     <string name="alert_no_password_message">手機未設定密碼，有資安疑慮請設定密碼，謝謝"</string>
     <string name="alert_reverse_tool_message">提醒您，有逆向工具運行，APP可能會有資訊外流的風險"</string>
     <string name="alert_covered_message">提醒您，屏幕被覆蓋，APP可能會有資訊外流的風險"</string>
-    <string name="understand_and_continue">我知道了並繼續使用</string>
+    <string name="understand_and_continue">我知道了</string>
     <string name="go_to_setting">前往設定</string>
 
     <string name="onboarding_connect_skip">暫時先不綁定，開始您的健康生活</string>
@@ -148,7 +149,7 @@
     <string name="onboard_connect_change_title">切換綁定裝置</string>
     <string name="onboard_connect_change_body">請確認是否要切換到</string>
     <string name="onboard_connect_success">連結成功</string>
-    <string name="onboard_connect_fail">連結失敗</string>
+    <string name="onboard_connect_fail">Garmin連結失敗</string>
     <string name="onboard_connect_remove_success">成功移除設備</string>
     <string name="onboard_promote">是否有好友推薦碼?</string>
     <string name="onboard_promote_text">輸入推薦你加入TeamWalk的用戶推薦碼,你和好友都會得到額外獎勵!\n(獎勵內容依活動網站公告為主)</string>

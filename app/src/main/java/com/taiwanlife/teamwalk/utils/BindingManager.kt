@@ -6,6 +6,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.remote.GarminHelper
@@ -207,7 +208,8 @@ class BindingManager(
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_GARMIN_STATE, state)
 
         val url = GarminHelper.buildGarminAuthUrl(
-            "${baseActivity.getString(R.string.redirect_scheme)}://webconnectgarmin",
+//            "${baseActivity.getString(R.string.redirect_scheme)}://webconnectgarmin",
+            EnvironmentManager.getEnvironmentConfig().connectGarminRedirectUrl,
             state,
             challenge
         )

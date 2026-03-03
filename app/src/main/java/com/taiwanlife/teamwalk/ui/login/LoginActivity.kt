@@ -1,15 +1,9 @@
 package com.taiwanlife.teamwalk.ui.login
 
-import android.R.attr.text
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.TextPaint
-import android.text.TextUtils
-import android.text.method.LinkMovementMethod
-import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
@@ -17,8 +11,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -32,10 +24,12 @@ import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityLoginBinding
 import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
+import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
+import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
 import com.taiwanlife.teamwalk.utils.enableToBoolean
@@ -237,6 +231,38 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
         loginViewModel.getSysParam()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
+        if(!emulatorResult.passed) {
+            getAlertDialog(
+                context = this,
+                message = emulatorResult.errorMessage ?: "",
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.confirm1),
+                positiveOnClick = {
+                    finishAffinity()
+                }
+            )
+            return
+        }
+        val result = SecurityCheckManager.runSecurityCheck(this)
+        if (!result.passed) {
+            getAlertDialog(
+                context = this,
+                message = result.errorMessage ?: "",
+                icon = R.mipmap.ic_launcher,
+                isCancelable = false,
+                shouldShow = true,
+                positiveText = getString(R.string.understand_and_continue),
+                positiveOnClick = {}
+            )
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")

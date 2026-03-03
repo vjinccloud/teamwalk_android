@@ -4,14 +4,17 @@
 
     <!--  Health Connect  -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
-<!--    <uses-permission android:name="android.permission.health.WRITE_STEPS" />-->
+    <!--    <uses-permission android:name="android.permission.health.WRITE_STEPS" />-->
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
-<!--    <uses-permission android:name="android.permission.health.WRITE_SLEEP" />-->
+    <!--    <uses-permission android:name="android.permission.health.WRITE_SLEEP" />-->
     <!--    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />-->
     <!--    <uses-permission android:name="android.permission.health.WRITE_TOTAL_CALORIES_BURNED" />-->
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+    <queries>
+        <package android:name="com.android.chrome" />
     </queries>
 
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
@@ -78,11 +81,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="@string/redirect_scheme" />
-                <data android:host="home" />
-                <data android:host="login" />
-                <data android:host="loginsuccess" />
-                <data android:host="loginfailure" />
+                <data android:scheme="https" />
+                <data android:host="@string/app_link_host" />
+                <data android:path="/home" />
+                <data android:path="/login" />
+                <data android:path="/loginsuccess" />
+                <data android:path="/loginfailure" />
             </intent-filter>
 
             <intent-filter>
@@ -101,7 +105,7 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/TransparentActivityTheme"
-            android:windowSoftInputMode="adjustPan" >
+            android:windowSoftInputMode="adjustPan">
 
             <intent-filter
                 android:autoVerify="true"
@@ -111,10 +115,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!--       不得已的下策 因為所有的環境有不同的網址要攔截 設定在app 級別的 gradle         -->
                 <data
-                    android:host="webconnectgarmin"
-                    android:scheme="@string/redirect_scheme" />
+                    android:host="@string/app_link_host"
+                    android:path="/webconnectgarmin"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
 
