@@ -56,6 +56,7 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "connect_garmin_redirect_url", "https://demo.mutron.com.tw/webconnectgarmin")
             resValue("string", "app_link_host", "demo.mutron.com.tw")
+            resValue("string", "login_redirect_url", "https://demo.mutron.com.tw/loginsuccess")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -87,6 +88,7 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "connect_garmin_redirect_url", "https://demo.mutron.com.tw/webconnectgarmin")
             resValue("string", "app_link_host", "demo.mutron.com.tw")
+            resValue("string", "login_redirect_url", "https://demo.mutron.com.tw/loginsuccess")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -125,6 +127,7 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "connect_garmin_redirect_url", "https://teamwalk2uat.taiwanlife.com/webconnectgarmin")
             resValue("string", "app_link_host", "teamwalk2uat.taiwanlife.com")
+            resValue("string", "login_redirect_url", "https://teamwalk2uat.taiwanlife.com/loginsuccess")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }
@@ -156,6 +159,7 @@ android {
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
             resValue("string", "connect_garmin_redirect_url", "https://teamwalk.taiwanlife.com/webconnectgarmin")
             resValue("string", "app_link_host", "teamwalk.taiwanlife.com")
+            resValue("string", "login_redirect_url", "https://teamwalk.taiwanlife.com/loginsuccess")
             resValue("string", "garmin_url", "https://connectapi.garmin.com/oauth-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }

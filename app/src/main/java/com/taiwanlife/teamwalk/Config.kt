@@ -25,6 +25,7 @@ object Config {
     const val GOOGLE_HEALTH_CONNECT_PACKAGE_NAME = "com.google.android.apps.healthdata"
 
     // region 自訂義事件參數
+    const val EVENT_NOTIFY_CHANGE_DONE = "EVENT_NOTIFY_CHANGE_DONE"
     const val EVENT_GARMIN_CONNECT_DONE = "EVENT_GARMIN_CONNECT_DONE"
     const val EVENT_FITBIT_CONNECT_DONE = "EVENT_FITBIT_CONNECT_DONE"
 
@@ -68,6 +69,7 @@ object Config {
     const val SP_GARMIN_STATE = "SP_GARMIN_STATE"
     const val SP_BINDING_FROM_ONBOARD = "SP_BINDING_FROM_ONBOARD"
     const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
+    const val SP_TEMP_TICKET = "SP_TEMP_TICKET"
 
     // 在Cookie內部 用來跟CSSO使用
     const val SP_CASTGC = "SP_CASTGC"

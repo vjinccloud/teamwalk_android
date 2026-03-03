@@ -20,6 +20,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat.finishAffinity
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -30,6 +31,7 @@ import androidx.core.net.toUri
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
+import com.taiwanlife.teamwalk.ui.login.CSSOWebViewActivity.Companion.CSSO_WEBVIEW_DOMAINS
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import timber.log.Timber
@@ -40,8 +42,10 @@ class CSSOWebViewActivity :
 
     companion object {
         private const val KEY_PURPOSE: String = "KEY_PURPOSE"
+        private const val KEY_URL: String = "KEY_URL"
         private const val PURPOSE_REGISTER: String = "REGISTER"
         private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
+        private const val PURPOSE_NOTIFY_CHANGE_PASSWORD: String = "NOTIFY_CHANGE_PASSWORD"
 
         val CSSO_WEBVIEW_DOMAINS = setOf(
             MyApplication.context.getString(R.string.web_url).toUri().host,
@@ -53,6 +57,7 @@ class CSSOWebViewActivity :
         fun register(context: Context?): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_REGISTER)
+            intent.putExtra(KEY_URL, getEnvironmentConfig().cssoSignUpUrl)
             return intent
         }
 
@@ -60,6 +65,15 @@ class CSSOWebViewActivity :
         fun forgetPassword(context: Context?): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_FORGET_PASSWORD)
+            intent.putExtra(KEY_URL, getEnvironmentConfig().cssoForgetMimaUrl)
+            return intent
+        }
+
+        // 進來是提醒要更新密碼
+        fun notifyChangePassword(context: Context, url: String): Intent {
+            val intent = Intent(context, CSSOWebViewActivity::class.java)
+            intent.putExtra(KEY_PURPOSE, PURPOSE_NOTIFY_CHANGE_PASSWORD)
+            intent.putExtra(KEY_URL, url)
             return intent
         }
     }
@@ -133,16 +147,11 @@ class CSSOWebViewActivity :
             }
         }
 
-        var cssoURL = ""
         val purpose = intent.getStringExtra(CSSOWebViewActivity.KEY_PURPOSE)
-        if (TextUtils.isEmpty(purpose)) {
+        val url = intent.getStringExtra(CSSOWebViewActivity.KEY_URL)
+        if (purpose.isNullOrEmpty() || url.isNullOrEmpty()) {
             finish()
-        } else if (TextUtils.equals(purpose, CSSOWebViewActivity.PURPOSE_REGISTER)) {
-            cssoURL = getEnvironmentConfig().cssoSignUpUrl
-        } else if (TextUtils.equals(purpose, CSSOWebViewActivity.PURPOSE_FORGET_PASSWORD)) {
-            cssoURL = getEnvironmentConfig().cssoForgetMimaUrl
-        } else {
-            finish()
+            return
         }
         //        SharedPreferences loginSharedPref = getSharedPreferences(getString(R.string.pref_login), CSSOWebViewActivity.MODE_PRIVATE);
 //        SecuredPreferenceStore loginSharedPref = SecuredPreferenceStore.getSharedInstance();
@@ -158,12 +167,25 @@ class CSSOWebViewActivity :
 //        }
 
 
-        webView.loadUrl(cssoURL)
+        webView.loadUrl(url)
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
 //        webView.postDelayed({
 //            webView.evaluateJavascript( "window.location.href = '${getString(R.string.redirect_scheme)}://login';", null)
 //        }, 1000L)
+//        webView.postDelayed({
+//            // 組裝 JavaScript 字串：先跳 Alert，按下確定後執行 window.location.href
+//            val jsCode = """
+//        alert('驗證成功！即將返回 App。');
+//        window.location.href = 'teamwalkuat://loginsuccess';
+//    """.trimIndent()
+//
+//            webView.evaluateJavascript(jsCode, null)
+//        }, 1000L)
+//        webView.evaluateJavascript("""
+//    alert("test");
+//    window.location.href = "teamwalkuat://loginsuccess?token=123";
+//""", null)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

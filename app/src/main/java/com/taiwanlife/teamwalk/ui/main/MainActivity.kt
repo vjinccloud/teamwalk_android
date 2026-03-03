@@ -532,7 +532,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         val uri = intent.data
         if (uri == null) return
         if (TextUtils.isEmpty(uri.host)) return
-        val hostTypeString = uri.lastPathSegment ?: return
+        var hostTypeString = uri.lastPathSegment ?: ""
         val hostType = HostTypes.getFromValue(hostTypeString) ?: return
 
         when (hostType) {
@@ -541,12 +541,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             }
 
             LOGIN -> {
+                // 確保登入重置
+                SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
                 toLogin()
             }
 
             LOGIN_SUCCESS -> {
-                // 新版照理來說不會透過url告知登入成功 有API了 預防萬一留著
-//                loginSuccess(uri)
+                // 到這裡表示我們有未完成的登入流程 讓他繼續走
+                toLogin()
             }
 
             LOGIN_FAILURE -> {
@@ -668,6 +670,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun loginFailure() {
+        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
         toLogin()
     }
 

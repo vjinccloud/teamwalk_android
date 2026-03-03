@@ -16,6 +16,7 @@ data class EnvironmentConfig(
     val connectGarminConsumerSecret: String,
     val connectGarminPortal: String,
     val connectGarminRedirectUrl: String,
+    val loginRedirectUrl: String,
 
     // 新增環境參數
     val garminUrl: String,

@@ -230,7 +230,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
         }
 
-        loginViewModel.getSysParam()
+        val tempTicket = SecuredPreferenceStoreManager.getString(Config.SP_TEMP_TICKET, "")
+        if(tempTicket.isEmpty()) {
+            loginViewModel.getSysParam()
+        } else {
+            ticketCallback(tempTicket)
+        }
     }
 
     override fun onResume() {
@@ -309,10 +314,19 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 view: WebView?, url: String, favicon: Bitmap?
             ) {
                 viewBinding.url.text = url
+
                 if (url.isNotEmpty()) {
                     val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
                     if (!ticket.isNullOrEmpty()) {
-                        ticketCallback(ticket)
+                        if(url.contains("mobileChgPwd")) {
+                            // 需要更換密碼
+                            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, ticket)
+                            val intent = CSSOWebViewActivity.notifyChangePassword(this@LoginActivity, url)
+                            startActivity(intent)
+                        } else {
+                            ticketCallback(ticket)
+                        }
+
                         viewBinding.webview.loadUrl("about:blank")
                         return
                     }
@@ -386,6 +400,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 ticket,
                 Utils.getDeviceId(this)
             )
+            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
         }
     }
 
