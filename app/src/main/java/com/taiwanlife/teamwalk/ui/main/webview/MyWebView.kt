@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Context.DOWNLOAD_SERVICE
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
@@ -27,9 +28,9 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
-import com.taiwanlife.teamwalk.ui.login.CSSOWebViewActivity.Companion.CSSO_WEBVIEW_DOMAINS
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
+import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.Utils.openPlayStoreAndExit
 import timber.log.Timber
 import java.util.Locale
@@ -59,11 +60,7 @@ class MyWebView : WebView {
     }
 
     private var finishCallback: () -> Unit = {}
-    private val allowedDomains = setOf(
-        context.getString(R.string.web_url).toUri().host,
-        context.getString(R.string.api_url).toUri().host,
-        context.getString(R.string.csso_url).toUri().host,
-    ).filterNotNull() // 去掉 null
+    private var loginCallback: () -> Unit = {}
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -96,6 +93,7 @@ class MyWebView : WebView {
         lifecycleOwner: LifecycleOwner,
         webviewLoadingCallback: WebviewLoadingCallback,
         asyncCallbacks: MyWebMessageListener.AsyncCallbacks,
+        loginCallback: () -> Unit,
         finishCallback: () -> Unit,
         fileChooserCallback: (
             filePathCallback: ValueCallback<Array<Uri>>,
@@ -103,6 +101,7 @@ class MyWebView : WebView {
         ) -> Unit
     ) {
         this.finishCallback = finishCallback
+        this.loginCallback = loginCallback
         val webSettings: WebSettings = settings
         webSettings.setUserAgentString(webSettings.userAgentString + "/env=taiwanlife_teamwalk_app")
         webSettings.javaScriptEnabled = true
@@ -133,13 +132,39 @@ class MyWebView : WebView {
         }
 
         webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                url?.let { safeLoadUrl(view, it) }
-                return true
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                return urlLoading(view, url.toUri())
             }
 
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                request?.url?.toString()?.let { safeLoadUrl(view, it) }
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                return urlLoading(view, request.url)
+            }
+
+            private fun urlLoading(view: WebView, uri: Uri): Boolean {
+                if (Utils.isAppLink(uri)) {
+                    try {
+                        val pm = context.packageManager
+                        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        }
+
+                        val activities = pm.queryIntentActivities(intent, 0)
+                        if (activities.isEmpty()) {
+                            // 如果沒有能處理的APP 回到登入頁
+                            loginCallback()
+                        } else {
+                            val chooser = Intent.createChooser(intent, "選擇開啟方式")
+                            context.startActivity(chooser)
+                        }
+
+                    } catch (e: Exception) {
+                        // 如果沒有能處理的APP 回到登入頁
+                        loginCallback()
+                    }
+                    return true
+                }
+
+                uri.toString().let { safeLoadUrl(view, it) }
                 return true
             }
 
@@ -150,12 +175,14 @@ class MyWebView : WebView {
             ) {
                 super.onPageStarted(view, url, favicon)
                 Timber.d("Start loading $url")
+                val uri = url?.toUri() ?: return
+                val host = uri.host?.lowercase() ?: return
 
-                url?.toUri()?.host?.let { host ->
-                    if (!allowedDomains.contains(host)) {
-                        view?.stopLoading()
-                        unSafeUrl(host)
-                    }
+                val isAllowed = Utils.isAllowedHost(host)
+                if (!isAllowed) {
+                    view?.stopLoading()
+                    unSafeUrl(url)
+                    return
                 }
                 webviewLoadingCallback.onWebviewPageStarted()
 
@@ -249,24 +276,22 @@ class MyWebView : WebView {
 
     private fun safeLoadUrl(view: WebView?, url: String) {
         val uri = url.toUri()
-        val host = uri.host ?: ""
+        val host = uri.host?.lowercase() ?: return
 
-        val isAllowed = allowedDomains.any { allowedHost ->
-            host.equals(allowedHost, ignoreCase = true) || host.endsWith(".$allowedHost")
-        }
+        val isAllowed = Utils.isAllowedHost(host)
 
         if (isAllowed) {
             view?.loadUrl(url)
         } else {
-            unSafeUrl(host)
+            unSafeUrl(url)
         }
     }
 
-    private fun unSafeUrl(host: String) {
+    private fun unSafeUrl(url: String) {
         CommonDialog(context).apply {
             oneButtonInit(
                 context.getString(R.string.webview_not_allowed_host),
-                host,
+                url,
                 R.drawable.alert_1,
                 showButtons = true,
                 canceledOnTouchOutside = true,

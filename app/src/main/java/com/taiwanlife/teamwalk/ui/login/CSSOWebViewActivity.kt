@@ -1,9 +1,7 @@
 package com.taiwanlife.teamwalk.ui.login
 
-import android.R.attr.host
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -20,20 +18,22 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.browser.customtabs.CustomTabsService.KEY_URL
 import androidx.core.app.ActivityCompat.finishAffinity
+import androidx.core.net.toUri
+import com.google.gson.Gson
+import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
-import com.taiwanlife.teamwalk.utils.AlertDialogManager
-import androidx.core.net.toUri
-import com.taiwanlife.teamwalk.Config
-import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
-import com.taiwanlife.teamwalk.ui.login.CSSOWebViewActivity.Companion.CSSO_WEBVIEW_DOMAINS
+import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
+import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
+import com.taiwanlife.teamwalk.utils.Utils
 import timber.log.Timber
 import java.util.Locale
 
@@ -42,16 +42,10 @@ class CSSOWebViewActivity :
 
     companion object {
         private const val KEY_PURPOSE: String = "KEY_PURPOSE"
-        private const val KEY_URL: String = "KEY_URL"
         private const val PURPOSE_REGISTER: String = "REGISTER"
         private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
         private const val PURPOSE_NOTIFY_CHANGE_PASSWORD: String = "NOTIFY_CHANGE_PASSWORD"
 
-        val CSSO_WEBVIEW_DOMAINS = setOf(
-            MyApplication.context.getString(R.string.web_url).toUri().host,
-            MyApplication.context.getString(R.string.api_url).toUri().host,
-            MyApplication.context.getString(R.string.csso_url).toUri().host,
-        ).filterNotNull() // 去掉 null
 
         // 進來是為了註冊
         fun register(context: Context?): Intent {
@@ -70,10 +64,9 @@ class CSSOWebViewActivity :
         }
 
         // 進來是提醒要更新密碼
-        fun notifyChangePassword(context: Context, url: String): Intent {
+        fun notifyChangePassword(context: Context): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_NOTIFY_CHANGE_PASSWORD)
-            intent.putExtra(KEY_URL, url)
             return intent
         }
     }
@@ -147,45 +140,55 @@ class CSSOWebViewActivity :
             }
         }
 
-        val purpose = intent.getStringExtra(CSSOWebViewActivity.KEY_PURPOSE)
-        val url = intent.getStringExtra(CSSOWebViewActivity.KEY_URL)
-        if (purpose.isNullOrEmpty() || url.isNullOrEmpty()) {
+        var cssoUrl = "about:blank"
+        val purpose = intent.getStringExtra(KEY_PURPOSE)
+        if (purpose.isNullOrEmpty()) {
             finish()
             return
         }
-        //        SharedPreferences loginSharedPref = getSharedPreferences(getString(R.string.pref_login), CSSOWebViewActivity.MODE_PRIVATE);
-//        SecuredPreferenceStore loginSharedPref = SecuredPreferenceStore.getSharedInstance();
-//        String csso = loginSharedPref.getString("csso", CSSO_SIGN_UP);
-//
-//        String cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoSignUpUrl();
-//        if (TextUtils.equals(CSSO_SIGN_UP, csso)) {
-//            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoSignUpUrl();
-//        }
-//
-//        if (TextUtils.equals(getString(R.string.csso_forget_pwd_key), csso)) {
-//            cssoURL = EnvironmentManager.INSTANCE.getEnvironmentConfig().getCssoForgetMimaUrl();
-//        }
+        when (purpose) {
+            PURPOSE_REGISTER -> {
+                cssoUrl = getEnvironmentConfig().cssoSignUpUrl
+            }
+            PURPOSE_FORGET_PASSWORD -> {
+                cssoUrl = getEnvironmentConfig().cssoForgetMimaUrl
+            }
+            PURPOSE_NOTIFY_CHANGE_PASSWORD -> {
+                val changeParamsJson =
+                    SecuredPreferenceStoreManager.getString(Config.SP_CHANGE_PARAMS, "")
+                if (changeParamsJson.isEmpty()) {
+                    finish()
+                    return
+                }
+
+                val changeParams = Gson().fromJson(changeParamsJson, ChangeParams::class.java)
+                SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CHANGE_PARAMS, "")
+                cssoUrl = getEnvironmentConfig().cssoUrl.toUri()
+                    .buildUpon()
+                    .appendPath(Config.CHANGE_PATH)
+                    .appendQueryParameter(LoginActivity.QUERY_PARAM_SERVICE_ID, changeParams.serviceId)
+                    .appendQueryParameter(LoginActivity.QUERY_PARAM_TICKET, changeParams.ticket)
+                    .build()
+                    .toString()
+            }
+        }
 
 
-        webView.loadUrl(url)
+        webView.loadUrl(cssoUrl)
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
 //        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
 //        webView.postDelayed({
-//            webView.evaluateJavascript( "window.location.href = '${getString(R.string.redirect_scheme)}://login';", null)
+//            webView.evaluateJavascript( "window.location.href = 'https://demo.mutron.com.tw/login';", null)
 //        }, 1000L)
 //        webView.postDelayed({
 //            // 組裝 JavaScript 字串：先跳 Alert，按下確定後執行 window.location.href
 //            val jsCode = """
 //        alert('驗證成功！即將返回 App。');
-//        window.location.href = 'teamwalkuat://loginsuccess';
+//        window.location.href = 'https://demo.mutron.com.tw/login';
 //    """.trimIndent()
 //
 //            webView.evaluateJavascript(jsCode, null)
 //        }, 1000L)
-//        webView.evaluateJavascript("""
-//    alert("test");
-//    window.location.href = "teamwalkuat://loginsuccess?token=123";
-//""", null)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -210,7 +213,7 @@ class CSSOWebViewActivity :
         super.onResume()
 
         val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
-        if(!emulatorResult.passed) {
+        if (!emulatorResult.passed) {
             getAlertDialog(
                 context = this,
                 message = emulatorResult.errorMessage ?: "",
@@ -283,20 +286,56 @@ class CSSOWebViewActivity :
     }
 
     private class CSSOWebViewClient(private val context: Context) : WebViewClient() {
+        override fun shouldOverrideUrlLoading(
+            view: WebView,
+            url: String
+        ): Boolean {
+            return urlLoading(view, url.toUri())
+        }
+
         /**
          * @param view
          * @param request
          * @return
          */
         override fun shouldOverrideUrlLoading(
-            view: WebView?,
+            view: WebView,
             request: WebResourceRequest
         ): Boolean {
-//            Log.d(TAG, request.getUrl().toString());
+            return urlLoading(view, request.url)
+        }
+
+        private fun urlLoading(view: WebView, uri: Uri): Boolean {
+            if (Utils.isAppLink(uri)) {
+                try {
+                    val pm = context.packageManager
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    }
+
+                    val activities = pm.queryIntentActivities(intent, 0)
+                    if (activities.isEmpty()) {
+                        // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
+                        if (context is Activity) {
+                            context.finish()
+                        }
+                    } else {
+                        val chooser = Intent.createChooser(intent, "選擇開啟方式")
+                        context.startActivity(chooser)
+                    }
+
+                } catch (e: Exception) {
+                    // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
+                    if (context is Activity) {
+                        context.finish()
+                    }
+                }
+                return true
+            }
 
             val cssoURL = getEnvironmentConfig().cssoUrl.toUri()
-            if (TextUtils.equals(cssoURL.host,  request.url.host)) {
-                if (TextUtils.equals("/csso/mobileIndex", request.url.path)) {
+            if (TextUtils.equals(cssoURL.host, uri.host)) {
+                if (TextUtils.equals("/csso/mobileIndex", uri.path)) {
                     if (context is Activity) {
                         context.finish()
                     }
@@ -306,32 +345,8 @@ class CSSOWebViewActivity :
                 return false
             }
 
-            if (request.url.host!!.contains("bid.g.doubleclick.net")) {
+            if (uri.host!!.contains("bid.g.doubleclick.net")) {
                 return false
-            }
-
-            try {
-                val pm = context.packageManager
-                val intent = Intent(Intent.ACTION_VIEW, request.url).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                }
-
-                val activities = pm.queryIntentActivities(intent, 0)
-                if (activities.isEmpty()) {
-                    // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
-                    if (context is Activity) {
-                        context.finish()
-                    }
-                } else {
-                    val chooser = Intent.createChooser(intent, "選擇開啟方式")
-                    context.startActivity(chooser)
-                }
-
-            } catch (e: Exception) {
-                // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
-                if (context is Activity) {
-                    context.finish()
-                }
             }
 
 //            if(request.url.toString() == "teamwalk://login") {
@@ -339,17 +354,36 @@ class CSSOWebViewActivity :
 //                    context.finish()
 //                }
 //            }
+
+            uri.toString().let { safeLoadUrl(view, it) }
+
             return true
+        }
+
+        private fun safeLoadUrl(view: WebView?, url: String) {
+            val uri = url.toUri()
+            val host = uri.host?.lowercase() ?: return
+
+            val isAllowed = Utils.isAllowedHost(host)
+
+            if (isAllowed) {
+                view?.loadUrl(url)
+            } else {
+                unSafeUrl(url)
+            }
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
+            Timber.d("Start loading $url")
+            val uri = url?.toUri() ?: return
+            val host = uri.host?.lowercase() ?: return
 
-            url?.toUri()?.host?.let { host ->
-                if (!CSSO_WEBVIEW_DOMAINS.contains(host)) {
-                    view?.stopLoading()
-                    unSafeUrl(host)
-                }
+            val isAllowed = Utils.isAllowedHost(host)
+            if (!isAllowed) {
+                view?.stopLoading()
+                unSafeUrl(url)
+                return
             }
         }
 
@@ -359,7 +393,7 @@ class CSSOWebViewActivity :
             request: WebResourceRequest?,
             error: WebResourceError?
         ) {
-            if(request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
+            if (request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
                 return
             }
             // 確保錯誤是針對主框架的請求 (isForMainFrame)
@@ -368,8 +402,20 @@ class CSSOWebViewActivity :
                 val errorCode = error?.errorCode ?: -1
 
                 AlertDialog.Builder(context)
-                    .setTitle(String.format(Locale.getDefault(), context.getString(R.string.webview_error_title), errorCode.toString()))
-                    .setMessage(String.format(Locale.getDefault(), context.getString(R.string.webview_error_message), description))
+                    .setTitle(
+                        String.format(
+                            Locale.getDefault(),
+                            context.getString(R.string.webview_error_title),
+                            errorCode.toString()
+                        )
+                    )
+                    .setMessage(
+                        String.format(
+                            Locale.getDefault(),
+                            context.getString(R.string.webview_error_message),
+                            description
+                        )
+                    )
                     .setPositiveButton(R.string.confirm1) { dialog, _ ->
 
                     }
@@ -378,11 +424,11 @@ class CSSOWebViewActivity :
             }
         }
 
-        private fun unSafeUrl(host: String) {
+        private fun unSafeUrl(url: String) {
             CommonDialog(context).apply {
                 oneButtonInit(
                     context.getString(R.string.webview_not_allowed_host),
-                    host,
+                    url,
                     R.drawable.alert_1,
                     showButtons = true,
                     canceledOnTouchOutside = true,

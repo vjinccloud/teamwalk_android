@@ -3,6 +3,7 @@ package com.taiwanlife.teamwalk.ui.login
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -37,11 +38,14 @@ import com.taiwanlife.teamwalk.utils.toast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Arrays
 import java.util.Locale
+import androidx.core.net.toUri
+import com.google.gson.Gson
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
 
     companion object {
-        private const val QUERY_PARAM_TICKET = "ticket"
+        const val QUERY_PARAM_SERVICE_ID = "serviceId"
+        const val QUERY_PARAM_TICKET = "ticket"
     }
 
     override val statusBarColor: Int = R.color.white
@@ -149,7 +153,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         if (isRememberMe) {
             run {
-                val savedPid = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_REMEMBER_PID, "")
+                val savedPid =
+                    SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_REMEMBER_PID, "")
                 if (savedPid.isNotEmpty()) {
                     savedPid.toCharArray(pid, 0)
                 }
@@ -230,19 +235,14 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
         }
 
-        val tempTicket = SecuredPreferenceStoreManager.getString(Config.SP_TEMP_TICKET, "")
-        if(tempTicket.isEmpty()) {
-            loginViewModel.getSysParam()
-        } else {
-            ticketCallback(tempTicket)
-        }
+        loginViewModel.getSysParam()
     }
 
     override fun onResume() {
         super.onResume()
 
         val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
-        if(!emulatorResult.passed) {
+        if (!emulatorResult.passed) {
             getAlertDialog(
                 context = this,
                 message = emulatorResult.errorMessage ?: "",
@@ -318,10 +318,34 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 if (url.isNotEmpty()) {
                     val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
                     if (!ticket.isNullOrEmpty()) {
-                        if(url.contains("mobileChgPwd")) {
+//                      this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
+                        val cookieString = CookieManager.getInstance()
+                            .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
+                        if (cookieString != null) {
+//                          this.debugToast("嘗試找CASTGC - $cookieString")
+                            val castGC = extractCastgcValueSplit(cookieString)
+                            if (!castGC.isNullOrEmpty()) {
+                                SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
+                            } else {
+//                          this.debugToast("找不到CASTGC")
+                            }
+                        } else {
+//                          this.debugToast("沒有取得CookieString")
+                        }
+
+                        if (url.contains(Config.CHANGE_PATH) && extractChangeParams(url)) {
                             // 需要更換密碼
-                            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, ticket)
-                            val intent = CSSOWebViewActivity.notifyChangePassword(this@LoginActivity, url)
+                            SecuredPreferenceStoreManager.simpleEditAndApply(
+                                Config.SP_LOG_REQUEST, loginViewModel.getLogRequest(
+                                    getString(R.string.redirect_scheme),
+                                    String(pid),
+                                    ticket,
+                                    Utils.getDeviceId(this@LoginActivity),
+                                    isRememberMe
+                                )
+                            )
+                            val intent =
+                                CSSOWebViewActivity.notifyChangePassword(this@LoginActivity)
                             startActivity(intent)
                         } else {
                             ticketCallback(ticket)
@@ -379,28 +403,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         myWebChromeClient.setConfirmCallback { viewBinding.loginPatternLockView.clearPattern() }
         viewBinding.webview.webChromeClient = myWebChromeClient
         ticketCallback = { ticket ->
-//            this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
-            val cookieString = CookieManager.getInstance()
-                .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
-            if (cookieString != null) {
-//                this.debugToast("嘗試找CASTGC - $cookieString")
-                val castGC = extractCastgcValueSplit(cookieString)
-                if (!castGC.isNullOrEmpty()) {
-                    SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
-                } else {
-//                    this.debugToast("找不到CASTGC")
-                }
-            } else {
-//                this.debugToast("沒有取得CookieString")
-            }
-
             loginViewModel.login(
                 getString(R.string.redirect_scheme),
                 String(pid),
                 ticket,
                 Utils.getDeviceId(this)
             )
-            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
         }
     }
 
@@ -454,7 +462,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     private fun setPatterLock() {
 
         viewBinding.loginPatternLockView.isInStealthMode = false
-        viewBinding.loginPatternLockView.isInputEnabled = isRememberMe && pid.count { it != '\u0000' } == 10
+        viewBinding.loginPatternLockView.isInputEnabled =
+            isRememberMe && pid.count { it != '\u0000' } == 10
 
         viewBinding.loginPatternToggleStealthModeButton.setOnClickListener {
             viewBinding.loginPatternLockView.isInStealthMode =
@@ -719,5 +728,32 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         pidTextWatcher.clear()
         Arrays.fill(pid, '\u0000')
         finish()
+    }
+
+    fun extractChangeParams(url: String): Boolean {
+        return try {
+            val uri = url.toUri()
+
+            if (uri.scheme != "https" || !Config.ALLOW_WEBVIEW_DOMAIN.contains(uri.host)) {
+                return false
+            }
+
+            val rawServiceId = uri.getQueryParameter(QUERY_PARAM_SERVICE_ID) ?: return false
+            val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET) ?: return false
+
+            val decodedServiceId = Uri.decode(rawServiceId)
+
+
+            val changeParams = ChangeParams(
+                serviceId = decodedServiceId,
+                ticket = ticket
+            )
+
+            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CHANGE_PARAMS, Gson().toJson(changeParams))
+            return true
+
+        } catch (e: Exception) {
+            false
+        }
     }
 }

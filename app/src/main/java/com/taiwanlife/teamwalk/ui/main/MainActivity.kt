@@ -48,7 +48,9 @@ import com.taiwanlife.teamwalk.ui.common.model.FitbitModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.ui.common.model.GarminModel
 import com.taiwanlife.teamwalk.ui.common.model.SyncHealthDataModel
+import com.taiwanlife.teamwalk.ui.login.LogRequest
 import com.taiwanlife.teamwalk.ui.login.LoginActivity
+import com.taiwanlife.teamwalk.ui.login.LoginViewModel
 import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_FAILURE
@@ -96,10 +98,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private lateinit var myNotificationManager: MyNotificationManager
     private val permissionManager = PermissionManager(this)
     private val mainViewModel: MainViewModel by viewModel()
+    private val loginViewModel: LoginViewModel by viewModel()
     private val fitbitViewModel: FitbitViewModel by viewModel()
     private val garminViewModel: GarminViewModel by viewModel()
     private var healthConnectViewModel: HealthConnectViewModel? = null
     private val healthConnectHelper = HealthConnectHelper(this, this)
+    private var logRequest: LogRequest? = null
     private lateinit var bindingManager: BindingManager
 
     // 檢查Play商店功能參數
@@ -297,6 +301,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)
         viewBinding.webView.setUp(this, this, this, {
+            toLogin()
+        }, {
             finishAffinity()
         }) { filePathCallback, fileChooserParams ->
             this@MainActivity.filePathCallback?.onReceiveValue(null)
@@ -509,6 +515,38 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             handleRedirectIntent(intent)
         }
+        observeOnLifeCycle(loginViewModel.loginFlow, onError = {
+            logRequest = null
+            toLogin()
+        }) { loginResponse ->
+            SecuredPreferenceStoreManager.editAndApply {
+                it.putBoolean(Config.SP_LOGIN_AUTH, true)
+//                it.putBoolean(Config.PREF_LOGIN_AUTH, true)
+//                it.putString(Config.PREF_LOGIN_TICKET, ticket!!)
+//                it.putString(Config.PREF_LOGIN_USERNAME, pid)
+
+                logRequest?.let { logRequest ->
+                    if (logRequest.isRememberMe) {
+//                    it.putString(Config.PREF_LOGIN_PID, pid)
+                        it.putString(Config.SP_LOGIN_REMEMBER_PID, logRequest.applId)
+                    } else {
+//                    it.putString(Config.PREF_LOGIN_PID, "")
+                        it.putString(Config.SP_LOGIN_REMEMBER_PID, "")
+                    }
+                    it.putString(Config.SP_PID, logRequest.applId)
+
+                }
+
+                logRequest = null
+                it.putString(Config.SP_LOG_REQUEST, "")
+                loginResponse.let { loginResponse ->
+                    it.putString(Config.SP_LOGIN_JWT, loginResponse.token)
+                }
+            }
+
+            // 登入完畢 取得使用者資訊
+            mainViewModel.getLanding()
+        }
     }
 
     override fun onReceivedEvent(eventName: String?, result: String) {
@@ -542,18 +580,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             LOGIN -> {
                 // 確保登入重置
-                SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
                 toLogin()
             }
 
             LOGIN_SUCCESS -> {
-                // 到這裡表示我們有未完成的登入流程 讓他繼續走
-                toLogin()
+                // 如果更改密碼完之後需要繼續執行登入 在onResume裡面做完了
             }
 
             LOGIN_FAILURE -> {
                 loginFailure()
             }
+        }
+    }
+
+    private fun checkShouldContinueLogin() {
+        val logRequestJson = SecuredPreferenceStoreManager.getString(Config.SP_LOG_REQUEST, "")
+        if (logRequestJson.isNotEmpty()) {
+            logRequest = getGson().fromJson(logRequestJson, LogRequest::class.java)
         }
     }
 
@@ -670,7 +713,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun loginFailure() {
-        SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_TEMP_TICKET, "")
         toLogin()
     }
 
@@ -716,8 +758,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private fun doBusiness() {
         // 這邊檢查是否登入
         if (!isLogin()) {
-            toLogin()
-            viewBinding.logout.text = getString(R.string.main_not_logged_in)
+            checkShouldContinueLogin()
+            if(logRequest != null) {
+                // 更改完密碼後正在繼續登入
+                loginViewModel.login(logRequest!!.service, logRequest!!.applId, logRequest!!.ticket, logRequest!!.deviceId)
+            } else {
+                toLogin()
+                viewBinding.logout.text = getString(R.string.main_not_logged_in)
+            }
         } else {
             viewBinding.logout.text = getString(R.string.main_simulate_logout)
 
@@ -763,6 +811,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             prefEditor.putString(Config.SP_BIND_FITBIT, "")
             prefEditor.putString(Config.SP_BIND_CURRENT_DEVICE, "")
             prefEditor.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
+            prefEditor.putString(Config.SP_LOG_REQUEST, "")
         }
 
         viewBinding.webView.post {

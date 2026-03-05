@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk
 
+import androidx.core.net.toUri
 import java.time.ZoneId
 import java.util.Locale
 
@@ -23,6 +24,15 @@ object Config {
     const val WEBVIEW_CALLBACK_SCHEME = "teamwalk"
 
     const val GOOGLE_HEALTH_CONNECT_PACKAGE_NAME = "com.google.android.apps.healthdata"
+
+    const val TAIWAN_LIFE_COM_HOST_SUFFIX = "taiwanlife.com"
+    val ALLOW_WEBVIEW_DOMAIN = setOf(
+        MyApplication.context.getString(R.string.web_url).toUri().host,
+        MyApplication.context.getString(R.string.api_url).toUri().host,
+        MyApplication.context.getString(R.string.csso_url).toUri().host,
+        TAIWAN_LIFE_COM_HOST_SUFFIX
+    ).filterNotNull()
+    const val CHANGE_PATH = "mobileChgPwd"
 
     // region 自訂義事件參數
     const val EVENT_NOTIFY_CHANGE_DONE = "EVENT_NOTIFY_CHANGE_DONE"
@@ -69,7 +79,8 @@ object Config {
     const val SP_GARMIN_STATE = "SP_GARMIN_STATE"
     const val SP_BINDING_FROM_ONBOARD = "SP_BINDING_FROM_ONBOARD"
     const val SP_KNOWS_ROOT = "SP_KNOWS_ROOT"
-    const val SP_TEMP_TICKET = "SP_TEMP_TICKET"
+    const val SP_LOG_REQUEST = "SP_LOG_REQUEST"
+    const val SP_CHANGE_PARAMS = "SP_CHANGE_PARAMS"
 
     // 在Cookie內部 用來跟CSSO使用
     const val SP_CASTGC = "SP_CASTGC"

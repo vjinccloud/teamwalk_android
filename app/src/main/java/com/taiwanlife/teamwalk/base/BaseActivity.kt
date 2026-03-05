@@ -249,14 +249,8 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
             icon = R.mipmap.ic_launcher,
             isCancelable = false,
             shouldShow = true,
-            positiveText = getString(R.string.go_to_setting),
+            positiveText = getString(R.string.understand_and_continue),
             positiveOnClick = {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                startActivity(intent)
-                overlayWarningShown = false
-            },
-            negativeText = getString(R.string.understand_and_continue),
-            negativeOnClick = {
                 overlayWarningShown = false
             }
         )

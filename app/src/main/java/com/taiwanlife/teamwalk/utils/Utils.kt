@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.R.attr.host
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
@@ -18,6 +19,8 @@ import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.PatternLockView.Dot
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.MyApplication
+import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.remote.response.api.model.Activity
 import com.taiwanlife.teamwalk.ui.main.MainActivity
@@ -354,6 +357,27 @@ object Utils {
             activity.finishAffinity()
             // 用這個會讓登出資料沒辦法清乾淨
 //            exitProcess(0)
+        }
+    }
+
+    fun isAllowedHost(host: String): Boolean {
+        return Config.ALLOW_WEBVIEW_DOMAIN.any { allowed ->
+            val allowedHost = allowed.lowercase()
+            host == allowedHost || host.endsWith(".$allowedHost")
+        }
+    }
+
+    fun isAppLink(uri: Uri): Boolean {
+        if (uri.scheme != "https") return false
+        if (uri.host != MyApplication.context.getString(R.string.app_link_host)) return false
+
+        return when (uri.path) {
+            "/home",
+            "/login",
+            "/loginsuccess",
+            "/loginfailure" -> true
+
+            else -> false
         }
     }
 }
