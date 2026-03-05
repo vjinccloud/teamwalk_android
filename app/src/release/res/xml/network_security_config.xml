@@ -1,8 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">csso.taiwanlife.com</domain>
+        <pin-set expiration="2026-11-08">
+            <!-- server.cer 2025/11/08 單一 -->
+            <pin digest="SHA-256">SESrlrEa9KrD7dMcOHDWRooP1emwd7PoA54syLVigJo=</pin>
+            <!-- server.cer 2025/10/28 萬用字元 -->
+            <pin digest="SHA-256">FgG4JxnyAQUsqSpfRVDzb5fpJCUnf6Y6AQQzysKSSNg=</pin>
+            <!-- server.cer 2024/10/29-->
+            <pin digest="SHA-256">xES1tmzl1x4bXkDyc4XJXL/SSgW1b3DKwJkvD1DDN5w=</pin>
+            <pin digest="SHA-256">9VZ7Yd685RTXsE6rL/puuMbnejYaXwaZasGL7c+Uolc=</pin>
+        </pin-set>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">tcav.taiwanlife.com</domain>
+        <pin-set expiration="2026-11-08">
+            <!-- server.cer 2025/11/08 單一 -->
+            <pin digest="SHA-256">6vIElRxQWzjcIVr6l2grjHUsRima53iPw2hcvI8FNVI=</pin>
+            <!-- server.cer 2025/10/28 萬用字元 -->
+            <pin digest="SHA-256">FgG4JxnyAQUsqSpfRVDzb5fpJCUnf6Y6AQQzysKSSNg=</pin>
+            <!-- server.cer 2024/10/29-->
+            <pin digest="SHA-256">xES1tmzl1x4bXkDyc4XJXL/SSgW1b3DKwJkvD1DDN5w=</pin>
+            <pin digest="SHA-256">9VZ7Yd685RTXsE6rL/puuMbnejYaXwaZasGL7c+Uolc=</pin>
+        </pin-set>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">taiwanlife.com</domain>
-        <pin-set expiration="2025-11-21">
+        <pin-set expiration="2026-11-21">
+            <!-- server.cer 2025/10/28-->
+            <pin digest="SHA-256">FgG4JxnyAQUsqSpfRVDzb5fpJCUnf6Y6AQQzysKSSNg=</pin>
             <!-- server.cer 2024/10/29-->
             <pin digest="SHA-256">aUwhrwFOuVNV09mJEmQtd6VU7hXNY9QT5aP0Sl2z8HY=</pin>
             <pin digest="SHA-256">xES1tmzl1x4bXkDyc4XJXL/SSgW1b3DKwJkvD1DDN5w=</pin>
