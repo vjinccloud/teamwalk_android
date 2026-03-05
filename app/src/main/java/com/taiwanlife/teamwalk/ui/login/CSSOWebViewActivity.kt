@@ -18,8 +18,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
-import androidx.browser.customtabs.CustomTabsService.KEY_URL
-import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.taiwanlife.teamwalk.Config
@@ -51,7 +49,6 @@ class CSSOWebViewActivity :
         fun register(context: Context?): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_REGISTER)
-            intent.putExtra(KEY_URL, getEnvironmentConfig().cssoSignUpUrl)
             return intent
         }
 
@@ -59,7 +56,6 @@ class CSSOWebViewActivity :
         fun forgetPassword(context: Context?): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_FORGET_PASSWORD)
-            intent.putExtra(KEY_URL, getEnvironmentConfig().cssoForgetMimaUrl)
             return intent
         }
 
