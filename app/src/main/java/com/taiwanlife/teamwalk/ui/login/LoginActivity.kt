@@ -734,10 +734,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         return try {
             val uri = url.toUri()
 
+            // 確認該網址於我們的白名單內，為可信任之來源
             if (uri.scheme != "https" || !Config.ALLOW_WEBVIEW_DOMAIN.contains(uri.host)) {
                 return false
             }
 
+            // 將需要傳入的 serviceId/ticket 取出
             val rawServiceId = uri.getQueryParameter(QUERY_PARAM_SERVICE_ID) ?: return false
             val ticket = uri.getQueryParameter(QUERY_PARAM_TICKET) ?: return false
 
@@ -749,6 +751,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 ticket = ticket
             )
 
+            // 將此參數加密後存入本地
             SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CHANGE_PARAMS, Gson().toJson(changeParams))
             return true
 

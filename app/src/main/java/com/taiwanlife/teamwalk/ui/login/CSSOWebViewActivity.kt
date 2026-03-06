@@ -159,11 +159,11 @@ class CSSOWebViewActivity :
 
                 val changeParams = Gson().fromJson(changeParamsJson, ChangeParams::class.java)
                 SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CHANGE_PARAMS, "")
-                cssoUrl = getEnvironmentConfig().cssoUrl.toUri()
+                cssoUrl = getEnvironmentConfig().cssoUrl.toUri() // 我們寫死的CSSO網域 例：https://csso.taiwanlife.com/csso/
                     .buildUpon()
-                    .appendPath(Config.CHANGE_PATH)
-                    .appendQueryParameter(LoginActivity.QUERY_PARAM_SERVICE_ID, changeParams.serviceId)
-                    .appendQueryParameter(LoginActivity.QUERY_PARAM_TICKET, changeParams.ticket)
+                    .appendPath(Config.CHANGE_PATH) // 加上變更密碼的Path，和上面的網址組完後為可信任的CSSO網址 例：https://csso.taiwanlife.com/csso/mobileChgPwd
+                    .appendQueryParameter(LoginActivity.QUERY_PARAM_SERVICE_ID, changeParams.serviceId) // 加上解密後的參數，用來比對來源
+                    .appendQueryParameter(LoginActivity.QUERY_PARAM_TICKET, changeParams.ticket) // 加上解密後的參數，用來確認使用者
                     .build()
                     .toString()
             }
