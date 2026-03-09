@@ -11,24 +11,8 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface GarminService {
-    /**
-     *
-     * @param authorization
-     * @return
-     */
-    @POST("request_token")
-    suspend fun getAuthCode(@Header("Authorization") authorization: String): Response<ResponseBody>
-
-    /**
-     *
-     * @param authorization
-     * @return
-     */
-    @POST("access_token")
-    suspend fun getToken(@Header("Authorization") authorization: String): Response<ResponseBody>
-
     @FormUrlEncoded
-    @POST("https://diauth.garmin.com/di-oauth2-service/oauth/token")
+    @POST("token")
     suspend fun getToken2(
         @Field("client_id") clientId: String,
         @Field("client_secret") clientSecret: String,

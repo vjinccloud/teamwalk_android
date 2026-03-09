@@ -24,7 +24,6 @@ import com.taiwanlife.teamwalk.utils.getGson
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.viewModel
-import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -77,7 +76,7 @@ val appModule = module {
     // 建立屬於Garmin的Retrofit
     single<Retrofit>(named("garmin")) {
         Retrofit.Builder()
-            .baseUrl(EnvironmentManager.getEnvironmentConfig().garminUrl)
+            .baseUrl(EnvironmentManager.getEnvironmentConfig().garminApiUrl)
             .client(get<OkHttpClient>())
             .addConverterFactory(GsonConverterFactory.create(get()))
             .build()

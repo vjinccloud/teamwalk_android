@@ -9,14 +9,6 @@ import retrofit2.Response
 class GarminRepository(
     private val garminService: GarminService
 ) {
-    suspend fun getAuthCode(authorization: String): Response<ResponseBody> {
-        return garminService.getAuthCode(authorization)
-    }
-
-    suspend fun getToken(authorization: String): Response<ResponseBody> {
-        return garminService.getToken(authorization)
-    }
-
     suspend fun getToken2(
         redirectUri: String,
         code: String,

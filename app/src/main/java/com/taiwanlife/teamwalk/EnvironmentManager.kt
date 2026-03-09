@@ -24,7 +24,6 @@ object EnvironmentManager {
         apiUrl = MyApplication.context.getString(R.string.api_url),
         webUrlBase = MyApplication.context.getString(R.string.web_url_base),
         webUrl = MyApplication.context.getString(R.string.web_url),
-        taiwanlifeMemberUrl = MyApplication.context.getString(R.string.taiwanlife_member_url),
         connectGoogleClientId = MyApplication.context.getString(R.string.connect_google_client_id),
         connectFitbitClientId = MyApplication.context.getString(R.string.connect_fitbit_client_id),
         connectFitbitClientSecret = MyApplication.context.getString(R.string.connect_fitbit_client_s),
@@ -32,8 +31,8 @@ object EnvironmentManager {
         connectGarminConsumerSecret = MyApplication.context.getString(R.string.connect_garmin_consumer_s),
         connectGarminPortal = MyApplication.context.getString(R.string.connect_garmin_portal),
         connectGarminRedirectUrl = MyApplication.context.getString(R.string.connect_garmin_redirect_url),
-        loginRedirectUrl = MyApplication.context.getString(R.string.login_redirect_url),
-        garminUrl = MyApplication.context.getString(R.string.garmin_url),
-        googleFitbitUrl = MyApplication.context.getString(R.string.fitbit_url)
+        loginSuccessRedirectUrl = MyApplication.context.getString(R.string.login_success_redirect_url),
+        garminApiUrl = MyApplication.context.getString(R.string.garmin_api_url),
+        googleFitbitUrl = MyApplication.context.getString(R.string.fitbit_url),
     )
 }

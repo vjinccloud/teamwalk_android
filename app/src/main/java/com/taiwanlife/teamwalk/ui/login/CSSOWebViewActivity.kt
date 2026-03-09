@@ -171,8 +171,8 @@ class CSSOWebViewActivity :
 
 
         webView.loadUrl(cssoUrl)
-//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk")
-//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk")
+//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk2")
+//        webView.loadUrl("https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk2")
 //        webView.postDelayed({
 //            webView.evaluateJavascript( "window.location.href = 'https://demo.mutron.com.tw/login';", null)
 //        }, 1000L)

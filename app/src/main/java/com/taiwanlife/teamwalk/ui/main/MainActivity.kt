@@ -88,7 +88,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     MyWebMessageListener.AsyncCallbacks, MyWebView.WebviewLoadingCallback {
 
     companion object {
-        const val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 4
         const val GOOGLE_ERROR_DIALOG_REQUEST_CODE = 4
 
         private const val QUERY_PARAM_TICKET = "ticket"
@@ -607,20 +606,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         caller: ComponentCaller
     ) {
         super.onActivityResult(requestCode, resultCode, data, caller)
-        // 最新的鼓勵使用Launcher 會到這裡表示不得已 否則請勿使用
-        if (resultCode == RESULT_OK && requestCode == GOOGLE_FIT_PERMISSIONS_REQUEST_CODE) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            googleAuthCode = null
-            try {
-                val account = task.getResult<ApiException?>(ApiException::class.java)
-                googleAuthCode = account.serverAuthCode
-            } catch (e: ApiException) {
-                toast(R.string.onboard_connect_fail)
-                e.printStackTrace()
-            }
-            // 流程結束 看看最後的authCode狀況
-            gsoAuthCodeProcessFinish()
-        }
         if (requestCode == GOOGLE_ERROR_DIALOG_REQUEST_CODE) {
             // Adding a fragment via GoogleApiAvailability.showErrorDialogFragment
             // before the instance state is restored throws an error. So instead,
@@ -699,16 +684,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     text = getString(R.string.ok)
                 )
             }.show()
-        }
-    }
-
-    private fun gsoAuthCodeProcessFinish() {
-        if (TextUtils.isEmpty(googleAuthCode)) {
-            toast(R.string.onboard_connect_fail)
-            Timber.d("Fail to connect google fit, no auth code")
-        } else {
-            viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl + "health/connect?device=google&a=" + googleAuthCode)
-            toast(R.string.onboard_connect_success)
         }
     }
 

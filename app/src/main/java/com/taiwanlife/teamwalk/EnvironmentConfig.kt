@@ -8,7 +8,6 @@ data class EnvironmentConfig(
     val apiUrl: String,
     val webUrlBase: String,
     val webUrl: String,
-    val taiwanlifeMemberUrl: String,
     val connectGoogleClientId: String,
     val connectFitbitClientId: String,
     val connectFitbitClientSecret: String,
@@ -16,10 +15,10 @@ data class EnvironmentConfig(
     val connectGarminConsumerSecret: String,
     val connectGarminPortal: String,
     val connectGarminRedirectUrl: String,
-    val loginRedirectUrl: String,
+    val loginSuccessRedirectUrl: String,
 
-    // 新增環境參數
-    val garminUrl: String,
+    val garminApiUrl: String,
+    // Fitbit已無使用
     val googleFitbitUrl: String,
 )
 
