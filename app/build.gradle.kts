@@ -144,7 +144,7 @@ android {
             resValue("string", "csso_forget_mima_url", "https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk2")
             resValue("string", "csso_sign_up_url", "https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk2")
             resValue("string", "tcav_url", "https://tcav.taiwanlife.com/")
-            resValue("string", "api_url", "https://teamwalk2ap.taiwanlife.com/")
+            resValue("string", "api_url", "https://teamwalk2ap.taiwanlife.com/teamwalk-fe-api/")
             resValue("string", "web_url_base", "https://teamwalk2.taiwanlife.com/")
             resValue("string", "web_url", "https://teamwalk2.taiwanlife.com/bridge/")
             resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
