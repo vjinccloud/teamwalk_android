@@ -101,13 +101,13 @@
                 android:orientation="vertical">
 
                 <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/login_layout_password_pid"
+                    android:id="@+id/login_layout_pid"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
 
                     <EditText
-                        android:id="@+id/login_editText_password_pid"
+                        android:id="@+id/login_editText_pid"
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
                         android:layout_weight="1"

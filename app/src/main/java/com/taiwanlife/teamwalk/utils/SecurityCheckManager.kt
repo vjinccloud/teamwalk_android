@@ -36,8 +36,8 @@ object SecurityCheckManager {
 
     fun runSecurityCheck(context: Context): SecurityCheckResult {
         val errors = mutableListOf<String>()
-        val root = SecuredPreferenceStoreManager.getInt(Config.SP_KNOWS_ROOT, SecurityStatus.INIT.v)
-        rootStatus = SecurityStatus.fromValue(root)
+//        val root = SecuredPreferenceStoreManager.getInt(Config.SP_KNOWS_ROOT, SecurityStatus.INIT.v)
+//        rootStatus = SecurityStatus.fromValue(root)
 
         if (overlayStatus == SecurityStatus.INIT) {
             checkOverlay(context)?.let { errors.add(it) }
@@ -48,9 +48,10 @@ object SecurityCheckManager {
         if (usbDebugStatus == SecurityStatus.INIT) {
             checkUsbDebug(context)?.let { errors.add(it) }
         }
-        if (rootStatus == SecurityStatus.INIT) {
-            checkRoot(context)?.let { errors.add(it) }
-        }
+        // Root較嚴重 有的話就需要關閉
+//        if (rootStatus == SecurityStatus.INIT) {
+//            checkRoot(context)?.let { errors.add(it) }
+//        }
         if (deviceLockStatus == SecurityStatus.INIT) {
             checkDeviceLock(context)?.let { errors.add(it) }
         }
@@ -58,6 +59,7 @@ object SecurityCheckManager {
 //        if (emulatorStatus == SecurityStatus.INIT) {
 //            checkEmulator(context)?.let { errors.add(it) }
 //        }
+        // 逆向工具較嚴重 有的話就需要關閉
         if (antiReverseStatus == SecurityStatus.INIT) {
             // 每次都檢查
             checkAntiReverse(context)?.let { errors.add(it) }
@@ -73,11 +75,19 @@ object SecurityCheckManager {
         }
     }
 
-    fun runEmulatorCheck(context: Context): SecurityCheckResult {
+    fun runShutdownCheck(context: Context): SecurityCheckResult {
         val errors = mutableListOf<String>()
         if (emulatorStatus == SecurityStatus.INIT) {
             // 每次都會執行
             checkEmulator(context)?.let { errors.add(it) }
+        }
+        if (rootStatus == SecurityStatus.INIT) {
+            // 每次都會執行
+            checkRoot(context)?.let { errors.add(it) }
+        }
+        if (antiReverseStatus == SecurityStatus.INIT) {
+            // 每次都檢查
+            checkAntiReverse(context)?.let { errors.add(it) }
         }
 
         return if (errors.isNotEmpty()) {
@@ -160,10 +170,10 @@ object SecurityCheckManager {
         val emulatorRoot = detectNoxRoot() && hasSuBinary()
 
         if (highRisk || mediumRiskCount >= 2 || emulatorRoot) {
-            rootStatus = SecurityStatus.NOTIFIED
-            SecuredPreferenceStoreManager.editAndApply {
-                it.putInt(Config.SP_KNOWS_ROOT, SecurityStatus.NOTIFIED.v)
-            }
+            rootStatus = SecurityStatus.INIT
+//            SecuredPreferenceStoreManager.editAndApply {
+//                it.putInt(Config.SP_KNOWS_ROOT, SecurityStatus.NOTIFIED.v)
+//            }
             return String.format(
                 Locale.getDefault(),
                 context.getString(R.string.main_security_check),

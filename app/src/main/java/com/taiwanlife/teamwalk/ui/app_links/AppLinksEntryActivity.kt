@@ -31,7 +31,7 @@ class AppLinksEntryActivity: BaseActivity<ActivityAppLinksEntryBinding>({ Activi
             }
             if(uri.path == "/login" || uri.path == "/loginfailure") {
                 // 清除所有資料並開啟登入頁
-                Utils.clearLoginData(null)
+                Utils.clearLoginData(this, null)
                 postEvent(Config.EVENT_TO_LOGIN, "")
             }
             if(uri.path == "/loginsuccess") {

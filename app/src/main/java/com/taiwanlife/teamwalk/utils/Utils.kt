@@ -13,6 +13,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Base64
 import android.webkit.CookieManager
+import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.content.FileProvider
@@ -383,7 +384,7 @@ object Utils {
         }
     }
 
-    fun clearLoginData(webview: WebView?) {
+    fun clearLoginData(context: Context, webview: WebView?) {
         val cookieManager = CookieManager.getInstance()
         cookieManager.removeAllCookies(null)
         cookieManager.flush()
@@ -403,9 +404,36 @@ object Utils {
         }
 
         webview?.let { webview ->
+            clearSensitiveData(context, webview)
             webview.post {
                 webview.loadUrl("about:blank")
             }
+        }
+    }
+
+    /**
+     * 刪除敏感資料 所有Cookie和Webview存入之敏感資料、表單和歷史紀錄
+     */
+    fun clearSensitiveData(context: Context, webView: WebView) {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+
+        WebStorage.getInstance().deleteAllData()
+
+        try {
+            webView.clearCache(true)
+            webView.clearHistory()
+            webView.clearFormData()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        context.cacheDir.deleteRecursively()
+
+        val webViewDir = File(context.dataDir, "app_webview")
+        if (webViewDir.exists()) {
+            webViewDir.deleteRecursively()
         }
     }
 }

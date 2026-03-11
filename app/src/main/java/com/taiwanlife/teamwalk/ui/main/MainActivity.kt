@@ -13,16 +13,13 @@ import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
-import android.webkit.CookieManager
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.FirebaseApp
 import com.google.firebase.installations.FirebaseInstallations
@@ -48,9 +45,7 @@ import com.taiwanlife.teamwalk.ui.common.model.FitbitModel
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
 import com.taiwanlife.teamwalk.ui.common.model.GarminModel
 import com.taiwanlife.teamwalk.ui.common.model.SyncHealthDataModel
-import com.taiwanlife.teamwalk.ui.login.LogRequest
 import com.taiwanlife.teamwalk.ui.login.LoginActivity
-import com.taiwanlife.teamwalk.ui.login.LoginViewModel
 import com.taiwanlife.teamwalk.ui.main.HostTypes.HOME
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN
 import com.taiwanlife.teamwalk.ui.main.HostTypes.LOGIN_FAILURE
@@ -521,9 +516,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             Config.EVENT_NO_ID_TO_LOGIN, Config.EVENT_TO_LOGIN -> {
                 toLogin()
             }
+
             Config.EVENT_LOGIN_SUCCESS_START_LANDING -> {
                 mainViewModel.getLanding()
             }
+
             Config.EVENT_ONBOARDING_CONNECT_COMPLETE_REFRESH_HOME -> {
                 viewBinding.webView.reload()
             }
@@ -663,8 +660,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     private fun securityCheck() {
-        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
-        if(!emulatorResult.passed) {
+        val emulatorResult = SecurityCheckManager.runShutdownCheck(this)
+        if (!emulatorResult.passed) {
             getAlertDialog(
                 context = this,
                 message = emulatorResult.errorMessage ?: "",
@@ -722,16 +719,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    private fun clearSensitiveData(isDestroy: Boolean) {
-        if (isDestroy) {
-            viewBinding.webView.loadUrl("about:blank")
-            clearSensitiveData(viewBinding.webView)
+    private fun clearSensitiveData() {
+        // 只清除資料 不消除登入狀態
+        Utils.clearSensitiveData(this@MainActivity, viewBinding.webView)
+        viewBinding.webView.loadUrl("about:blank")
+
+        viewBinding.webView.destroy()
 //            SensitiveDataUtil.clearWebViewSensitiveData(this, viewBinding.webView, isDestroy)
-        }
     }
 
     private fun toLogin() {
-        Utils.clearLoginData(viewBinding.webView)
+        Utils.clearLoginData(this, viewBinding.webView)
 
         val loginIntent = Intent(this, LoginActivity::class.java)
         loginIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -772,11 +770,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         if (clearCache != null && clearCache!!) {
             viewBinding.webView.clearCache(true)
         }
-        clearSensitiveData(false)
     }
 
     override fun onDestroy() {
-        clearSensitiveData(true)
+        clearSensitiveData()
         super.onDestroy()
     }
 
@@ -904,7 +901,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun updatePushCount(notifyCount: Int) {
-        myNotificationManager.updateBadge(MyNotificationManager.getPendingIntentForBadge(this, 1003, notifyCount),notifyCount)
+        myNotificationManager.updateBadge(
+            MyNotificationManager.getPendingIntentForBadge(
+                this,
+                1003,
+                notifyCount
+            ), notifyCount
+        )
     }
 
     override fun logout() {

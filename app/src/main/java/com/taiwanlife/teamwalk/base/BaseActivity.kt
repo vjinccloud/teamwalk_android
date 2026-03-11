@@ -49,7 +49,8 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
     private lateinit var activityBaseBinding: ActivityBaseBinding
     lateinit var viewBinding: VB
 
-    private var overlayWarningShown = false
+    // 是否有提醒過使用者覆蓋
+    private var notifyUserOverlay = false
 
     /**
      * 在子類呼叫時指定 StatusBar 顏色
@@ -229,12 +230,10 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
             ev.flags and MotionEvent.FLAG_WINDOW_IS_OBSCURED != 0 ||
                     ev.flags and MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED != 0
 
-        if (isObscured) {
-
-            if (!overlayWarningShown) {
-                overlayWarningShown = true
-                showOverlayWarning()
-            }
+        if (isObscured && !notifyUserOverlay) {
+            // 沒有提醒過 且被覆蓋的狀態之下點擊 跳提醒
+            notifyUserOverlay = true
+            showOverlayWarning()
 
             return true
         }
@@ -251,37 +250,12 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
             shouldShow = true,
             positiveText = getString(R.string.understand_and_continue),
             positiveOnClick = {
-                overlayWarningShown = false
+                // 跳過提醒使用者就能正常使用
+//                overlayWarningShown = false
             }
         )
     }
 
-    /**
-     * 刪除敏感資料 所有Cookie和Webview存入之敏感資料、表單和歷史紀錄
-     */
-    fun clearSensitiveData(webView: WebView) {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies(null)
-        cookieManager.flush()
-
-        WebStorage.getInstance().deleteAllData()
-
-        try {
-            webView.clearCache(true)
-            webView.clearHistory()
-            webView.clearFormData()
-            webView.destroy()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        cacheDir.deleteRecursively()
-
-        val webViewDir = File(dataDir, "app_webview")
-        if (webViewDir.exists()) {
-            webViewDir.deleteRecursively()
-        }
-    }
 
     fun <T> observeOnLifeCycle(
         apiFlowClass: ApiFlowClass<T>,

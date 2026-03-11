@@ -189,7 +189,7 @@ class CSSOWebViewActivity :
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (!backIfValid()) {
-                    Utils.clearLoginData(webView)
+                    Utils.clearLoginData(this@CSSOWebViewActivity, webView)
 
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
@@ -210,7 +210,7 @@ class CSSOWebViewActivity :
     override fun onResume() {
         super.onResume()
 
-        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
+        val emulatorResult = SecurityCheckManager.runShutdownCheck(this)
         if (!emulatorResult.passed) {
             getAlertDialog(
                 context = this,

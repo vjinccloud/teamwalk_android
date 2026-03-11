@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.ui.login
 
+import android.R.id.input
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Paint
@@ -28,7 +29,6 @@ import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
-import com.taiwanlife.teamwalk.utils.PidTextWatcher
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.Utils
@@ -39,6 +39,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Arrays
 import java.util.Locale
 import androidx.core.net.toUri
+import androidx.core.widget.addTextChangedListener
+import androidx.savedstate.serialization.saved
 import com.google.gson.Gson
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
@@ -54,9 +56,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     private var position = 0
     private var isRememberMe: Boolean = false
+    private var fromFocusChange: Boolean = false
     private var pid = CharArray(10)
     private var ticketCallback: (ticket: String) -> Unit = {}
-    private lateinit var pidTextWatcher: PidTextWatcher
+//    private lateinit var pidTextWatcher: PidTextWatcher
+//    private var changed = false
 
     //    private var genText: String = ""
     private lateinit var currentCaptchaResult: CaptchaResult
@@ -151,19 +155,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         isRememberMe = SecuredPreferenceStoreManager.getBoolean(Config.SP_LOGIN_REMEMBER_ME, false)
 
-        if (isRememberMe) {
-            run {
-                val savedPid =
-                    SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_REMEMBER_PID, "")
-                if (savedPid.isNotEmpty()) {
-                    savedPid.toCharArray(pid, 0)
-                }
-                // 離開後，savedPid 立即失去引用，標記為可回收
-            }
-        } else {
-            Arrays.fill(pid, '\u0000')
-        }
-
         try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
             viewBinding.loginBuildAppv.text = packageInfo.versionName
@@ -193,9 +184,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             commonDialog.show()
         }
 
-        pidTextWatcher = PidTextWatcher(
-            viewBinding.loginEditTextPasswordPid, pid, ::validPid
-        )
+//        pidTextWatcher = PidTextWatcher(
+//            viewBinding.loginEditTextPid, pid, ::validPid
+//        )
         setWebview()
         setPidUI()
         setPasswordUI()
@@ -241,7 +232,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     override fun onResume() {
         super.onResume()
 
-        val emulatorResult = SecurityCheckManager.runEmulatorCheck(this)
+        val emulatorResult = SecurityCheckManager.runShutdownCheck(this)
         if (!emulatorResult.passed) {
             getAlertDialog(
                 context = this,
@@ -325,7 +316,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //                          this.debugToast("嘗試找CASTGC - $cookieString")
                             val castGC = extractCastgcValueSplit(cookieString)
                             if (!castGC.isNullOrEmpty()) {
-                                SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CASTGC, castGC)
+                                SecuredPreferenceStoreManager.simpleEditAndApply(
+                                    Config.SP_CASTGC,
+                                    castGC
+                                )
                             } else {
 //                          this.debugToast("找不到CASTGC")
                             }
@@ -419,7 +413,39 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     }
 
     private fun setPidUI() {
-        viewBinding.loginEditTextPasswordPid.addTextChangedListener(pidTextWatcher)
+        viewBinding.loginEditTextPid.addTextChangedListener { editable ->
+            if (fromFocusChange) {
+                fromFocusChange = false
+                return@addTextChangedListener
+            }
+            val input = editable?.toString()?.trim() ?: return@addTextChangedListener
+
+            // 更改過即使用現在的輸入值
+            Arrays.fill(pid, '\u0000')
+            val copyLength = minOf(input.length, pid.size)
+            input.toCharArray(pid, 0, 0, copyLength)
+
+            if (input.length == 10) {
+                validPid()
+            }
+        }
+//        viewBinding.loginEditTextPasswordPid.addTextChangedListener(pidTextWatcher)
+        if (isRememberMe) {
+            run {
+                SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_REMEMBER_PID, "")
+                    .toCharArray(pid, 0)
+                safeMask(pid)
+                // 離開後，savedPid 立即失去引用，標記為可回收
+            }
+        } else {
+            Arrays.fill(pid, '\u0000')
+        }
+        viewBinding.loginEditTextPid.onFocusChangeListener =
+            View.OnFocusChangeListener { v, hasFocus ->
+                if (!hasFocus) {
+                    safeMask(pid)
+                }
+            }
     }
 
     private fun setPasswordUI() {
@@ -493,8 +519,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, ""
                 )
                 if (pid.count { it != '\u0000' } != 10) {
-                    viewBinding.loginLayoutPasswordPid.setBackgroundColor(getColor(R.color.colorError))
-                    viewBinding.loginLayoutPasswordPid.visibility
+                    viewBinding.loginLayoutPid.setBackgroundColor(getColor(R.color.colorError))
+                    viewBinding.loginLayoutPid.visibility
                     return
                 }
 
@@ -560,29 +586,27 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         })
     }
 
-    private fun validPid(pidText: String) {
-        // 到這邊表示pid OK
-        pidText.toCharArray(pid, 0)
-
+    private fun validPid() {
+        // 到這邊表示pid 為10碼
         viewBinding.loginTextViewWarningPid.visibility = View.GONE
-        viewBinding.loginLayoutPasswordPid.background = null
+        viewBinding.loginLayoutPid.background = null
 
         viewBinding.loginPatternLockView.isInputEnabled = true
     }
 
 
     private fun login() {
-        if (viewBinding.loginEditTextPasswordPid.text.isEmpty() || viewBinding.loginEditTextPasswordPid.text.length != 10) {
-            viewBinding.loginLayoutPasswordPid.setBackgroundColor(getColor(R.color.colorError))
+        if (pid.count { it != '\u0000' } != 10) {
+            viewBinding.loginLayoutPid.setBackgroundColor(getColor(R.color.colorError))
             viewBinding.loginTextViewWarningPid.visibility = View.VISIBLE
             return
         }
+//        if (viewBinding.loginEditTextPid.text.isEmpty() || viewBinding.loginEditTextPid.text.length != 10) {
+//            viewBinding.loginLayoutPid.setBackgroundColor(getColor(R.color.colorError))
+//            viewBinding.loginTextViewWarningPid.visibility = View.VISIBLE
+//            return
+//        }
 
-        if (viewBinding.loginEditTextPassword.text.isEmpty()) {
-            viewBinding.loginLayoutPasswordPassword.setBackgroundColor(getColor(R.color.colorError))
-            viewBinding.loginTextViewWarningPassword.visibility = View.VISIBLE
-            return
-        }
         if (viewBinding.loginEditTextPassword.text.isEmpty()) {
             viewBinding.loginLayoutPasswordPassword.setBackgroundColor(getColor(R.color.colorError))
             viewBinding.loginTextViewWarningPassword.visibility = View.VISIBLE
@@ -684,7 +708,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 it.putInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 0)
             }
 
-            viewBinding.loginEditTextPasswordPid.imeOptions = EditorInfo.IME_ACTION_NEXT
+            viewBinding.loginEditTextPid.imeOptions = EditorInfo.IME_ACTION_NEXT
         }
         viewBinding.pattern.setOnClickListener {
             viewBinding.password.setTextColor(ContextCompat.getColor(this, R.color.colorAccent))
@@ -699,7 +723,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 it.putInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 1)
             }
 
-            viewBinding.loginEditTextPasswordPid.imeOptions = EditorInfo.IME_ACTION_DONE
+            viewBinding.loginEditTextPid.imeOptions = EditorInfo.IME_ACTION_DONE
         }
 
         position = SecuredPreferenceStoreManager.getInt(Config.SP_LOGIN_SEGMENT_CONTROL_POS, 0)
@@ -725,9 +749,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         // 看起來只要關掉螢幕就將此頁面關閉
         viewBinding.loginEditTextPassword.text?.clear()
         viewBinding.loginEditTextCaptcha.text?.clear()
-        viewBinding.loginEditTextPasswordPid.text?.clear()
+        viewBinding.loginEditTextPid.text?.clear()
 
-        pidTextWatcher.clear()
+//        pidTextWatcher.clear()
         Arrays.fill(pid, '\u0000')
         finish()
     }
@@ -754,11 +778,31 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             )
 
             // 將此參數加密後存入本地
-            SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_CHANGE_PARAMS, Gson().toJson(changeParams))
+            SecuredPreferenceStoreManager.simpleEditAndApply(
+                Config.SP_CHANGE_PARAMS,
+                Gson().toJson(changeParams)
+            )
             return true
 
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun safeMask(charArray: CharArray) {
+        fromFocusChange = true
+        val sb = StringBuilder()
+        charArray.forEachIndexed { index, ch ->
+            if(ch == '\u0000') return@forEachIndexed
+
+            if (index >= 0 && index < 3) {
+                sb.append(ch)
+            } else if (index >= 3 && index < 8) {
+                sb.append("*")
+            } else {
+                sb.append(ch)
+            }
+        }
+        viewBinding.loginEditTextPid.setText(sb.toString())
     }
 }
