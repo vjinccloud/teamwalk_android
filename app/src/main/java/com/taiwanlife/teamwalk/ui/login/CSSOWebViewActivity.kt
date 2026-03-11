@@ -189,6 +189,8 @@ class CSSOWebViewActivity :
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (!backIfValid()) {
+                    Utils.clearLoginData(webView)
+
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
                 }
@@ -318,6 +320,9 @@ class CSSOWebViewActivity :
                     } else {
                         val chooser = Intent.createChooser(intent, "選擇開啟方式")
                         context.startActivity(chooser)
+                        if (context is Activity) {
+                            context.finish()
+                        }
                     }
 
                 } catch (e: Exception) {

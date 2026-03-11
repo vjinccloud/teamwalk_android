@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 55
-        versionName = "3.0.27"
+        versionName = "3.0.28"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -144,18 +144,18 @@ android {
             resValue("string", "csso_forget_mima_url", "https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk2")
             resValue("string", "csso_sign_up_url", "https://csso.taiwanlife.com/csso/mobileRegister?outsite=teamwalk2")
             resValue("string", "tcav_url", "https://tcav.taiwanlife.com/")
-            resValue("string", "api_url", "https://teamwalk.taiwanlife.com/frontend/api/")
-            resValue("string", "web_url_base", "https://teamwalk.taiwanlife.com/frontend/")
-            resValue("string", "web_url", "https://teamwalk.taiwanlife.com/frontend/")
+            resValue("string", "api_url", "https://teamwalk2ap.taiwanlife.com/")
+            resValue("string", "web_url_base", "https://teamwalk2.taiwanlife.com/")
+            resValue("string", "web_url", "https://teamwalk2.taiwanlife.com/bridge/")
             resValue("string", "connect_google_client_id", "29548848966-igadugv3n8h8htautt1lfmg5l6kt34vh.apps.googleusercontent.com")
             resValue("string", "connect_fitbit_client_id", "22BVVM")
             resValue("string", "connect_fitbit_client_s", "00403c68f5025d238d022963dfab43dd")
             resValue("string", "connect_garmin_consumer_key", "4a08c804-fbd9-41f7-87f7-b7bcd44d430a")
             resValue("string", "connect_garmin_consumer_s", "DJ1wEi3uNk0rbBDdalerp6ZYqmFJ2D4kf4t")
             resValue("string", "connect_garmin_portal", "https://connect.garmin.com/oauth2Confirm")
-            resValue("string", "connect_garmin_redirect_url", "https://teamwalk.taiwanlife.com/webconnectgarmin")
-            resValue("string", "app_link_host", "teamwalk.taiwanlife.com")
-            resValue("string", "login_success_redirect_url", "https://teamwalk.taiwanlife.com/loginsuccess")
+            resValue("string", "connect_garmin_redirect_url", "https://teamwalk2.taiwanlife.com/webconnectgarmin")
+            resValue("string", "app_link_host", "teamwalk2.taiwanlife.com")
+            resValue("string", "login_success_redirect_url", "https://teamwalk2.taiwanlife.com/loginsuccess")
             resValue("string", "garmin_api_url", "https://diauth.garmin.com/di-oauth2-service/oauth/")
             resValue("string", "fitbit_url", "https://api.fitbit.com/oauth2/")
         }

@@ -12,6 +12,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import android.util.Base64
+import android.webkit.CookieManager
+import android.webkit.WebView
 import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -378,6 +380,32 @@ object Utils {
             "/loginfailure" -> true
 
             else -> false
+        }
+    }
+
+    fun clearLoginData(webview: WebView?) {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+
+        SecuredPreferenceStoreManager.editAndApply { prefEditor ->
+//            prefEditor.putBoolean(Config.PREF_LOGIN_AUTH, false)
+            prefEditor.putBoolean(Config.SP_LOGIN_AUTH, false)
+//            prefEditor.putString(Config.PREF_LOGIN_TICKET, "")
+//            prefEditor.putString(Config.PREF_LOGIN_USERNAME, "")
+            prefEditor.putString(Config.SP_LOGIN_JWT, "")
+            prefEditor.putString(Config.SP_CASTGC, "")
+            prefEditor.putString(Config.SP_BIND_GARMIN, "")
+            prefEditor.putString(Config.SP_BIND_FITBIT, "")
+            prefEditor.putString(Config.SP_BIND_CURRENT_DEVICE, "")
+            prefEditor.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
+            prefEditor.putString(Config.SP_LOG_REQUEST, "")
+        }
+
+        webview?.let { webview ->
+            webview.post {
+                webview.loadUrl("about:blank")
+            }
         }
     }
 }

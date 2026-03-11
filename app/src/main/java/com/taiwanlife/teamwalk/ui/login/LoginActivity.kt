@@ -624,7 +624,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         sb.append(pid)
         sb.append("&appl_pwd=")
         sb.append(viewBinding.loginEditTextPassword.text)
-        sb.append("&service=${getString(R.string.redirect_scheme)}://loginsuccess")
+//        sb.append("&service=${getString(R.string.redirect_scheme)}://loginsuccess") // teamwalkuat://loginsuccess
+        sb.append("&service=${getString(R.string.login_success_redirect_url)}") // https://teamwalk2uat.taiwanlife.com/loginsuccess
 
         val params = sb.toString()
 //        val loginParams =
@@ -654,7 +655,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         sb.append(pid)
         sb.append("&pattern_path=")
         sb.append(patternPath)
-        sb.append("&service=${getString(R.string.redirect_scheme)}://loginsuccess")
+//        sb.append("&service=${getString(R.string.redirect_scheme)}://loginsuccess") // teamwalkuat://loginsuccess
+        sb.append("&service=${getString(R.string.login_success_redirect_url)}") // https://teamwalk2uat.taiwanlife.com/loginsuccess
 
 //        val loginParams =
 //            "SYS_ID=teamwalk&userId=$pid&pattern_path=" + patternPath + "&" + "service=${getString(R.string.redirect_scheme)}://loginsuccess"
