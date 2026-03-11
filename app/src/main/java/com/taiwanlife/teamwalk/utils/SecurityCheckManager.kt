@@ -59,11 +59,11 @@ object SecurityCheckManager {
 //        if (emulatorStatus == SecurityStatus.INIT) {
 //            checkEmulator(context)?.let { errors.add(it) }
 //        }
-        // 逆向工具較嚴重 有的話就需要關閉
-        if (antiReverseStatus == SecurityStatus.INIT) {
-            // 每次都檢查
-            checkAntiReverse(context)?.let { errors.add(it) }
-        }
+        // 逆向工具較嚴重 有的話就需要關閉 以移至runShutdownCheck檢查
+//        if (antiReverseStatus == SecurityStatus.INIT) {
+//            // 每次都檢查
+//            checkAntiReverse(context)?.let { errors.add(it) }
+//        }
 
         return if (errors.isNotEmpty()) {
             SecurityCheckResult(
