@@ -138,7 +138,7 @@ android {
             // APP 名稱
             resValue("string", "app_name", "TeamWalk")
             // 綁定成功時的domain(scheme)
-            resValue("string", "redirect_scheme", "teamwalk")
+            resValue("string", "redirect_scheme", "https://teamwalk2.taiwanlife.com/loginsuccess")
 
             resValue("string", "csso_url", "https://csso.taiwanlife.com/csso/")
             resValue("string", "csso_forget_mima_url", "https://csso.taiwanlife.com/csso/mobileForget?outsite=teamwalk2")

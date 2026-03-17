@@ -331,7 +331,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                             // 需要更換密碼
                             SecuredPreferenceStoreManager.simpleEditAndApply(
                                 Config.SP_LOG_REQUEST, loginViewModel.getLogRequest(
-                                    getString(R.string.redirect_scheme),
+                                    EnvironmentManager.getEnvironmentConfig().loginSuccessRedirectUrl,
                                     String(pid),
                                     ticket,
                                     Utils.getDeviceId(this@LoginActivity),
@@ -398,7 +398,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         viewBinding.webview.webChromeClient = myWebChromeClient
         ticketCallback = { ticket ->
             loginViewModel.login(
-                getString(R.string.redirect_scheme),
+                EnvironmentManager.getEnvironmentConfig().loginSuccessRedirectUrl,
                 String(pid),
                 ticket,
                 Utils.getDeviceId(this)
