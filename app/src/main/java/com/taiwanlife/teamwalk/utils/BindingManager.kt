@@ -214,8 +214,9 @@ class BindingManager(
             challenge
         )
 
-        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-        baseActivity.startActivity(intent)
+        baseActivity.getChromeIntent(url)?.let {
+            baseActivity.startActivity(it)
+        }
     }
 
     private fun startFitbitProcess() {

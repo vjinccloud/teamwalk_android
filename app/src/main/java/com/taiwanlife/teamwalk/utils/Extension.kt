@@ -1,9 +1,12 @@
 package com.taiwanlife.teamwalk.utils
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.core.net.toUri
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByPeriod
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -176,4 +179,48 @@ fun AggregationResultGroupedByDuration.toSleepTeamWalkRecord(): TeamWalkRecordMo
 
 fun Uri.toOrigin():String {
     return "${scheme}://${host}"
+}
+
+
+/**
+ * 強制使用 Chrome 開啟網頁，若無 Chrome 則顯示瀏覽器選擇器
+ */
+fun Context.getChromeIntent(url: String): Intent? {
+    if (url.isBlank()) return null
+
+    try {
+        val uri = url.toUri()
+        val chromePackage = "com.android.chrome"
+        val browserIntent = Intent(Intent.ACTION_VIEW, uri)
+
+        // 檢查是否有安裝 Chrome
+        val isChromeInstalled = try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(chromePackage, PackageManager.PackageInfoFlags.of(0L))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(chromePackage, 0)
+            }
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+
+        val finalIntent = if (isChromeInstalled) {
+            // 強制指定 Chrome 開啟 (Explicit Intent)
+            browserIntent.setPackage(chromePackage)
+            browserIntent
+        } else {
+            // 如果沒有 Chrome，清除 package 設定並建立選擇器 (Intent Chooser)
+            browserIntent.setPackage(null)
+            Intent.createChooser(browserIntent, "請選擇瀏覽器")
+        }
+
+        return finalIntent
+
+    } catch (e: Exception) {
+        // 防呆
+    }
+
+    return null
 }

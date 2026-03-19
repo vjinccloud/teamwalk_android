@@ -72,6 +72,7 @@ import com.taiwanlife.teamwalk.utils.Utils.stringToNotificationType
 import com.taiwanlife.teamwalk.utils.debugToast
 import com.taiwanlife.teamwalk.utils.enableToBoolean
 import com.taiwanlife.teamwalk.utils.enableToString
+import com.taiwanlife.teamwalk.utils.getChromeIntent
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
@@ -970,8 +971,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             canceledOnTouchOutside = false,
                             positiveText = getString(R.string.confirm2),
                             positiveOnClick = {
-                                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                                startActivity(intent)
+                                getChromeIntent(url)?.let { intent ->
+                                    startActivity(intent)
+                                }
                             },
                             negativeText = getString(R.string.cancel),
                             negativeOnClick = {
