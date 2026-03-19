@@ -19,6 +19,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
+import androidx.lifecycle.Lifecycle
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.FirebaseApp
@@ -112,6 +113,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private var isKnowsCovered = false
 
     private var clearCache: Boolean? = null
+    private var pendingNoInternetAlert: Boolean = false
+    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
 
     // 提供登入的LoginActivity之資料回傳
@@ -227,8 +230,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //        val totalTime = endTime - startTime
 
 //        Timber.d(totalTime.toString())
-        registerNetworkCallback({}) {
-            showNoInternetAlert()
+        registerNetworkCallback({
+            pendingNoInternetAlert = false
+        }) {
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                // 不在背景 立刻跳就好了
+                showNoInternetAlert()
+            } else {
+                // 在背景 打開flag在OnResume再檢查一次
+                pendingNoInternetAlert = true
+            }
         }
         // 原本在這裡建立 Notification Channel 移至MyApplication
 
@@ -236,9 +247,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //        Handler().postDelayed({
 //            checkPermissions()
 //        }, 100)
-
-        val options = FirebaseApp.getInstance().options
-        debugToast("ProjectID: ${options.projectId}")
 
         // FCM Firebase Token
         try {
@@ -702,7 +710,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         } else {
             viewBinding.logout.text = getString(R.string.main_simulate_logout)
 
-            if (!isOnline()) {
+            if (!isOnline() && pendingNoInternetAlert) {
                 showNoInternetAlert()
             }
         }
@@ -775,6 +783,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun onDestroy() {
         clearSensitiveData()
+
+        if(::networkCallback.isInitialized) {
+            val cm =
+                getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+            cm.unregisterNetworkCallback(networkCallback)
+        }
+
         super.onDestroy()
     }
 
@@ -1052,39 +1067,49 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
 
-        cm.registerNetworkCallback(
-            request,
-            object : ConnectivityManager.NetworkCallback() {
-
-                override fun onAvailable(network: Network) {
-                    onAvailable()
-                }
-
-                override fun onLost(network: Network) {
-                    onLost()
-                }
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                onAvailable()
             }
-        )
+
+            override fun onLost(network: Network) {
+                onLost()
+            }
+        }
+
+        cm.registerNetworkCallback(request, networkCallback)
     }
 
     fun showNoInternetAlert() {
-        CommonDialog(this).apply {
-            oneButtonInit(
-                "", getString(R.string.main_is_not_online), R.drawable.alert_1,
-                showButtons = true,
-                canceledOnTouchOutside = false,
-                text = getString(R.string.ok),
-                onClick = {
-                    when (BuildConfig.BUILD_TYPE) {
-                        "uat" -> {}
 
-                        else -> {
-                            finishAffinity()
+        runOnUiThread {
+            if (isFinishing || isDestroyed) {
+                return@runOnUiThread
+            }
+
+            try {
+                pendingNoInternetAlert = false
+                CommonDialog(this).apply {
+                    oneButtonInit(
+                        "", getString(R.string.main_is_not_online), R.drawable.alert_1,
+                        showButtons = true,
+                        canceledOnTouchOutside = false,
+                        text = getString(R.string.ok),
+                        onClick = {
+                            when (BuildConfig.BUILD_TYPE) {
+                                "uat" -> {}
+
+                                else -> {
+                                    finishAffinity()
+                                }
+                            }
                         }
-                    }
-                }
-            )
-        }.show()
+                    )
+                }.show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 //
 //    fun getAppsWithOverlayPermission(context: Context): List<String> {
