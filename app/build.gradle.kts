@@ -13,7 +13,7 @@ android {
         applicationId = "com.taiwanlife.teamwalk"
         minSdk = 29
         targetSdk = 36
-        versionCode = 71
+        versionCode = 72
         versionName = "3.0.33"
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
