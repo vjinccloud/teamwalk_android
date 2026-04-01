@@ -318,6 +318,9 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                                         postEvent(Config.EVENT_NO_ID_TO_LOGIN, "")
                                     }
                                 }
+                                else -> {
+                                    Toast.makeText(this@BaseActivity, getString(R.string.general_error), Toast.LENGTH_SHORT).show()
+                                }
                             }
                             onLoading(false)
                         }

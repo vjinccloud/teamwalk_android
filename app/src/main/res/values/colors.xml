@@ -15,6 +15,7 @@
     <color name="colorPrimaryDark">#d17300</color>
     <color name="colorAccent">#03DAC5</color>
     <color name="white">#FFFFFF</color>
+    <color name="dark_grey">#7f8c8d</color>
 
     <color name="blue_onboarding_back">#4183E6</color>
 </resources>

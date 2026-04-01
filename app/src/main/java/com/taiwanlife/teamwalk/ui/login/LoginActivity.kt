@@ -64,6 +64,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     //    private var genText: String = ""
     private lateinit var currentCaptchaResult: CaptchaResult
+    private var isLoginProcess = false
 
     override fun onLastCreateBaseActivity(
         view: View, savedInstanceState: Bundle?
@@ -72,6 +73,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         observeOnLifeCycle(loginViewModel.loginFlow, onError = {
             viewBinding.loginPatternLockView.clearPattern()
+            setLoginUI(false)
         }) { loginResponse ->
             SecuredPreferenceStoreManager.editAndApply {
                 it.putBoolean(Config.SP_LOGIN_AUTH, true)
@@ -93,6 +95,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 }
             }
 
+            setLoginUI(false)
             setResult(RESULT_OK)
             finish()
         }
@@ -341,6 +344,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                             val intent =
                                 CSSOWebViewActivity.notifyChangePassword(this@LoginActivity)
                             startActivity(intent)
+                            setLoginUI(false)
                         } else {
                             ticketCallback(ticket)
                         }
@@ -363,6 +367,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 if (request?.url?.scheme?.startsWith(Config.WEBVIEW_CALLBACK_SCHEME) == true) {
                     return
                 }
+                setLoginUI(false)
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
                     val description = error?.description.toString()
@@ -393,8 +398,14 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         }
         val myWebChromeClient = MyWebChromeClient(this)
-        myWebChromeClient.setAlertCallback { viewBinding.loginPatternLockView.clearPattern() }
-        myWebChromeClient.setConfirmCallback { viewBinding.loginPatternLockView.clearPattern() }
+        myWebChromeClient.setAlertCallback {
+            viewBinding.loginPatternLockView.clearPattern()
+            setLoginUI(false)
+        }
+        myWebChromeClient.setConfirmCallback {
+            viewBinding.loginPatternLockView.clearPattern()
+            setLoginUI(false)
+        }
         viewBinding.webview.webChromeClient = myWebChromeClient
         ticketCallback = { ticket ->
             loginViewModel.login(
@@ -629,15 +640,31 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             return
         }
 
+        if(isLoginProcess) return
+
+        setLoginUI(true)
+
         when (BuildConfig.BUILD_TYPE) {
             "debug" -> {
                 // 用網頁打比照舊版 等同下面註解的API
-                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
+//                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
+                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
             }
 
             else -> {
                 getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
             }
+        }
+    }
+
+    private fun setLoginUI(enable: Boolean) {
+        isLoginProcess = enable
+        if(isLoginProcess) {
+            viewBinding.loginButton.background = ContextCompat.getDrawable(this, R.drawable.button_style_pressed)
+            viewBinding.loginButton.setTextColor(ContextCompat.getColor(this, R.color.dark_grey))
+        } else {
+            viewBinding.loginButton.background = ContextCompat.getDrawable(this, R.drawable.button_style)
+            viewBinding.loginButton.setTextColor(ContextCompat.getColor(this, R.color.colorLinkText))
         }
     }
 

@@ -4,6 +4,7 @@
     <string name="login_timeout_for_password_change_message">提醒您：因已持續登入一段時間，需重新登入才能變更密碼</string>
     <string name="confirm1">確定</string>
     <string name="ok">OK</string>
+    <string name="general_error">系統異常，請稍後再試</string>
 
     <string name="login_no_ticket">未取得登入許可</string>
     <string name="login_success">你已登入</string>
