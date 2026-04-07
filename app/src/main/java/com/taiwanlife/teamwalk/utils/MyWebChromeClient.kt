@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.app.Activity
 import android.content.Context
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
@@ -11,6 +12,11 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
     private var alertCallback: (() -> Unit)? = null
     private var confirmCallback: ((isConfirm: Boolean) -> Unit)? = null
 
+    private fun isContextValid(): Boolean {
+        val activity = context as? Activity
+        return activity != null && !activity.isFinishing && !activity.isDestroyed
+    }
+
     @Override
     override fun onJsAlert(
         view: WebView?,
@@ -18,6 +24,11 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
         message: String?,
         result: JsResult
     ): Boolean {
+        if (!isContextValid()) {
+            result.cancel()
+            return true
+        }
+
         AlertDialog.Builder(context)
             .setMessage(message)
             .setPositiveButton(
@@ -39,6 +50,11 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
         message: String?,
         result: JsResult
     ): Boolean {
+        if (!isContextValid()) {
+            result.cancel()
+            return true
+        }
+
         AlertDialog.Builder(context)
             .setMessage(message)
             .setPositiveButton(

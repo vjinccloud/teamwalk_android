@@ -205,6 +205,9 @@ class MyWebView : WebView {
                 }
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
+                    val activity = context as? Activity
+                    if (activity == null || activity.isFinishing || activity.isDestroyed) return
+
                     val description = error?.description.toString()
                     val errorCode = error?.errorCode ?: -1
 

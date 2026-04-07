@@ -104,42 +104,44 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
                     // 需要版本更新
                     systemParamResponse.androidIsForced?.let { forced ->
-                        if (forced.enableToBoolean()) {
-                            // 強制版本更新
-                            CommonDialog(this).apply {
-                                oneButtonInit(
-                                    getString(R.string.main_update_title),
-                                    getString(R.string.main_force_update),
-                                    R.drawable.alert_1,
-                                    showButtons = true,
-                                    canceledOnTouchOutside = false,
-                                    text = getString(R.string.main_force_update_confirm),
-                                    onClick = {
-                                        openPlayStoreAndExit(this@LoginActivity)
-                                    },
-                                )
-                                setCancelable(false)
-                            }.show()
-                        } else {
-                            // 非強制版本更新
-                            CommonDialog(this).apply {
-                                twoButtonInit(
-                                    getString(R.string.main_update_title),
-                                    getString(R.string.main_recommend_update),
-                                    R.drawable.alert_1,
-                                    showButtons = true,
-                                    canceledOnTouchOutside = false,
-                                    positiveText = getString(R.string.main_force_update_confirm),
-                                    positiveOnClick = {
-                                        openPlayStoreAndExit(this@LoginActivity)
-                                    },
-                                    negativeText = getString(R.string.close),
-                                    negativeOnClick = {
+                        if (!(isFinishing || isDestroyed)) {
+                            if (forced.enableToBoolean()) {
+                                // 強制版本更新
+                                CommonDialog(this).apply {
+                                    oneButtonInit(
+                                        getString(R.string.main_update_title),
+                                        getString(R.string.main_force_update),
+                                        R.drawable.alert_1,
+                                        showButtons = true,
+                                        canceledOnTouchOutside = false,
+                                        text = getString(R.string.main_force_update_confirm),
+                                        onClick = {
+                                            openPlayStoreAndExit(this@LoginActivity)
+                                        },
+                                    )
+                                    setCancelable(false)
+                                }.show()
+                            } else {
+                                // 非強制版本更新
+                                CommonDialog(this).apply {
+                                    twoButtonInit(
+                                        getString(R.string.main_update_title),
+                                        getString(R.string.main_recommend_update),
+                                        R.drawable.alert_1,
+                                        showButtons = true,
+                                        canceledOnTouchOutside = false,
+                                        positiveText = getString(R.string.main_force_update_confirm),
+                                        positiveOnClick = {
+                                            openPlayStoreAndExit(this@LoginActivity)
+                                        },
+                                        negativeText = getString(R.string.close),
+                                        negativeOnClick = {
 
-                                    }
-                                )
-                                setCancelable(false)
-                            }.show()
+                                        }
+                                    )
+                                    setCancelable(false)
+                                }.show()
+                            }
                         }
                     }
                 }
@@ -169,6 +171,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         var showSecurity =
             SecuredPreferenceStoreManager.getBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, true)
         if (showSecurity) {
+            if (isFinishing || isDestroyed) return
+
 //            uuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
 //            SecuredPreferenceStoreManager.simpleEditAndApply(Config.PREF_LOGIN_UUID, uuid)
             val commonDialog = CommonDialog(this)
@@ -234,6 +238,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     override fun onResume() {
         super.onResume()
+
+        if (isFinishing || isDestroyed) return
 
         val emulatorResult = SecurityCheckManager.runShutdownCheck(this)
         if (!emulatorResult.passed) {
@@ -370,6 +376,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 setLoginUI(false)
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
+                    if (isFinishing || isDestroyed) return
+
                     val description = error?.description.toString()
                     val errorCode = error?.errorCode ?: -1
 
@@ -647,8 +655,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         when (BuildConfig.BUILD_TYPE) {
             "debug" -> {
                 // 用網頁打比照舊版 等同下面註解的API
-//                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
-                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
+                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().apiUrl + "mock/csso")
+//                getPWTicketFromWebview(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
             }
 
             else -> {

@@ -188,39 +188,33 @@ fun Uri.toOrigin():String {
 fun Context.getChromeIntent(url: String): Intent? {
     if (url.isBlank()) return null
 
-    try {
+    return try {
         val uri = url.toUri()
         val chromePackage = "com.android.chrome"
         val browserIntent = Intent(Intent.ACTION_VIEW, uri)
 
-        // 檢查是否有安裝 Chrome
-        val isChromeInstalled = try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                packageManager.getPackageInfo(chromePackage, PackageManager.PackageInfoFlags.of(0L))
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(chromePackage, 0)
-            }
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            false
+        browserIntent.setPackage(chromePackage)
+
+        val resolveInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            packageManager.resolveActivity(
+                browserIntent,
+                PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
         }
 
-        val finalIntent = if (isChromeInstalled) {
-            // 強制指定 Chrome 開啟 (Explicit Intent)
-            browserIntent.setPackage(chromePackage)
+        if (resolveInfo != null) {
+            // Chrome 存在且可用
             browserIntent
         } else {
-            // 如果沒有 Chrome，清除 package 設定並建立選擇器 (Intent Chooser)
+            // Chrome 未安裝/停用 通用選擇器
             browserIntent.setPackage(null)
             Intent.createChooser(browserIntent, "請選擇瀏覽器")
         }
-
-        return finalIntent
-
     } catch (e: Exception) {
-        // 防呆
+        // 萬一發生意外 返回最基本的 Intent
+        Intent(Intent.ACTION_VIEW, url.toUri())
     }
-
-    return null
 }

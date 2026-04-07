@@ -3,6 +3,7 @@ package com.taiwanlife.teamwalk.ui.main
 import android.Manifest
 import android.app.Activity
 import android.app.ComponentCaller
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
@@ -15,6 +16,7 @@ import android.text.TextUtils
 import android.view.View
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
@@ -986,8 +988,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                             canceledOnTouchOutside = false,
                             positiveText = getString(R.string.confirm2),
                             positiveOnClick = {
-                                getChromeIntent(url)?.let { intent ->
-                                    startActivity(intent)
+                                try {
+                                    getChromeIntent(url)?.let { intent ->
+                                        startActivity(intent)
+                                    }
+                                } catch (e: ActivityNotFoundException) {
+                                    // 如果連 getChromeIntent 找出來的 Intent 都不行
+                                    try {
+                                        val fallbackIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+                                        startActivity(fallbackIntent)
+                                    } catch (e: Exception) {
+                                        // 失敗 手機內可能沒有任何瀏覽器
+                                        Toast.makeText(this@MainActivity, getString(R.string.no_browser), Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             },
                             negativeText = getString(R.string.cancel),

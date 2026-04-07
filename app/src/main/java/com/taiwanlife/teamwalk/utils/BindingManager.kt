@@ -1,6 +1,9 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -214,8 +217,19 @@ class BindingManager(
             challenge
         )
 
-        baseActivity.getChromeIntent(url)?.let {
-            baseActivity.startActivity(it)
+        try {
+            baseActivity.getChromeIntent(url)?.let {
+                baseActivity.startActivity(it)
+            }
+        } catch (e: ActivityNotFoundException) {
+            // 如果連 getChromeIntent 找出來的 Intent 都不行
+            try {
+                val fallbackIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+                baseActivity.startActivity(fallbackIntent)
+            } catch (e: Exception) {
+                // 失敗 手機內可能沒有任何瀏覽器
+                Toast.makeText(baseActivity, baseActivity.getString(R.string.no_browser), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
