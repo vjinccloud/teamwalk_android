@@ -488,7 +488,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 //                toOnBoarding(userInfoResponse)
 //            }
         }
-        observeOnLifeCycle(mainViewModel.landingFlow) { landingResponse ->
+        observeOnLifeCycle(mainViewModel.landingFlow, onError = {
+            toLogin()
+        }) { landingResponse ->
             // 需要Onboard
             if (landingResponse.completeOnboarding != null && !landingResponse.completeOnboarding) {
                 toOnBoarding(

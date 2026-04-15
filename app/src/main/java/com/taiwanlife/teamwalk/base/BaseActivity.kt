@@ -1,18 +1,11 @@
 package com.taiwanlife.teamwalk.base
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.webkit.CookieManager
-import android.webkit.WebStorage
-import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.ColorRes
@@ -27,11 +20,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.databinding.ActivityBaseBinding
-import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
@@ -39,8 +30,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import timber.log.Timber
-import java.io.File
 
 abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInflater) -> VB) :
     AppCompatActivity() {
@@ -102,7 +91,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 
 //        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
 //        startActivity(intent)
-            // 舊版也無法跳出警示
+        // 舊版也無法跳出警示
 //        DeviceUtil.setFlagSecure(this)
         setContentView(activityBaseBinding.root)
         viewBinding = inflateVB.invoke(layoutInflater)
@@ -288,38 +277,40 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                         is UiState.Error -> {
                             // 如果有需要特別處理才會使用
                             onError(it.e)
-                            if (BuildConfig.DEBUG) {
-                                when (it.e) {
-                                    is ApiException.ResponseHeaderCodeNotSuccessException -> {
-                                        Toast.makeText(
-                                            this@BaseActivity,
-                                            it.e.header.message,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-
-                                    is ApiException.ResponseNotSuccessfulException -> {
-                                        val errorBody = it.e.response.errorBody()
-                                        Toast.makeText(
-                                            this@BaseActivity,
-                                            it.e.code.toString() + " - " + errorBody?.string(),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                            }
                             if (unSubscribeOnComplete) {
                                 scope.cancel()
                             }
 
                             when (it.e) {
+                                is ApiException.ResponseHeaderCodeNotSuccessException -> {
+                                    val message = it.e.header.message
+                                    if (!message.isNullOrEmpty()) {
+                                        Toast.makeText(this@BaseActivity, message, Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(
+                                            this@BaseActivity,
+                                            getString(R.string.general_error),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
                                 is ApiException.ResponseNotSuccessfulException -> {
                                     if (it.e.code.toString() == Config.API_CODE_500_LOG_OUT || it.e.code.toString() == Config.API_CODE_401_LOG_OUT) {
                                         postEvent(Config.EVENT_NO_ID_TO_LOGIN, "")
                                     }
+                                    Toast.makeText(
+                                        this@BaseActivity,
+                                        getString(R.string.general_error),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
+
                                 else -> {
-                                    Toast.makeText(this@BaseActivity, getString(R.string.general_error), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        this@BaseActivity,
+                                        getString(R.string.general_error),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                             onLoading(false)
