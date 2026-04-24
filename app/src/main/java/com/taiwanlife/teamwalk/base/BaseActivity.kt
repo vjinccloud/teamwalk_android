@@ -260,52 +260,33 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
             }
         }
         lifecycleOwner.lifecycleScope.launch {
-            lifecycleOwner.repeatOnLifecycle(lifeCycleState) {
-                val scope = this
-                apiFlowClass.getFlow().collect {
-                    when (it) {
-                        UiState.Idle -> {}
+            val scope = this
+            apiFlowClass.getFlow().collect {
+                when (it) {
+                    UiState.Idle -> {}
 
-                        is UiState.Success<T> -> {
-                            onSuccess(it.data)
-                            if (unSubscribeOnComplete) {
-                                scope.cancel()
-                            }
-                            onLoading(false)
+                    is UiState.Success<T> -> {
+                        onSuccess(it.data)
+                        if (unSubscribeOnComplete) {
+                            scope.cancel()
+                        }
+                        onLoading(false)
+                    }
+
+                    is UiState.Error -> {
+                        // 如果有需要特別處理才會使用
+                        onError(it.e)
+                        if (unSubscribeOnComplete) {
+                            scope.cancel()
                         }
 
-                        is UiState.Error -> {
-                            // 如果有需要特別處理才會使用
-                            onError(it.e)
-                            if (unSubscribeOnComplete) {
-                                scope.cancel()
-                            }
-
-                            when (it.e) {
-                                is ApiException.ResponseHeaderCodeNotSuccessException -> {
-                                    val message = it.e.header.message
-                                    if (!message.isNullOrEmpty()) {
-                                        Toast.makeText(this@BaseActivity, message, Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(
-                                            this@BaseActivity,
-                                            getString(R.string.general_error),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                                is ApiException.ResponseNotSuccessfulException -> {
-                                    if (it.e.code.toString() == Config.API_CODE_500_LOG_OUT || it.e.code.toString() == Config.API_CODE_401_LOG_OUT) {
-                                        postEvent(Config.EVENT_NO_ID_TO_LOGIN, "")
-                                    }
-                                    Toast.makeText(
-                                        this@BaseActivity,
-                                        getString(R.string.general_error),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-
-                                else -> {
+                        when (it.e) {
+                            is ApiException.ResponseHeaderCodeNotSuccessException -> {
+                                val message = it.e.header.message
+                                if (!message.isNullOrEmpty()) {
+                                    Toast.makeText(this@BaseActivity, message, Toast.LENGTH_SHORT)
+                                        .show()
+                                } else {
                                     Toast.makeText(
                                         this@BaseActivity,
                                         getString(R.string.general_error),
@@ -313,8 +294,27 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
                                     ).show()
                                 }
                             }
-                            onLoading(false)
+
+                            is ApiException.ResponseNotSuccessfulException -> {
+                                if (it.e.code.toString() == Config.API_CODE_500_LOG_OUT || it.e.code.toString() == Config.API_CODE_401_LOG_OUT) {
+                                    postEvent(Config.EVENT_NO_ID_TO_LOGIN, "")
+                                }
+                                Toast.makeText(
+                                    this@BaseActivity,
+                                    getString(R.string.general_error),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            else -> {
+                                Toast.makeText(
+                                    this@BaseActivity,
+                                    getString(R.string.general_error),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
+                        onLoading(false)
                     }
                 }
             }

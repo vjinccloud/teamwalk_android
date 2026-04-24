@@ -22,6 +22,7 @@ import com.andrognito.patternlockview.PatternLockView
 import com.andrognito.patternlockview.PatternLockView.Dot
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
+import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.MyApplication
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -384,6 +385,9 @@ object Utils {
         }
     }
 
+    /**
+     * 刪除登入資料與敏感資料
+     */
     fun clearLoginData(context: Context, webview: WebView?) {
         val cookieManager = CookieManager.getInstance()
         cookieManager.removeAllCookies(null)
@@ -405,9 +409,6 @@ object Utils {
 
         webview?.let { webview ->
             clearSensitiveData(context, webview)
-            webview.post {
-                webview.loadUrl("about:blank")
-            }
         }
     }
 

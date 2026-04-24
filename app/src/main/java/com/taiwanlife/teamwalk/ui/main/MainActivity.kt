@@ -22,9 +22,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.security.ProviderInstaller
-import com.google.firebase.FirebaseApp
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
@@ -32,6 +32,7 @@ import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.Config.EVENT_EXECUTE_JAVASCRIPT_CALLBACK
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_TYPE
 import com.taiwanlife.teamwalk.Config.NOTIFICATION_KEY_URL
+import com.taiwanlife.teamwalk.EnvironmentManager
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
 import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
@@ -79,6 +80,9 @@ import com.taiwanlife.teamwalk.utils.getChromeIntent
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import kotlin.random.Random
@@ -735,7 +739,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private fun clearSensitiveData() {
         // 只清除資料 不消除登入狀態
         Utils.clearSensitiveData(this@MainActivity, viewBinding.webView)
-        viewBinding.webView.loadUrl("about:blank")
 
         viewBinding.webView.destroy()
 //            SensitiveDataUtil.clearWebViewSensitiveData(this, viewBinding.webView, isDestroy)
@@ -761,11 +764,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         securityCheck()
 
-        viewBinding.webView.post {
-            viewBinding.webView.evaluateJavascript(
-                "window.WebAppBridge.resumeAPP()",
-                null
-            )
+        if (!viewBinding.webView.url.isNullOrEmpty()
+            && viewBinding.webView.url!!.contains(getEnvironmentConfig().webUrlBase)
+        ) {
+            viewBinding.webView.post {
+                viewBinding.webView.evaluateJavascript(
+                    "window.WebAppBridge.resumeAPP()",
+                    null
+                )
+            }
         }
     }
 
@@ -788,7 +795,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun onDestroy() {
         clearSensitiveData()
 
-        if(::networkCallback.isInitialized) {
+        if (::networkCallback.isInitialized) {
             val cm =
                 getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
             cm.unregisterNetworkCallback(networkCallback)
@@ -830,15 +837,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
             return
         }
-        healthConnectViewModel?.let { healthConnectViewModel ->
-            healthConnectViewModel.getAllData { sleepData, stepsData ->
-                val syncHealthDataModel = SyncHealthDataModel(stepsData, sleepData)
+        lifecycleScope.launch {
+            if(healthConnectHelper.checkPermissions()) {
+                healthConnectViewModel?.let { healthConnectViewModel ->
+                    healthConnectViewModel.getAllData { sleepData, stepsData ->
+                        val syncHealthDataModel = SyncHealthDataModel(stepsData, sleepData)
 
 //                val json = Gson().toJson(syncHealthDataModel)
 //                Timber.d(json)
 
+                        // 如果有需要透過JS回傳推播設定結果
+                        postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(syncHealthDataModel))
+                    }
+                }
+            } else {
                 // 如果有需要透過JS回傳推播設定結果
-                postEvent(EVENT_EXECUTE_JAVASCRIPT_CALLBACK, getGson().toJson(syncHealthDataModel))
+                postEvent(
+                    EVENT_EXECUTE_JAVASCRIPT_CALLBACK,
+                    getGson().toJson(SyncHealthDataModel(emptyList(), emptyList()))
+                )
+
+                getAlertDialog(
+                    this@MainActivity,
+                    getString(R.string.main_health_connect_permission_revoked),
+                    true,
+                    true,
+                    getString(R.string.confirm2),
+                    null,
+                )
             }
         }
     }
@@ -966,11 +992,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     }
 
     override fun onWebviewPageStarted() {
-        onLoading(true)
+//        onLoading(true)
     }
 
     override fun onWebviewPageFinished() {
-        onLoading(false)
+//        onLoading(false)
     }
 
     private fun handleRedirectIntent(intent: Intent) {
@@ -1001,7 +1027,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                                         startActivity(fallbackIntent)
                                     } catch (e: Exception) {
                                         // 失敗 手機內可能沒有任何瀏覽器
-                                        Toast.makeText(this@MainActivity, getString(R.string.no_browser), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            getString(R.string.no_browser),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                             },

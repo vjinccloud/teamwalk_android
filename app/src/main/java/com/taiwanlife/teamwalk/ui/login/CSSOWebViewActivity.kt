@@ -32,6 +32,7 @@ import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
 import com.taiwanlife.teamwalk.utils.Utils
+import com.taiwanlife.teamwalk.utils.Utils.clearSensitiveData
 import timber.log.Timber
 import java.util.Locale
 
@@ -96,7 +97,15 @@ class CSSOWebViewActivity :
         webSettings.displayZoomControls = false
 
 
-        webView.webViewClient = CSSOWebViewClient(this)
+        webView.webViewClient = CSSOWebViewClient(this, object : WebviewLoadingCallback{
+            override fun onWebviewPageStarted() {
+                onLoading(true)
+            }
+
+            override fun onWebviewPageFinished() {
+                onLoading(false)
+            }
+        })
         webView.webChromeClient = object : WebChromeClient() {
             override fun onJsAlert(
                 view: WebView?,
@@ -136,7 +145,7 @@ class CSSOWebViewActivity :
             }
         }
 
-        var cssoUrl = "about:blank"
+        var cssoUrl = ""
         val purpose = intent.getStringExtra(KEY_PURPOSE)
         if (purpose.isNullOrEmpty()) {
             finish()
@@ -239,23 +248,6 @@ class CSSOWebViewActivity :
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        clearSensitiveData(true)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        restoreSensitiveData()
-//        CelebrusCSAUtil.start(this);
-    }
-
-    override fun onStop() {
-        super.onStop()
-        backupSensitiveData()
-        clearSensitiveData(false)
-    }
-
     /**
      * @param keyCode
      * @param event
@@ -270,20 +262,13 @@ class CSSOWebViewActivity :
         return super.onKeyDown(keyCode, event)
     }
 
-    private fun backupSensitiveData() {
+
+    interface WebviewLoadingCallback {
+        fun onWebviewPageStarted()
+        fun onWebviewPageFinished()
     }
 
-    private fun restoreSensitiveData() {
-    }
-
-    private fun clearSensitiveData(isDestroy: Boolean) {
-        if (isDestroy) {
-            webView!!.loadUrl("about:blank")
-            SensitiveDataUtil.clearWebViewSensitiveData(this, webView, isDestroy)
-        }
-    }
-
-    private class CSSOWebViewClient(private val context: Context) : WebViewClient() {
+    private class CSSOWebViewClient(private val context: Context, private val webviewLoadingCallback: WebviewLoadingCallback) : WebViewClient() {
         override fun shouldOverrideUrlLoading(
             view: WebView,
             url: String
@@ -386,6 +371,12 @@ class CSSOWebViewActivity :
                 unSafeUrl(url)
                 return
             }
+            webviewLoadingCallback.onWebviewPageStarted()
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+            webviewLoadingCallback.onWebviewPageFinished()
         }
 
         @Override

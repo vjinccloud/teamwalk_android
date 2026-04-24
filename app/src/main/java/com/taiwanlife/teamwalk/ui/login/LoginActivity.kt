@@ -354,8 +354,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                         } else {
                             ticketCallback(ticket)
                         }
-
-                        viewBinding.webview.loadUrl("about:blank")
                         return
                     }
                 }
