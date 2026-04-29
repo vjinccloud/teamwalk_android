@@ -107,6 +107,9 @@ class MyWebView : WebView {
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
 
+        // 0003003: 不受系統字級影響，避免大字級導致跑版
+        webSettings.textZoom = 100
+
 
         // Use WideViewport and Zoom out if there is no viewport defined
         webSettings.useWideViewPort = true

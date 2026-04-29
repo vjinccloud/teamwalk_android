@@ -162,7 +162,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
         try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            viewBinding.loginBuildAppv.text = packageInfo.versionName
+            val versionName = packageInfo.versionName ?: ""
+            // 非正式環境在版號後面標示環境別，方便 QA / 偵錯
+            viewBinding.loginBuildAppv.text = if (BuildConfig.BUILD_TYPE == "release") {
+                versionName
+            } else {
+                "$versionName (${BuildConfig.BUILD_TYPE.uppercase()})"
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -273,8 +279,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     @SuppressLint("SetJavaScriptEnabled")
     private fun setWebview() {
         val webSettings = viewBinding.webview.settings
+        // 0003005: CSSO 透過 user-agent 判斷是否為 teamwalk app
+        webSettings.userAgentString = webSettings.userAgentString + "/env=taiwanlife_teamwalk_app"
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
+
+        // 0003003: 不受系統字級影響，避免大字級導致跑版
+        webSettings.textZoom = 100
 
 
         // Use WideViewport and Zoom out if there is no viewport defined
