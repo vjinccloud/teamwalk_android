@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
@@ -217,4 +218,94 @@ fun Context.getChromeIntent(url: String): Intent? {
         // 萬一發生意外 返回最基本的 Intent
         Intent(Intent.ACTION_VIEW, url.toUri())
     }
+}
+
+/**
+ * 0003008: 跳到本 App 的「應用程式詳細頁」
+ * 使用者已永久拒絕權限時的引導入口。從這頁可以再點「權限」進入細項調整。
+ * 適用：CAMERA、ACTIVITY_RECOGNITION、WRITE_STORAGE 等一般 runtime 權限。
+ */
+fun Context.openAppSettings() {
+    try {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = "package:$packageName".toUri()
+            addCategory(Intent.CATEGORY_DEFAULT)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(intent)
+    } catch (e: Exception) {
+        Timber.e(e, "openAppSettings failed")
+        Toast.makeText(this, "無法開啟設定頁", Toast.LENGTH_SHORT).show()
+    }
+}
+
+/**
+ * 0003008: 直接跳到本 App 的「通知設定頁」
+ * 比 openAppSettings 更深一層 — 直達通知開關。
+ * Android 8.0+ 適用。
+ */
+fun Context.openAppNotificationSettings() {
+    try {
+        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(intent)
+    } catch (e: Exception) {
+        Timber.e(e, "openAppNotificationSettings failed; fallback to app details")
+        openAppSettings()
+    }
+}
+
+/**
+ * 0003008: 跳到 Health Connect 設定，最終目的是讓使用者切換本 App 的權限。
+ *
+ * 嘗試順序（依不同 Android 版本 / HC 形式 fallback）：
+ * 1. Android 14+ 系統 framework 的 per-app 權限管理 action
+ * 2. AndroidX 的 per-app 權限管理 action（HC 獨立 App / 較新版本）
+ * 3. HC 設定主畫面 action（使用者再點「應用程式權限」→ 找到本 App）
+ * 4. 直接 launch HC 獨立 App
+ * 5. fallback 到本 App 詳細頁
+ */
+fun Context.openHealthConnectSettings() {
+    val candidates = listOf(
+        // 1. Android 14+ 系統 HC framework — 直達 per-app 權限頁
+        Intent("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS").apply {
+            putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+        },
+        // 2. AndroidX HC（一些版本支援）
+        Intent("androidx.health.ACTION_MANAGE_HEALTH_PERMISSIONS").apply {
+            putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+        },
+        // 3. HC 設定主畫面（使用者再點兩下到權限頁）
+        Intent("androidx.health.ACTION_HEALTH_CONNECT_SETTINGS"),
+    )
+
+    for (intent in candidates) {
+        try {
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                return
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Try intent ${intent.action} failed")
+        }
+    }
+
+    // 4. 直接 launch HC 獨立 App
+    try {
+        val launchIntent = packageManager.getLaunchIntentForPackage(Config.GOOGLE_HEALTH_CONNECT_PACKAGE_NAME)
+        if (launchIntent != null) {
+            launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(launchIntent)
+            return
+        }
+    } catch (e: Exception) {
+        Timber.w(e, "Launch HC app failed")
+    }
+
+    // 5. 最終 fallback：本 App 詳細頁
+    Timber.i("Falling back to app details settings")
+    openAppSettings()
 }

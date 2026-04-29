@@ -3,6 +3,7 @@ package com.taiwanlife.teamwalk.utils
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.health.connect.client.HealthConnectClient
@@ -29,13 +30,21 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
 //        HealthPermission.getWritePermission(TotalCaloriesBurnedRecord::class)
     )
 
-    private val permissionLauncher = activity.registerForActivityResult(
+    // 明確指定型別，避免 lambda 內部引用 permissionLauncher 造成 recursive type inference 失敗
+    private val permissionLauncher: ActivityResultLauncher<Set<String>> = activity.registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
     ) { granted ->
         if (granted.containsAll(healthConnectPermissions)) {
             permissionGratedCallback?.invoke()
         } else {
-            activity.toast(R.string.main_health_connect_permission_denied)
+            // 0003008: 被拒絕時 dialog + 「前往設定」，跳到 HC 的 per-app 權限頁
+            AlertDialog.Builder(activity)
+                .setMessage(R.string.main_health_connect_permission_denied)
+                .setPositiveButton(R.string.go_to_setting) { _, _ ->
+                    activity.openHealthConnectSettings()
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 
