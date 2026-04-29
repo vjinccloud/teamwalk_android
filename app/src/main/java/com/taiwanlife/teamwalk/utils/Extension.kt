@@ -221,6 +221,27 @@ fun Context.getChromeIntent(url: String): Intent? {
 }
 
 /**
+ * 比較版本號（語意化版本，例如 "3.0.39" vs "3.0.38"）
+ * 回傳 true 表示 this < other（即「自己版本較舊，需要更新」）
+ *
+ * 範例：
+ *   "3.0.38".isVersionLessThan("3.0.39") → true
+ *   "3.0.39".isVersionLessThan("3.0.38") → false
+ *   "3.0.38".isVersionLessThan("3.0.38") → false
+ *   "3.1.0".isVersionLessThan("3.0.99")  → false
+ */
+fun String.isVersionLessThan(other: String): Boolean {
+    val a = this.split(".").map { it.toIntOrNull() ?: 0 }
+    val b = other.split(".").map { it.toIntOrNull() ?: 0 }
+    for (i in 0 until maxOf(a.size, b.size)) {
+        val x = a.getOrElse(i) { 0 }
+        val y = b.getOrElse(i) { 0 }
+        if (x != y) return x < y
+    }
+    return false
+}
+
+/**
  * 0003006: WebView 載入 URL 時加 cache buster timestamp
  * 範例：https://x.com/bridge → https://x.com/bridge?_=1714117200000
  *      https://x.com/bridge?id=5 → https://x.com/bridge?id=5&_=1714117200000

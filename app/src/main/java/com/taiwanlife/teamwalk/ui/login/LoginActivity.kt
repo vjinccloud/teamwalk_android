@@ -28,6 +28,7 @@ import com.taiwanlife.teamwalk.java_utils.DeviceUtil
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.CustomTextWatcher
+import com.taiwanlife.teamwalk.utils.isVersionLessThan
 import com.taiwanlife.teamwalk.utils.MyWebChromeClient
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.SecurityCheckManager
@@ -101,7 +102,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
         observeOnLifeCycle(loginViewModel.systemParamFlow) { systemParamResponse ->
             systemParamResponse.forceUpdateVerAndroid?.let { ver ->
-                if (!BuildConfig.VERSION_NAME.startsWith(ver)) {
+                if (BuildConfig.VERSION_NAME.isVersionLessThan(ver)) {
                     // 需要版本更新
                     systemParamResponse.androidIsForced?.let { forced ->
                         if (!(isFinishing || isDestroyed)) {
