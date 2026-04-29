@@ -133,8 +133,11 @@ class MyWebMessageListener(
 
     @SuppressLint("RequiresFeature")
     private fun handleCommand(command: WebCommand, replyProxy: JavaScriptReplyProxy) {
-        // 0003016 debug: 印出 Web 端實際送的 action 名稱
-        Timber.d("0003016 JSBridge: 收到 action=\"${command.action}\"")
+        // 0003016: WebviewFinished 大小寫不敏感比對（Web 規格大寫 W、Android 命名慣例小寫 w）
+        if (command.action.equals("webviewFinished", ignoreCase = true)) {
+            asyncCallbacks.webviewFinished()
+            return
+        }
 
         when (command.action) {
             "getDeviceInfo" -> {
@@ -252,9 +255,6 @@ class MyWebMessageListener(
             }
 
             "logout" -> asyncCallbacks.logout()
-
-            // 0003016: Web 端 bridge 載入完成的通知
-            "webviewFinished" -> asyncCallbacks.webviewFinished()
 
             "getCastgc" -> {
                 val castGCModel = CastGCModel(
