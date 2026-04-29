@@ -60,6 +60,7 @@ import com.taiwanlife.teamwalk.ui.onboarding.PromoteActivity
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.BindingManager
+import com.taiwanlife.teamwalk.utils.appendCacheBuster
 import com.taiwanlife.teamwalk.utils.DeviceType
 import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
 import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
@@ -521,7 +522,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                 )
             }
 
-            viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl)
+            // 0003006: 加 cache buster 確保 WebView 不讀快取
+            viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl.appendCacheBuster())
 
             handleRedirectIntent(intent)
         }
@@ -1049,7 +1051,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         .appendEncodedPath(Config.noneAppPageData.realPath)
                         .build()
                         .toString()
-                    viewBinding.webView.loadUrl(uri)
+                    // 0003006: 加 cache buster 確保 WebView 不讀快取
+                    viewBinding.webView.loadUrl(uri.appendCacheBuster())
                 }
 
                 Config.NotificationType.APP_PAGE -> {
@@ -1061,7 +1064,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                         .appendEncodedPath(notificationAppPageData.realPath)
                         .build()
                         .toString()
-                    viewBinding.webView.loadUrl(uri)
+                    // 0003006: 加 cache buster 確保 WebView 不讀快取
+                    viewBinding.webView.loadUrl(uri.appendCacheBuster())
                 }
             }
             intent.putExtra(NOTIFICATION_KEY_TYPE, "")

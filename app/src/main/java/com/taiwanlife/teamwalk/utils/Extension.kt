@@ -221,6 +221,18 @@ fun Context.getChromeIntent(url: String): Intent? {
 }
 
 /**
+ * 0003006: WebView 載入 URL 時加 cache buster timestamp
+ * 範例：https://x.com/bridge → https://x.com/bridge?_=1714117200000
+ *      https://x.com/bridge?id=5 → https://x.com/bridge?id=5&_=1714117200000
+ * 確保每次載入都不讀快取。
+ */
+fun String.appendCacheBuster(): String {
+    if (this.isBlank()) return this
+    val separator = if (this.contains('?')) '&' else '?'
+    return "$this${separator}_=${System.currentTimeMillis()}"
+}
+
+/**
  * 0003008: 跳到本 App 的「應用程式詳細頁」
  * 使用者已永久拒絕權限時的引導入口。從這頁可以再點「權限」進入細項調整。
  * 適用：CAMERA、ACTIVITY_RECOGNITION、WRITE_STORAGE 等一般 runtime 權限。
