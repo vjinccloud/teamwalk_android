@@ -81,7 +81,10 @@ import com.taiwanlife.teamwalk.utils.getChromeIntent
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
 import com.taiwanlife.teamwalk.utils.toast
+import androidx.appcompat.app.AlertDialog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -97,6 +100,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         private const val QUERY_PARAM_TICKET = "ticket"
         private const val KEY_PID = "pid"
+
+        // 0003016: WebView 載入完成監測 timeout 時間（10 秒）
+        private const val WEBVIEW_LOAD_TIMEOUT_MS = 10_000L
     }
 
     private lateinit var myNotificationManager: MyNotificationManager
@@ -122,6 +128,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     private var clearCache: Boolean? = null
     private var pendingNoInternetAlert: Boolean = false
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+
+    // 0003016: WebView 載入完成監測
+    private var webViewLoadTimeoutJob: Job? = null
+    private var webViewRebuildAttempted: Boolean = false
 
 
     // 提供登入的LoginActivity之資料回傳
@@ -525,6 +535,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
             // 0003006: 加 cache buster 確保 WebView 不讀快取
             viewBinding.webView.loadUrl(getEnvironmentConfig().webUrl.appendCacheBuster())
 
+            // 0003016: 啟動載入完成監測，等 Web 端透過 JS bridge 呼叫 webviewFinished
+            startWebViewLoadingWatcher(getEnvironmentConfig().webUrl)
+
             handleRedirectIntent(intent)
         }
     }
@@ -754,6 +767,59 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         loginLauncher.launch(loginIntent)
     }
 
+    /**
+     * 0003016: /landing 後啟動 WebView 載入完成監測
+     * 1. 啟動 10s timer，期間若收到 webviewFinished JS bridge → 取消
+     * 2. 第一次 timeout → 重建 WebView 並再給 10s
+     * 3. 第二次 timeout → 跳「連線異常」dialog → 確認後自動登出
+     */
+    private fun startWebViewLoadingWatcher(url: String) {
+        Timber.d("0003016: 啟動 WebView 載入監測 (10s)")
+        cancelWebViewLoadingWatcher()
+        webViewRebuildAttempted = false
+        webViewLoadTimeoutJob = lifecycleScope.launch {
+            delay(WEBVIEW_LOAD_TIMEOUT_MS)
+            Timber.w("0003016: 第一次 10s 未收到 webviewFinished → 重建 WebView")
+            rebuildWebViewAndRetry(url)
+        }
+    }
+
+    private fun rebuildWebViewAndRetry(url: String) {
+        if (isFinishing || isDestroyed) return
+
+        webViewRebuildAttempted = true
+
+        // 重建 WebView：清掉現有狀態 + 快取 + 重新載入
+        viewBinding.webView.stopLoading()
+        viewBinding.webView.clearCache(true)
+        viewBinding.webView.clearHistory()
+        viewBinding.webView.loadUrl(url.appendCacheBuster())
+
+        // 第二次計時
+        webViewLoadTimeoutJob = lifecycleScope.launch {
+            delay(WEBVIEW_LOAD_TIMEOUT_MS)
+            Timber.e("0003016: 第二次 10s 仍未收到 webviewFinished → 跳錯誤 dialog")
+            showWebViewLoadFailedDialog()
+        }
+    }
+
+    private fun showWebViewLoadFailedDialog() {
+        if (isFinishing || isDestroyed) return
+
+        AlertDialog.Builder(this)
+            .setMessage(R.string.webview_load_timeout_message)
+            .setPositiveButton(R.string.confirm1) { _, _ ->
+                toLogin()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun cancelWebViewLoadingWatcher() {
+        webViewLoadTimeoutJob?.cancel()
+        webViewLoadTimeoutJob = null
+    }
+
     private fun onProviderInstallerNotAvailable() {
         // This is reached if the provider can't be updated for some reason.
         // App should consider all HTTP communication to be vulnerable and take
@@ -960,6 +1026,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     override fun logout() {
         toLogin()
+    }
+
+    /**
+     * 0003016: Web 端 bridge 載入完成 → 取消 timeout watcher
+     */
+    override fun webviewFinished() {
+        Timber.d("0003016: 收到 webviewFinished，取消 timeout watcher")
+        cancelWebViewLoadingWatcher()
     }
 
     override fun saveDataToFile(data: String, fileName: String) {

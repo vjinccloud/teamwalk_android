@@ -36,7 +36,7 @@ val appModule = module {
 
     single<OkHttpClient> {
         val logger = HttpLoggingInterceptor()
-        logger.level = if (BuildConfig.DEBUG) {
+        logger.level = if (BuildConfig.ENABLE_API_LOG) {
             HttpLoggingInterceptor.Level.BODY
         } else {
             HttpLoggingInterceptor.Level.NONE
@@ -48,7 +48,7 @@ val appModule = module {
             .addInterceptor(logger)
             .addInterceptor(tokenInterceptor)
 
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.ENABLE_API_LOG) {
             clientBuilder.addInterceptor(ApiLoggingInterceptor())
         }
 

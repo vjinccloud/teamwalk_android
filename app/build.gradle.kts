@@ -35,6 +35,8 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
 
+            buildConfigField("boolean", "ENABLE_API_LOG", "true")
+
             // APP 名稱
             resValue("string", "app_name", "DebugTeamWalk")
             // 綁定成功時的domain(scheme)
@@ -65,6 +67,8 @@ android {
             applicationIdSuffix = ".sit"
 
             signingConfig = signingConfigs.getByName("debug")
+
+            buildConfigField("boolean", "ENABLE_API_LOG", "true")
 
             // APP 名稱
             resValue("string", "app_name", "SITTeamWalk")
@@ -104,6 +108,8 @@ android {
 
             signingConfig = signingConfigs.getByName("debug")
 
+            buildConfigField("boolean", "ENABLE_API_LOG", "true")
+
             // APP 名稱
             resValue("string", "app_name", "UATTeamWalk")
             // 綁定成功時的domain(scheme)
@@ -135,6 +141,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField("boolean", "ENABLE_API_LOG", "false")
+
             // APP 名稱
             resValue("string", "app_name", "TeamWalk")
             // 綁定成功時的domain(scheme)

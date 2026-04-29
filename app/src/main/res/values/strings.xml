@@ -5,6 +5,7 @@
     <string name="confirm1">確定</string>
     <string name="ok">OK</string>
     <string name="general_error">系統異常，請稍後再試</string>
+    <string name="webview_load_timeout_message">連線異常，請稍後再試</string>
     <string name="no_browser">無瀏覽器可使用，請稍後再試</string>
 
     <string name="login_no_ticket">未取得登入許可</string>

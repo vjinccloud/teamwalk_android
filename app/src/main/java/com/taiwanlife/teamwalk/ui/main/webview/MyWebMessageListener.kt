@@ -61,6 +61,9 @@ class MyWebMessageListener(
         fun logout()
 
         fun saveDataToFile(data: String, fileName: String)
+
+        // 0003016: Web 端載入完成通知，App 端用來取消 timeout watcher
+        fun webviewFinished()
     }
 
     private val sharedEventViewModel: SharedEventViewModel by inject(SharedEventViewModel::class.java)
@@ -130,6 +133,9 @@ class MyWebMessageListener(
 
     @SuppressLint("RequiresFeature")
     private fun handleCommand(command: WebCommand, replyProxy: JavaScriptReplyProxy) {
+        // 0003016 debug: 印出 Web 端實際送的 action 名稱
+        Timber.d("0003016 JSBridge: 收到 action=\"${command.action}\"")
+
         when (command.action) {
             "getDeviceInfo" -> {
                 val deviceInfoModel = DeviceInfoModel(
@@ -246,6 +252,9 @@ class MyWebMessageListener(
             }
 
             "logout" -> asyncCallbacks.logout()
+
+            // 0003016: Web 端 bridge 載入完成的通知
+            "webviewFinished" -> asyncCallbacks.webviewFinished()
 
             "getCastgc" -> {
                 val castGCModel = CastGCModel(

@@ -14,6 +14,7 @@ import com.taiwanlife.teamwalk.Config.CHANNEL_NAME_FOR_BADGE
 import com.taiwanlife.teamwalk.di.appModule
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import org.koin.core.context.startKoin
+import timber.log.Timber
 
 class MyApplication : Application() {
     companion object {
@@ -67,10 +68,8 @@ class MyApplication : Application() {
         super.onCreate()
         context = applicationContext
 
-        if (BuildConfig.DEBUG) {
-//            FileLoggingTree.clearLogs(this)
-//            Timber.plant(Timber.DebugTree())
-//            Timber.plant(FileLoggingTree(this))
+        if (BuildConfig.ENABLE_API_LOG) {
+            Timber.plant(Timber.DebugTree())
         }
 
         startKoin {
