@@ -235,9 +235,20 @@ class BindingManager(
 
     private fun startFitbitProcess() {
         val url = fitbitViewModel.getUrl(baseActivity.getString(R.string.redirect_scheme))
-        val urlIntent = Intent(Intent.ACTION_VIEW, url.toUri())
 
-        baseActivity.startActivity(urlIntent)
+        // 0002957: 跟 Garmin 一樣的防護，避免使用者沒有可用瀏覽器時 ActivityNotFoundException
+        try {
+            baseActivity.getChromeIntent(url)?.let {
+                baseActivity.startActivity(it)
+            }
+        } catch (e: ActivityNotFoundException) {
+            try {
+                val fallbackIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+                baseActivity.startActivity(fallbackIntent)
+            } catch (e: Exception) {
+                Toast.makeText(baseActivity, baseActivity.getString(R.string.no_browser), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun onReceivedEvent(eventName: String?, result: String) {
