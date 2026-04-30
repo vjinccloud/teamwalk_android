@@ -61,6 +61,7 @@ import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
 import com.taiwanlife.teamwalk.utils.BindingManager
 import com.taiwanlife.teamwalk.utils.appendCacheBuster
+import com.taiwanlife.teamwalk.utils.openHealthConnectSettings
 import com.taiwanlife.teamwalk.utils.DeviceType
 import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
 import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
@@ -931,7 +932,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
                     true,
                     true,
                     getString(R.string.confirm2),
-                    null,
+                    {
+                        // #0003008 對應：點「確認」直接跳到 HC 權限頁
+                        openHealthConnectSettings()
+                    },
                 )
             }
         }
