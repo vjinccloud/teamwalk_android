@@ -21,7 +21,8 @@ object SecuredPreferenceStoreManager {
     private const val KEYSET_NAME = "teamwalk2_master_keyset"
     private const val KEYSET_PREF_NAME = "teamwalk2_tink_keyset_prefs"
     private const val DATASTORE_NAME = "teamwalk2_secure_datastore"
-    private const val MASTER_KEY_URI = "android-keystore://teamwalk2_tink_master_key"
+    private const val MASTER_KEY_ALIAS = "teamwalk2_tink_master_key"
+    private const val MASTER_KEY_URI = "android-keystore://$MASTER_KEY_ALIAS"
 
     private lateinit var dataStore: DataStore<Preferences>
     private lateinit var aead: Aead
@@ -45,7 +46,31 @@ object SecuredPreferenceStoreManager {
                 context.preferencesDataStoreFile(DATASTORE_NAME).name
             )
 
-            createAead(context)
+            // 同時把 Android Keystore 內 master key 砍掉，避免「upgrade_keyblob」這類
+            // keyblob 升級失敗的情境（單純清 SP/DataStore 無法解）。
+            try {
+                val keyStore = java.security.KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                if (keyStore.containsAlias(MASTER_KEY_ALIAS)) {
+                    keyStore.deleteEntry(MASTER_KEY_ALIAS)
+                }
+            } catch (innerE: Exception) {
+                // 刪 keystore 失敗就算了，下面 retry 還是會試
+                innerE.printStackTrace()
+            }
+
+            // 第 2 次 retry 也用 try-catch 包，避免 keystore 完全壞掉時整個 App 開不了
+            try {
+                createAead(context)
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+                // 留底給 Crashlytics 看（如果有接），同時丟出更明確的訊息
+                throw IllegalStateException(
+                    "AndroidKeyStore is unusable on this device after retry. " +
+                            "Original: ${e.message} | Retry: ${e2.message}",
+                    e2
+                )
+            }
         }
     }
 
