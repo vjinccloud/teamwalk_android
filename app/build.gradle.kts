@@ -190,6 +190,17 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    // 客製 APK 檔名：TeamWalk-<variant>-v<versionName>-vc<versionCode>.apk
+    // 範例：TeamWalk-uat-v3.0.42-vc81.apk
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            output.outputFileName =
+                "TeamWalk-${variant.buildType.name}-v${variant.versionName}-vc${variant.versionCode}.apk"
+        }
+    }
 }
 
 dependencies {
