@@ -19,6 +19,10 @@ import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.google.gson.Gson
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.EnvironmentManager.getEnvironmentConfig
@@ -44,6 +48,9 @@ class CSSOWebViewActivity :
         private const val PURPOSE_REGISTER: String = "REGISTER"
         private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
         private const val PURPOSE_NOTIFY_CHANGE_PASSWORD: String = "NOTIFY_CHANGE_PASSWORD"
+
+        // #0002992 loading 防呆：8 秒沒結束強制關掉
+        private const val LOADING_TIMEOUT_MS = 8_000L
 
 
         // 進來是為了註冊
@@ -71,6 +78,22 @@ class CSSOWebViewActivity :
     override val statusBarColor: Int = R.color.colorCTBCPrimary
 
     private lateinit var webView: WebView
+
+    // #0002992 loading timeout 保險，避免 onPageFinished 沒觸發導致 loading 卡住
+    private var loadingTimeoutJob: Job? = null
+
+    private fun startLoadingTimeoutWatcher() {
+        cancelLoadingTimeoutWatcher()
+        loadingTimeoutJob = lifecycleScope.launch {
+            delay(LOADING_TIMEOUT_MS)
+            onLoading(false)
+        }
+    }
+
+    private fun cancelLoadingTimeoutWatcher() {
+        loadingTimeoutJob?.cancel()
+        loadingTimeoutJob = null
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onLastCreateBaseActivity(
@@ -105,13 +128,27 @@ class CSSOWebViewActivity :
         webView.webViewClient = CSSOWebViewClient(this, object : WebviewLoadingCallback{
             override fun onWebviewPageStarted() {
                 onLoading(true)
+                // #0002992 timeout 保險：8 秒沒收到結束信號，自動關 loading
+                startLoadingTimeoutWatcher()
             }
 
             override fun onWebviewPageFinished() {
                 onLoading(false)
+                cancelLoadingTimeoutWatcher()
             }
         })
         webView.webChromeClient = object : WebChromeClient() {
+            // #0002992 修正：onPageFinished 在某些頁面（多重 redirect / iframe / JS-heavy）
+            // 不一定可靠觸發，導致 loading「連線中」永遠不消失。
+            // 改用 onProgressChanged 100% 為「載入完成」備援，只要進度到底就主動關 loading。
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                if (newProgress >= 100) {
+                    onLoading(false)
+                    cancelLoadingTimeoutWatcher()
+                }
+            }
+
             override fun onJsAlert(
                 view: WebView?,
                 url: String?,
