@@ -395,6 +395,9 @@ class CSSOWebViewActivity :
             }
             // 確保錯誤是針對主框架的請求 (isForMainFrame)
             if (request?.isForMainFrame == true) {
+                // #0002992 修正：error 時也要關掉 loading，否則「連線中」永遠不消失
+                webviewLoadingCallback.onWebviewPageFinished()
+
                 val description = error?.description.toString()
                 val errorCode = error?.errorCode ?: -1
 
@@ -413,8 +416,9 @@ class CSSOWebViewActivity :
                             description
                         )
                     )
-                    .setPositiveButton(R.string.confirm1) { dialog, _ ->
-
+                    .setPositiveButton(R.string.confirm1) { _, _ ->
+                        // #0002992 修正：使用者按確定後關閉 CSSOWebViewActivity，避免停留在「連線中」畫面
+                        (context as? Activity)?.finish()
                     }
                     .setCancelable(true)
                     .show()
