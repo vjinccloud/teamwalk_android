@@ -17,50 +17,34 @@ class TokenInterceptor : Interceptor {
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val originalRequest = chain.request() // 取得原始請求
-
-        // 檢查請求的路徑是否為登入路徑
+        val originalRequest = chain.request()
         val url = originalRequest.url.toUrl().toString()
         val encodedUrl = originalRequest.url.encodedPath
 
-        // 在所有 OkHttp 出去的 request 都補上客製 UA 後綴
-        val baseUserAgent = originalRequest.header("User-Agent")
-            ?: "okhttp"
-        val customUserAgent = baseUserAgent + CUSTOM_USER_AGENT_SUFFIX
+        // 所有 request 都帶上 App 識別資訊（UA 後綴 + 獨立 header）
+        // 後端可以選擇 parse UA 或直接讀 X-App-* header，兩種任選
+        val baseUserAgent = originalRequest.header("User-Agent") ?: "okhttp"
+        val builder = originalRequest.newBuilder()
+            .header("User-Agent", baseUserAgent + CUSTOM_USER_AGENT_SUFFIX)
+            .header("X-App-Version", BuildConfig.VERSION_NAME)
+            .header("X-App-Version-Code", BuildConfig.VERSION_CODE.toString())
+            .header("X-App-Platform", "Android")
+            .header("X-App-Identifier", BuildConfig.APPLICATION_ID)
 
-        // 使用 originalRequest.url.encodedPath 獲取編碼過的路徑，確保完整匹配
-        if (encodedUrl.endsWith(Config.API_LOGIN_PATH)) {
-            // 如果是登入路徑，直接放行，不添加 JWT，但仍補上 UA
-            return chain.proceed(
-                originalRequest.newBuilder()
-                    .header("User-Agent", customUserAgent)
-                    .build()
-            )
-        }
-        if (!url.contains(EnvironmentManager.getEnvironmentConfig().apiUrl)) {
-            // 如果不是API 也放行 不添加JWT，但仍補上 UA
-            return chain.proceed(
-                originalRequest.newBuilder()
-                    .header("User-Agent", customUserAgent)
-                    .build()
-            )
-        }
-        val jwtToken = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT, "")
-        if (jwtToken.isEmpty()) {
-            // 沒有JWT Token 送出去 但是會出錯 請前往察看錯誤
-            return chain.proceed(
-                originalRequest.newBuilder()
-                    .header("User-Agent", customUserAgent)
-                    .build()
-            )
+        // 判斷是否該加 Authorization (JWT)
+        val isLoginPath = encodedUrl.endsWith(Config.API_LOGIN_PATH)
+        val isApiUrl = url.contains(EnvironmentManager.getEnvironmentConfig().apiUrl)
+        val shouldAddJwt = isApiUrl && !isLoginPath
+
+        if (shouldAddJwt) {
+            val jwtToken = SecuredPreferenceStoreManager.getString(Config.SP_LOGIN_JWT, "")
+            if (jwtToken.isNotEmpty()) {
+                builder.header("Authorization", jwtToken)
+                // 註：原作者註解說這邊本來該加 "Bearer " 前綴但被改掉了
+                // .header("Authorization", "Bearer $jwtToken")
+            }
         }
 
-        val newRequest = originalRequest.newBuilder()
-//            .header("Authorization", "Bearer $jwtToken") // 在 Authorization Header 中添加 Bearer Token
-            .header("Authorization", jwtToken) // 在 Authorization Header 中添加 Bearer Token
-            .header("User-Agent", customUserAgent)
-            .build()
-
-        return chain.proceed(newRequest)
+        return chain.proceed(builder.build())
     }
 }
