@@ -32,7 +32,3 @@ render.experimental.xml
 
 # Android Profiling
 *.hprof
-
-# 本地工作筆記（不上 repo）
-handoff.md
-.claude/
