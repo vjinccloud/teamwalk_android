@@ -26,55 +26,14 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
         message: String?,
         result: JsResult
     ): Boolean {
-        // #0002992 現場診斷：先 toast 證明 onJsAlert 有觸發
-        if (DIAG_TOAST) {
-            Toast.makeText(context, "[診斷] onJsAlert 觸發\nmsg=$message", Toast.LENGTH_LONG).show()
-        }
+        // #0002992 簡化版：直接 Toast 呈現訊息 + 立即 confirm，不再嘗試 AlertDialog
+        // 之前 AlertDialog 在某些情境（Pixel 7 也會）silent 失敗或顯示不出來，
+        // 流程也會卡住。改成直接 Toast 確保 user 一定看得到訊息，並立即 confirm
+        // 讓 webview 的 JS 不會被卡住。
         Timber.d("0002992 onJsAlert: url=$url | msg=$message")
-
-        // #0002992 改進方案：先嘗試 AlertDialog，並透過 isShowing 確認是否真的顯示。
-        // 若 isShowing 為 false（show() 沒拋錯但 dialog 沒被 attach 到 window），
-        // 改用 Toast 把訊息呈現給使用者，同時自動 confirm 不讓 webview 的 JS 卡住。
-        var dialogShownVisible = false
-        try {
-            val dialog = AlertDialog.Builder(context)
-                .setMessage(message)
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    alertCallback?.invoke()
-                    result.confirm()
-                }
-                .setCancelable(false)
-                .create()
-            dialog.show()
-            dialogShownVisible = dialog.isShowing
-            if (DIAG_TOAST) {
-                Toast.makeText(
-                    context,
-                    "[診斷] AlertDialog show() 完成，isShowing=$dialogShownVisible",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "onJsAlert show dialog failed")
-            if (DIAG_TOAST) {
-                Toast.makeText(
-                    context,
-                    "[診斷] AlertDialog 失敗\n${e.javaClass.simpleName}: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-
-        // 若 AlertDialog 沒成功顯示，用 Toast 呈現訊息 + 自動 confirm 讓 webview 流程繼續
-        if (!dialogShownVisible) {
-            Toast.makeText(
-                context,
-                "📢 ${message ?: ""}",
-                Toast.LENGTH_LONG
-            ).show()
-            alertCallback?.invoke()
-            result.confirm()
-        }
+        Toast.makeText(context, "📢 ${message ?: ""}", Toast.LENGTH_LONG).show()
+        alertCallback?.invoke()
+        result.confirm()
         return true
     }
 
