@@ -1,13 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Auto Backup（Android 6 ~ 11，舊版 backup 機制）排除規則。
+   API 31+ 改看 data_extraction_rules.xml。
    See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
     <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+        排除 Firebase Installations 檔案。
+        FID 必須符合「重裝/換機要重產」需求；若被 Auto Backup 還原會導致重裝後 FID 不變。
+    -->
+    <exclude domain="file" path="PersistedInstallation."/>
+    <exclude domain="file" path="PersistedInstallationEntry"/>
+
+    <!--
+        排除 Tink 加密 DataStore（SecuredPreferenceStoreManager 用），避免重裝/換機後
+        舊 JWT/CASTGC/cached FID 被還原（Keystore master key 已不在，還原也解不開，
+        但留著還原檔會干擾 Tink 重建流程）。
+    -->
+    <exclude domain="file" path="datastore/"/>
+
+    <!-- Tink keyset SP（記錄加密用的 keyset 引用）。 -->
+    <exclude domain="sharedpref" path="teamwalk2_tink_keyset_prefs.xml"/>
 </full-backup-content>
