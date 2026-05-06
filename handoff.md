@@ -91,6 +91,9 @@ CSSOWebViewActivity 全螢幕 webview（user 互動的 CSSO 網頁）
 - #0002992 連線中卡住 → CSSOWebViewActivity onProgressChanged 100% + 8s timeout + onReceivedError 補關
 - Crashlytics keystore crash → SecuredPreferenceStoreManager 復原機制強化
 - OkHttp UA 補 `taiwanlife_teamwalk_app/版號` + getSysParam 5 秒 throttle 防 DDoS
+  - ⚠️ 注意：這個 UA 機制要 work，前提是後端要等大多數 user 升到 3.0.41+ 後才能開始擋
+    沒標記的請求。否則會誤殺還沒更新的老版 user（他們也是 UA 沒標記）。
+    所以後端要配合提高 force_update_ver_android = 3.0.41 強更老 user。
 - #0003016 dialog 文案「連線異常，請稍後再試」→「連線異常，請重新登入」
 
 ### 開發流程改善
