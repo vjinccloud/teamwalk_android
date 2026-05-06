@@ -62,7 +62,6 @@ object Config {
     // 新增的 相同功能的也先重新做一個 到時候要清理才能將上面的一次全部刪除
     // 不准Token 改名
     const val SP_FCM_IDENTIFIER = "SP_FCM_IDENTIFIER"
-    const val SP_FIREBASE_INSTALLATIONS_UNIQUE_ID = "SP_FIREBASE_INSTALLATIONS_UNIQUE_ID"
 
     const val SP_LOGIN_JWT = "SP_LOGIN_JWT"
     const val SP_LOGIN_REMEMBER_PID = "SP_LOGIN_REMEMBER_PID"

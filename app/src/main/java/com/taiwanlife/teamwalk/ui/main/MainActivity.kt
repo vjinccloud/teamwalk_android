@@ -25,7 +25,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.security.ProviderInstaller
-import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import com.taiwanlife.teamwalk.BuildConfig
 import com.taiwanlife.teamwalk.Config
@@ -296,27 +295,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         // 初始化參數 這裡不再需要
 //        pid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_PID, "")
 //        ticket = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_TICKET, "")
-
-        // Fid Firebase Installations Unique Id
-        try {
-            FirebaseInstallations.getInstance().id
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful && !task.result.isNullOrEmpty()) {
-//                        SecuredPreferenceStoreManager.simpleEditAndApply(
-//                            Config.PREF_LOGIN_FID,
-//                            task.result
-//                        )
-                        SecuredPreferenceStoreManager.simpleEditAndApply(
-                            Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
-                            task.result
-                        )
-                    } else {
-                        Timber.d("Fetching FirebaseInstallations token failed")
-                    }
-                }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
         // CelebrusCSA 初始化
         CelebrusCSAUtil.start(this)

@@ -34,6 +34,7 @@ import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_GRAP
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_JWT_TOKEN_RESOLVER
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_OPEN_NOTIFICATION_RESOLVER
 import com.taiwanlife.teamwalk.ui.main.webview.MyWebView.Companion.CALLBACK_SYNC_HEALTH_DATA_RESOLVER
+import com.taiwanlife.teamwalk.utils.AppUuidManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.debugToast
@@ -142,10 +143,7 @@ class MyWebMessageListener(
         when (command.action) {
             "getDeviceInfo" -> {
                 val deviceInfoModel = DeviceInfoModel(
-                    appUuid = SecuredPreferenceStoreManager.getString(
-                        Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID,
-                        ""
-                    ),
+                    appUuid = AppUuidManager.getOrCreate(),
                     deviceId = Utils.getDeviceId(context),
                     pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
                 )

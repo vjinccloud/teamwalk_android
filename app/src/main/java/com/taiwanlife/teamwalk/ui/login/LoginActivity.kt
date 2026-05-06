@@ -42,8 +42,8 @@ import java.util.Locale
 import androidx.core.net.toUri
 import androidx.core.widget.addTextChangedListener
 import androidx.savedstate.serialization.saved
-import com.google.firebase.installations.FirebaseInstallations
 import com.google.gson.Gson
+import com.taiwanlife.teamwalk.utils.AppUuidManager
 import timber.log.Timber
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
@@ -176,14 +176,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             e.printStackTrace()
         }
 
-//        var uuid = SecuredPreferenceStoreManager.getString(Config.PREF_LOGIN_UUID, "")
         var showSecurity =
             SecuredPreferenceStoreManager.getBoolean(Config.SP_SHOW_SECURITY_ALERT_FIRST_TIME, true)
         if (showSecurity) {
             if (isFinishing || isDestroyed) return
 
-//            uuid = SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
-//            SecuredPreferenceStoreManager.simpleEditAndApply(Config.PREF_LOGIN_UUID, uuid)
             val commonDialog = CommonDialog(this)
             commonDialog.oneButtonInit(
                 title = "",
@@ -249,22 +246,16 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         // === diag. END ===
     }
 
-    // diag. 測試 appUuid 在重裝/換裝置情境下的行為，測完整段刪掉
+    // diag. 顯示 appUuid 給驗收用（重裝後值應改變），測完整段刪掉
     private fun showFidDiag() {
-        val cachedFid = SecuredPreferenceStoreManager.getString(
-            Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "(空)"
-        )
-        FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
-            val realFid = if (task.isSuccessful) task.result ?: "(null)" else "(失敗:${task.exception?.message})"
-            Timber.d("FID-DIAG cached=$cachedFid real=$realFid match=${cachedFid == realFid}")
-            if (isFinishing || isDestroyed) return@addOnCompleteListener
-            AlertDialog.Builder(this@LoginActivity)
-                .setTitle("FID 診斷（測試用）")
-                .setMessage("SP cached:\n$cachedFid\n\nFirebase 即時:\n$realFid\n\n相同: ${cachedFid == realFid}")
-                .setPositiveButton(R.string.confirm1, null)
-                .setCancelable(true)
-                .show()
-        }
+        val appUuid = AppUuidManager.getOrCreate()
+        Timber.d("APPUUID-DIAG $appUuid")
+        AlertDialog.Builder(this@LoginActivity)
+            .setTitle("appUuid（測試用）")
+            .setMessage(appUuid)
+            .setPositiveButton(R.string.confirm1, null)
+            .setCancelable(true)
+            .show()
     }
 
     override fun onResume() {
@@ -568,9 +559,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             override fun onProgress(progressPattern: List<PatternLockView.Dot?>?) {}
 
             override fun onComplete(pattern: List<PatternLockView.Dot>) {
-                val fid = SecuredPreferenceStoreManager.getString(
-                    Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, ""
-                )
+                val fid = AppUuidManager.getOrCreate()
                 if (pid.count { it != '\u0000' } != 10) {
                     viewBinding.loginLayoutPid.setBackgroundColor(getColor(R.color.colorError))
                     viewBinding.loginLayoutPid.visibility

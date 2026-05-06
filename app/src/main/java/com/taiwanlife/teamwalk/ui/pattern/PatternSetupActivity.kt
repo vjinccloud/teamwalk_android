@@ -14,6 +14,7 @@ import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityPatternSetupBinding
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.ui.pattern.PatternSetupActivity.PatternProgress.*
+import com.taiwanlife.teamwalk.utils.AppUuidManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.Utils
 import com.taiwanlife.teamwalk.utils.toast
@@ -115,8 +116,7 @@ class PatternSetupActivity :
     }
 
     private fun processSetUp(pattern: List<PatternLockView.Dot>) {
-        val fid =
-            SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
+        val fid = AppUuidManager.getOrCreate()
         val patternPath = Utils.patternToSha256(
             viewBinding.patternLockViewSetup,
             pattern.toMutableList(),

@@ -9,6 +9,7 @@ import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.request.api.LoginRequest
 import com.taiwanlife.teamwalk.remote.response.api.LoginResponse
 import com.taiwanlife.teamwalk.remote.response.api.SysParamInfoResponse
+import com.taiwanlife.teamwalk.utils.AppUuidManager
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import timber.log.Timber
 
@@ -35,8 +36,7 @@ class LoginViewModel(repository: Repository) : BaseViewModel(repository) {
     }
 
     fun login(redirectScheme: String, userId: String, ticket: String, deviceId: String) {
-        val appUuid =
-            SecuredPreferenceStoreManager.getString(Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "")
+        val appUuid = AppUuidManager.getOrCreate()
         val pushId = SecuredPreferenceStoreManager.getString(Config.SP_FCM_IDENTIFIER, "")
 
         SecuredPreferenceStoreManager.simpleEditAndApply(Config.SP_LOG_REQUEST, "")
