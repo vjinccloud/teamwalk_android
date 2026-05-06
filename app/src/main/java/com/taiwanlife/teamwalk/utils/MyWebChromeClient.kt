@@ -1,6 +1,9 @@
 package com.taiwanlife.teamwalk.utils
 
+import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -26,14 +29,58 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
         message: String?,
         result: JsResult
     ): Boolean {
-        // #0002992 簡化版：直接 Toast 呈現訊息 + 立即 confirm，不再嘗試 AlertDialog
-        // 之前 AlertDialog 在某些情境（Pixel 7 也會）silent 失敗或顯示不出來，
-        // 流程也會卡住。改成直接 Toast 確保 user 一定看得到訊息，並立即 confirm
-        // 讓 webview 的 JS 不會被卡住。
         Timber.d("0002992 onJsAlert: url=$url | msg=$message")
-        Toast.makeText(context, "📢 ${message ?: ""}", Toast.LENGTH_LONG).show()
-        alertCallback?.invoke()
-        result.confirm()
+
+        val activity = context as? Activity
+        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            // activity 已死，沒辦法顯示 dialog，回 cancel 不卡 JS
+            if (DIAG_TOAST) {
+                Toast.makeText(context, "[診斷] activity 已死，cancel alert", Toast.LENGTH_SHORT).show()
+            }
+            result.cancel()
+            return true
+        }
+
+        if (DIAG_TOAST) {
+            Toast.makeText(context, "[診斷-1] onJsAlert 觸發\nactivity=${activity.javaClass.simpleName}", Toast.LENGTH_SHORT).show()
+        }
+
+        // 強制丟到主 Looper 下一個 frame 跑，避開 webview callback 跟 UI thread 同 frame
+        // 在某些 Android 版本可能造成 dialog window attach 競態的情境
+        Handler(Looper.getMainLooper()).post {
+            try {
+                val dialog = AlertDialog.Builder(activity)
+                    .setMessage(message)
+                    .setPositiveButton(R.string.ok) { _, _ ->
+                        if (DIAG_TOAST) {
+                            Toast.makeText(activity, "[診斷-3] user 按下 OK", Toast.LENGTH_SHORT).show()
+                        }
+                        alertCallback?.invoke()
+                        result.confirm()
+                    }
+                    .setCancelable(false)
+                    .create()
+                dialog.show()
+
+                if (DIAG_TOAST) {
+                    Toast.makeText(
+                        activity,
+                        "[診斷-2] dialog.show() 完成\nisShowing=${dialog.isShowing}\nwindow=${dialog.window != null}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "onJsAlert show dialog failed")
+                if (DIAG_TOAST) {
+                    Toast.makeText(
+                        activity,
+                        "[診斷-2] dialog 失敗\n${e.javaClass.simpleName}: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                result.cancel()
+            }
+        }
         return true
     }
 
