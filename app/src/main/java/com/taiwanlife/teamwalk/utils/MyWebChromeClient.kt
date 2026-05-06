@@ -26,10 +26,20 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
     ): Boolean {
         Timber.d("0002992 onJsAlert: url=$url | msg=$message")
 
-        // #0002992: 改用跟 CSSOWebViewActivity 一樣的 AlertDialogManager（系統版 android.app.AlertDialog），
-        // 因為原本的 androidx.appcompat.AlertDialog 在 LoginActivity 的 1dp×1dp webview 觸發下
-        // attach 不到 window，但 CSSOWebViewActivity 用同一個 AlertDialogManager 確認可以正常顯示。
-        // 統一用同樣 dialog 機制，避免兩邊行為不一致。
+        // #0002992: 「密碼超過三個月」的 CSSO 提醒會卡住 LoginActivity 流程
+        // （dialog 在 1dp×1dp webview 觸發環境下顯示異常 + 即使顯示 user 點 OK 後本來就要跳改密碼頁），
+        // 對 user 來說多一個提醒沒實質意義且增加白屏風險。
+        // 偵測到此類 alert 直接 confirm 讓 webview 跳改密碼頁，由 CSSOWebViewActivity 統一接續流程。
+        // 比對策略：訊息同時包含「三個月」與「密碼」兩個 keyword，誤判機率極低。
+        if (message != null && message.contains("三個月") && message.contains("密碼")) {
+            Timber.d("0002992 偵測到密碼三個月提醒 alert，直接 confirm 讓 webview 跳改密碼頁")
+            result.confirm()
+            return true
+        }
+
+        // 其他 alert（密碼錯誤、驗證碼錯誤等）走正常 dialog 流程
+        // 用跟 CSSOWebViewActivity 一樣的 AlertDialogManager（系統版 android.app.AlertDialog），
+        // 避免 androidx.appcompat.AlertDialog 在 1dp×1dp webview 環境 attach 失敗
         try {
             AlertDialogManager.getAlertDialog(
                 context,
