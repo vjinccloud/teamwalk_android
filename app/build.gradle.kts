@@ -5,6 +5,20 @@ plugins {
     alias(libs.plugins.firebase.crashlytics)
 }
 
+/**
+ * 取得目前 git HEAD 的 short commit hash（7 碼），打包時帶進 APK 檔名。
+ * 同版號的多次 debug build 可以靠 hash 區分是哪一版 code，不用為了區分而升版。
+ * 取不到（譬如非 git workspace）時回 "nogit"。
+ */
+fun gitShortHash(): String {
+    return try {
+        val process = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD"))
+        process.inputStream.bufferedReader().readText().trim().ifEmpty { "nogit" }
+    } catch (e: Exception) {
+        "nogit"
+    }
+}
+
 android {
     namespace = "com.taiwanlife.teamwalk"
     compileSdk = 36
@@ -191,14 +205,17 @@ android {
         buildConfig = true
     }
 
-    // 客製 APK 檔名：TeamWalk-<variant>-v<versionName>-vc<versionCode>.apk
-    // 範例：TeamWalk-uat-v3.0.42-vc81.apk
+    // 客製 APK 檔名：TeamWalk-<variant>-v<versionName>-vc<versionCode>-<gitShortHash>.apk
+    // 範例：TeamWalk-uat-v3.0.46-vc85-fce9e3f.apk
+    // 同版號的多次 debug build 可以靠最後 7 碼 hash 區分對應哪個 commit，
+    // 修 bug 期間就不用為了區分版本一直升版。
     applicationVariants.all {
         val variant = this
+        val hash = gitShortHash()
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
             output.outputFileName =
-                "TeamWalk-${variant.buildType.name}-v${variant.versionName}-vc${variant.versionCode}.apk"
+                "TeamWalk-${variant.buildType.name}-v${variant.versionName}-vc${variant.versionCode}-$hash.apk"
         }
     }
 }
