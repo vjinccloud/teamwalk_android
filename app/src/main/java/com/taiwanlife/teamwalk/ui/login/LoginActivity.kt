@@ -42,7 +42,9 @@ import java.util.Locale
 import androidx.core.net.toUri
 import androidx.core.widget.addTextChangedListener
 import androidx.savedstate.serialization.saved
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.gson.Gson
+import timber.log.Timber
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
 
@@ -241,6 +243,28 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
         loginViewModel.getSysParam()
+
+        // === diag. FID 來源比對（測試用，測完拔掉） ===
+        showFidDiag()
+        // === diag. END ===
+    }
+
+    // diag. 測試 appUuid 在重裝/換裝置情境下的行為，測完整段刪掉
+    private fun showFidDiag() {
+        val cachedFid = SecuredPreferenceStoreManager.getString(
+            Config.SP_FIREBASE_INSTALLATIONS_UNIQUE_ID, "(空)"
+        )
+        FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
+            val realFid = if (task.isSuccessful) task.result ?: "(null)" else "(失敗:${task.exception?.message})"
+            Timber.d("FID-DIAG cached=$cachedFid real=$realFid match=${cachedFid == realFid}")
+            if (isFinishing || isDestroyed) return@addOnCompleteListener
+            AlertDialog.Builder(this@LoginActivity)
+                .setTitle("FID 診斷（測試用）")
+                .setMessage("SP cached:\n$cachedFid\n\nFirebase 即時:\n$realFid\n\n相同: ${cachedFid == realFid}")
+                .setPositiveButton(R.string.confirm1, null)
+                .setCancelable(true)
+                .show()
+        }
     }
 
     override fun onResume() {
