@@ -13,7 +13,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -327,19 +326,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 view: WebView?, url: String, favicon: Bitmap?
             ) {
                 viewBinding.url.text = url
-                // 0002992 現場診斷
-                if (MyWebChromeClient.DIAG_TOAST) {
-                    val shortUrl = if (url.length > 80) url.take(80) + "..." else url
-                    Toast.makeText(this@LoginActivity, "[診斷] LoginActivity webview 收到頁面\n$shortUrl", Toast.LENGTH_LONG).show()
-                }
 
                 if (url.isNotEmpty()) {
                     val ticket = Utils.extractTicketFromUrl(url, QUERY_PARAM_TICKET)
                     if (!ticket.isNullOrEmpty()) {
-                        // 0002992 現場診斷
-                        if (MyWebChromeClient.DIAG_TOAST) {
-                            Toast.makeText(this@LoginActivity, "[診斷] 從 URL 拿到 ticket\n→ 即將打 /login API", Toast.LENGTH_LONG).show()
-                        }
 //                      this.debugToast("嘗試取得Cookie url - ${EnvironmentManager.getEnvironmentConfig().cssoUrl + "login"}")
                         val cookieString = CookieManager.getInstance()
                             .getCookie(EnvironmentManager.getEnvironmentConfig().cssoUrl + "login")
@@ -396,11 +386,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                 setLoginUI(false)
                 // 確保錯誤是針對主框架的請求 (isForMainFrame)
                 if (request?.isForMainFrame == true) {
-                    // 0002992 現場診斷
-                    if (MyWebChromeClient.DIAG_TOAST) {
-                        Toast.makeText(this@LoginActivity, "[診斷] LoginActivity webview onReceivedError\ncode=${error?.errorCode} desc=${error?.description}", Toast.LENGTH_LONG).show()
-                    }
-
                     if (isFinishing || isDestroyed) return
 
                     val description = error?.description.toString()
@@ -716,10 +701,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 //            "SYS_ID=teamwalk&appl_id=$pid&appl_pwd=" + viewBinding.loginEditTextPassword.text
 //                .toString() + "&" + "service=${getString(R.string.redirect_scheme)}://loginsuccess"
 
-        // 0002992 現場診斷
-        if (MyWebChromeClient.DIAG_TOAST) {
-            Toast.makeText(this, "[診斷] 送出登入 POST 給 CSSO\n$loginURL", Toast.LENGTH_LONG).show()
-        }
         viewBinding.webview.postUrl(loginURL, params.toByteArray())
 
         for (i in 0 until sb.length) {
