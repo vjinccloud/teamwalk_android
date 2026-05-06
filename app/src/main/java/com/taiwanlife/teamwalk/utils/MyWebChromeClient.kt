@@ -32,29 +32,48 @@ open class MyWebChromeClient(private val context: Context) : WebChromeClient() {
         }
         Timber.d("0002992 onJsAlert: url=$url | msg=$message")
 
-        // #0002992: 改用 try-catch 取代 isContextValid 預先檢查，避免 activity 處於
-        // 「正在 transition」這種介於 alive 與 destroyed 之間的狀態被誤殺、
-        // 同時保留對 BadTokenException 的防護（#0002957）
+        // #0002992 改進方案：先嘗試 AlertDialog，並透過 isShowing 確認是否真的顯示。
+        // 若 isShowing 為 false（show() 沒拋錯但 dialog 沒被 attach 到 window），
+        // 改用 Toast 把訊息呈現給使用者，同時自動 confirm 不讓 webview 的 JS 卡住。
+        var dialogShownVisible = false
         try {
-            AlertDialog.Builder(context)
+            val dialog = AlertDialog.Builder(context)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     alertCallback?.invoke()
                     result.confirm()
                 }
                 .setCancelable(false)
-                .show()
-            // 0002992 現場診斷：dialog 真的有 show 出來
+                .create()
+            dialog.show()
+            dialogShownVisible = dialog.isShowing
             if (DIAG_TOAST) {
-                Toast.makeText(context, "[診斷] AlertDialog.show() 成功", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "[診斷] AlertDialog show() 完成，isShowing=$dialogShownVisible",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         } catch (e: Exception) {
-            Timber.e(e, "onJsAlert show dialog failed, fallback to result.cancel()")
-            // 0002992 現場診斷：dialog 沒 show 出來、被 cancel
+            Timber.e(e, "onJsAlert show dialog failed")
             if (DIAG_TOAST) {
-                Toast.makeText(context, "[診斷] AlertDialog 失敗\n${e.javaClass.simpleName}: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    "[診斷] AlertDialog 失敗\n${e.javaClass.simpleName}: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
-            result.cancel()
+        }
+
+        // 若 AlertDialog 沒成功顯示，用 Toast 呈現訊息 + 自動 confirm 讓 webview 流程繼續
+        if (!dialogShownVisible) {
+            Toast.makeText(
+                context,
+                "📢 ${message ?: ""}",
+                Toast.LENGTH_LONG
+            ).show()
+            alertCallback?.invoke()
+            result.confirm()
         }
         return true
     }
