@@ -44,7 +44,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.savedstate.serialization.saved
 import com.google.gson.Gson
 import com.taiwanlife.teamwalk.utils.AppUuidManager
-import timber.log.Timber
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
 
@@ -240,22 +239,6 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
         }
 
         loginViewModel.getSysParam()
-
-        // === diag. FID 來源比對（測試用，測完拔掉） ===
-        showFidDiag()
-        // === diag. END ===
-    }
-
-    // diag. 顯示 appUuid 給驗收用（重裝後值應改變），測完整段刪掉
-    private fun showFidDiag() {
-        val appUuid = AppUuidManager.getOrCreate()
-        Timber.d("APPUUID-DIAG $appUuid")
-        AlertDialog.Builder(this@LoginActivity)
-            .setTitle("appUuid（測試用）")
-            .setMessage(appUuid)
-            .setPositiveButton(R.string.confirm1, null)
-            .setCancelable(true)
-            .show()
     }
 
     override fun onResume() {
