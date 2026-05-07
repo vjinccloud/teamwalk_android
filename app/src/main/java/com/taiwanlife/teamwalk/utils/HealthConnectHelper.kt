@@ -13,6 +13,7 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.taiwanlife.teamwalk.Config
 import com.taiwanlife.teamwalk.R
+import timber.log.Timber
 
 class HealthConnectHelper(private val context: Context, activity: AppCompatActivity) {
 //    private val permissionManager = PermissionManager(activity)
@@ -81,8 +82,16 @@ class HealthConnectHelper(private val context: Context, activity: AppCompatActiv
     }
 
     suspend fun checkPermissions(): Boolean {
-        val granted = healthConnectClient.permissionController.getGrantedPermissions()
-        return granted.containsAll(healthConnectPermissions)
+        // 包 try-catch 防 HC 服務 binding 失敗（ServiceConnection RemoteException）。
+        // 部分裝置 HC 雖回報 SDK_AVAILABLE 但實際 bind service 仍會 RemoteException，
+        // 失敗時當作未授權，由 caller 進到請求權限流程。
+        return try {
+            val granted = healthConnectClient.permissionController.getGrantedPermissions()
+            granted.containsAll(healthConnectPermissions)
+        } catch (e: Exception) {
+            Timber.e(e, "checkPermissions failed (HC service binding?)")
+            false
+        }
     }
 
     fun requestPermissionFunction(permissionGratedCallback: () -> Unit) {
