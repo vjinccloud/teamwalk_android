@@ -31,6 +31,10 @@
     @retrofit2.http.* <methods>;
 }
 
+# 整個保留我們的 Retrofit Service 介面，避免 Koin reified get<T> 在 R8 後
+# 出現 ClassCastException（AppModuleKt.appModule lambda$0$10 那條）。
+-keep interface com.taiwanlife.teamwalk.remote.service.** { *; }
+
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
