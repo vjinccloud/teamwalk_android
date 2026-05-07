@@ -13,7 +13,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.appcompat.app.AlertDialog
+import android.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.andrognito.patternlockview.PatternLockView
@@ -44,6 +44,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.savedstate.serialization.saved
 import com.google.gson.Gson
 import com.taiwanlife.teamwalk.utils.AppUuidManager
+import timber.log.Timber
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.inflate(it) }) {
 
@@ -389,26 +390,30 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
                     val description = error?.description.toString()
                     val errorCode = error?.errorCode ?: -1
 
-                    AlertDialog.Builder(this@LoginActivity)
-                        .setTitle(
-                            String.format(
-                                Locale.getDefault(),
-                                getString(R.string.webview_error_title),
-                                errorCode.toString()
+                    // 用系統版 AlertDialog + try-catch，避免 1dp×1dp webview 環境
+                    // 跟 activity transition 競態時 BadTokenException 閃退
+                    try {
+                        AlertDialog.Builder(this@LoginActivity)
+                            .setTitle(
+                                String.format(
+                                    Locale.getDefault(),
+                                    getString(R.string.webview_error_title),
+                                    errorCode.toString()
+                                )
                             )
-                        )
-                        .setMessage(
-                            String.format(
-                                Locale.getDefault(),
-                                getString(R.string.webview_error_message),
-                                description
+                            .setMessage(
+                                String.format(
+                                    Locale.getDefault(),
+                                    getString(R.string.webview_error_message),
+                                    description
+                                )
                             )
-                        )
-                        .setPositiveButton(R.string.confirm1) { dialog, _ ->
-
-                        }
-                        .setCancelable(true)
-                        .show()
+                            .setPositiveButton(R.string.confirm1) { _, _ -> }
+                            .setCancelable(true)
+                            .show()
+                    } catch (e: Exception) {
+                        Timber.e(e, "onReceivedError show dialog failed")
+                    }
                 }
             }
 
