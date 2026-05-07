@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.base
 
+import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,6 +31,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInflater) -> VB) :
     AppCompatActivity() {
@@ -80,22 +82,28 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         enableEdgeToEdge()
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        activityBaseBinding = ActivityBaseBinding.inflate(layoutInflater)
+        // 包 try-catch 防 Resources$NotFoundException「failed to redirect ResourcesImpl」
+        // 該錯誤通常發生於 OEM ROM 在 App 執行中升級 WebView 元件時，inflate 階段
+        // 拿不到 resource → 整個 Activity 起不來。重啟 App 通常即可恢復。
+        try {
+            activityBaseBinding = ActivityBaseBinding.inflate(layoutInflater)
 
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+            )
 
-        activityBaseBinding.root.filterTouchesWhenObscured = true
+            activityBaseBinding.root.filterTouchesWhenObscured = true
 
-//        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-//        startActivity(intent)
-        // 舊版也無法跳出警示
-//        DeviceUtil.setFlagSecure(this)
-        setContentView(activityBaseBinding.root)
-        viewBinding = inflateVB.invoke(layoutInflater)
-        activityBaseBinding.baseContainer.addView(viewBinding.root)
+            setContentView(activityBaseBinding.root)
+            viewBinding = inflateVB.invoke(layoutInflater)
+            activityBaseBinding.baseContainer.addView(viewBinding.root)
+        } catch (e: Resources.NotFoundException) {
+            Timber.e(e, "Inflate failed (Resources/WebView), finishing")
+            Toast.makeText(this, getString(R.string.general_error), Toast.LENGTH_LONG).show()
+            finishAffinity()
+            return
+        }
 
 //        window.statusBarColor = ContextCompat.getColor(this, R.color.colorError)
         window.navigationBarColor = Color.BLACK // 不透明，可自行換色
