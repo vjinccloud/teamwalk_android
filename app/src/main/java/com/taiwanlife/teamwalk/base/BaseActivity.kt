@@ -79,13 +79,24 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         }
     }
 
+    /**
+     * 雙保險鎖死 fontScale = 1.0f：
+     *   1. attachBaseContext 用 createConfigurationContext 從 base context 直接修改
+     *      → 等同 App 的 base 一開始就拿到「fontScale = 1.0f」的 context
+     *   2. applyOverrideConfiguration 攔截任何後續系統 / AppCompat 套進來的 override
+     *      （night mode、locale、orientation 等情境會觸發），確保 fontScale 永遠是 1.0f
+     *
+     * WebView 內網頁文字由 webSettings.textZoom = 100 處理（#0003003），不受這個影響。
+     */
     override fun attachBaseContext(newBase: Context) {
-        // 強制鎖 fontScale = 1.0f，忽略系統「字型大小」設定，避免原生 UI 跑版。
-        // WebView 內網頁文字已由 webSettings.textZoom = 100 處理（#0003003）。
-        val override = Configuration(newBase.resources.configuration)
-        override.fontScale = 1.0f
-        applyOverrideConfiguration(override)
-        super.attachBaseContext(newBase)
+        val config = Configuration(newBase.resources.configuration)
+        config.fontScale = 1.0f
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
+    override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
+        overrideConfiguration?.fontScale = 1.0f
+        super.applyOverrideConfiguration(overrideConfiguration)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
