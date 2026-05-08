@@ -103,6 +103,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
         // 0003016: WebView 載入完成監測 timeout 時間（10 秒）
         private const val WEBVIEW_LOAD_TIMEOUT_MS = 10_000L
+
+        // 收到 webviewFinished JS bridge 後，再撐 N 毫秒才關 native loading，
+        // 讓 SPA「阿龍轉場」動畫播完，避免 user 看到 native loading 一閃即逝。
+        // 如果阿龍轉場長度有變，調這個值就好。
+        private const val WEBVIEW_LOADING_LINGER_MS = 1_500L
     }
 
     private lateinit var myNotificationManager: MyNotificationManager
@@ -1021,7 +1026,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun webviewFinished() {
         Timber.d("0003016: 收到 webviewFinished，取消 timeout watcher")
         cancelWebViewLoadingWatcher()
-        onLoading(false)
+        // 撐到阿龍轉場結束才關 loading，不然會一閃即逝
+        lifecycleScope.launch {
+            delay(WEBVIEW_LOADING_LINGER_MS)
+            if (isFinishing || isDestroyed) return@launch
+            onLoading(false)
+        }
     }
 
     override fun saveDataToFile(data: String, fileName: String) {
