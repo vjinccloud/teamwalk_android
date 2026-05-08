@@ -55,6 +55,10 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
     override val statusBarColor: Int = R.color.white
 
+    // 登入流程：API 通常很快，立刻 show loading 會閃一下就消失（user 來不及看到）。
+    // 改延遲 show，期間若 API 已回 → 根本不顯示 → 把 loading 留給後面 MainActivity 接力顯示
+    override val showLoadingWithDelay: Boolean = true
+
     private val loginViewModel: LoginViewModel by viewModel()
 
     private var position = 0

@@ -31,6 +31,7 @@ import com.taiwanlife.teamwalk.databinding.ActivityBaseBinding
 import com.taiwanlife.teamwalk.remote.ApiException
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -81,33 +82,105 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      * Dialog 是另一個 Window，比 Activity 自己的 Window 高一層，SurfaceView 蓋不到。
      */
     private var loadingDialog: Dialog? = null
+    private var loadingShowJob: Job? = null
+    private var loadingDismissJob: Job? = null
+
+    /**
+     * 子類覆寫成 true 時，onLoading(true) 不會立刻 show，而是延遲 [LOADING_SHOW_DELAY_MS] 毫秒。
+     * 期間若 onLoading(false) 進來會 cancel 掉，loading 根本不會顯示（避免快流程閃爍）。
+     *
+     * 預設 false（立刻 show）— 適合「已登入直接開」這種主畫面 onCreate 就要立刻顯示的場景。
+     * LoginActivity 設 true — 避免登入 API 很快回時 loading 閃一下。
+     */
+    protected open val showLoadingWithDelay: Boolean = false
+
+    companion object {
+        private const val LOADING_SHOW_DELAY_MS = 500L
+
+        // onLoading(false) 觸發後延遲多久才真的關 loading dialog。
+        // 期間如果有別的 onLoading(true) 進來會 cancel 掉這次的關閉，loading 持續顯示。
+        // 用意是補上 SPA 跳更新對話框 / activity 切換等 gap，避免閃爍。
+        private const val LOADING_DISMISS_DELAY_MS = 2_000L
+    }
 
     private fun getOrCreateLoadingDialog(): Dialog {
         loadingDialog?.let { return it }
-        // Theme_Translucent_NoTitleBar：透明全螢幕主題，不用手動設 window flag
-        // 預設 Dialog 是 floating wrap_content 小視窗，跟 setLayout 衝突會撐不開
-        return Dialog(this, android.R.style.Theme_Translucent_NoTitleBar).apply {
-            setContentView(R.layout.dialog_loading)
-            setCancelable(false)
-        }.also { loadingDialog = it }
+        Timber.d("LOADING-DIAG getOrCreate: creating new dialog")
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_loading)
+        dialog.setCancelable(false)
+        dialog.window?.apply {
+            // 透明背景（ColorDrawable 比 setBackgroundDrawableResource 穩定）
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            // 撐開全螢幕
+            setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT
+            )
+            // 不暗化背景
+            clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            // 點擊穿透：user 可以正常點到 WebView 內 SPA 的對話框 / 按鈕
+            // dialog 自己也不吃點擊，但 setCancelable=false 本來就不能點關
+            addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        }
+        loadingDialog = dialog
+        return dialog
     }
 
     open fun onLoading(loading: Boolean) {
+        Timber.d("LOADING-DIAG onLoading($loading) finishing=$isFinishing destroyed=$isDestroyed showLoadingWithDelay=$showLoadingWithDelay")
         if (isFinishing || isDestroyed) return
         val dialog = getOrCreateLoadingDialog()
         try {
             if (loading) {
-                if (!dialog.isShowing) dialog.show()
+                // 取消任何 pending dismiss（連續 loading 持續顯示，不閃爍）
+                loadingDismissJob?.cancel()
+                loadingDismissJob = null
+                if (dialog.isShowing) return
+
+                if (showLoadingWithDelay) {
+                    // 延遲模式：N 毫秒後才真的 show，期間 onLoading(false) 會 cancel
+                    if (loadingShowJob?.isActive == true) return  // 已排程，不要 reset
+                    loadingShowJob = lifecycleScope.launch {
+                        delay(LOADING_SHOW_DELAY_MS)
+                        if (isFinishing || isDestroyed) return@launch
+                        if (!dialog.isShowing) {
+                            dialog.show()
+                            Timber.d("LOADING-DIAG dialog.show() called (delayed)")
+                        }
+                    }
+                } else {
+                    // 立刻 show（預設）
+                    dialog.show()
+                    Timber.d("LOADING-DIAG dialog.show() called (immediate)")
+                }
             } else {
-                if (dialog.isShowing) dialog.dismiss()
+                // 取消還沒生效的 show（延遲模式才用得到）
+                loadingShowJob?.cancel()
+                loadingShowJob = null
+                // 延遲 dismiss：期間若再有 onLoading(true) 進來會 cancel 掉
+                loadingDismissJob?.cancel()
+                loadingDismissJob = lifecycleScope.launch {
+                    delay(LOADING_DISMISS_DELAY_MS)
+                    if (isFinishing || isDestroyed) return@launch
+                    if (dialog.isShowing) {
+                        dialog.dismiss()
+                        Timber.d("LOADING-DIAG dialog.dismiss() called (after dismiss delay)")
+                    }
+                }
             }
         } catch (e: Exception) {
-            Timber.e(e, "loading dialog toggle failed (loading=$loading)")
+            Timber.e(e, "LOADING-DIAG toggle failed (loading=$loading)")
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        loadingShowJob?.cancel()
+        loadingShowJob = null
+        loadingDismissJob?.cancel()
+        loadingDismissJob = null
         try {
             loadingDialog?.takeIf { it.isShowing }?.dismiss()
         } catch (e: Exception) {
