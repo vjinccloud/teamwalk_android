@@ -756,6 +756,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
         Timber.d("0003016: 啟動 WebView 載入監測 (10s)")
         cancelWebViewLoadingWatcher()
         webViewRebuildAttempted = false
+        // SPA 載入完成才關 loading（webviewFinished JS bridge 觸發），避免「阿龍轉場」期間 user 看不到提示
+        onLoading(true)
         webViewLoadTimeoutJob = lifecycleScope.launch {
             delay(WEBVIEW_LOAD_TIMEOUT_MS)
             Timber.w("0003016: 第一次 10s 未收到 webviewFinished → 重建 WebView")
@@ -784,6 +786,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
 
     private fun showWebViewLoadFailedDialog() {
         if (isFinishing || isDestroyed) return
+
+        // 跳錯誤 dialog 前先把 loading 關掉，否則兩個 dialog 疊在一起
+        onLoading(false)
 
         AlertDialog.Builder(this)
             .setMessage(R.string.webview_load_timeout_message)
@@ -1016,6 +1021,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>({ ActivityMainBinding.inf
     override fun webviewFinished() {
         Timber.d("0003016: 收到 webviewFinished，取消 timeout watcher")
         cancelWebViewLoadingWatcher()
+        onLoading(false)
     }
 
     override fun saveDataToFile(data: String, fileName: String) {
