@@ -1,5 +1,7 @@
 package com.taiwanlife.teamwalk.base
 
+import android.content.Context
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
@@ -75,6 +77,15 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         } else {
             activityBaseBinding.loadingContainer.visibility = View.GONE
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        // 強制鎖 fontScale = 1.0f，忽略系統「字型大小」設定，避免原生 UI 跑版。
+        // WebView 內網頁文字已由 webSettings.textZoom = 100 處理（#0003003）。
+        val override = Configuration(newBase.resources.configuration)
+        override.fontScale = 1.0f
+        applyOverrideConfiguration(override)
+        super.attachBaseContext(newBase)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
