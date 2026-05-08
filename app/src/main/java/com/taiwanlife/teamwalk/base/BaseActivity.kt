@@ -84,18 +84,11 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
 
     private fun getOrCreateLoadingDialog(): Dialog {
         loadingDialog?.let { return it }
-        return Dialog(this).apply {
-            val view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null)
-            setContentView(view)
+        // Theme_Translucent_NoTitleBar：透明全螢幕主題，不用手動設 window flag
+        // 預設 Dialog 是 floating wrap_content 小視窗，跟 setLayout 衝突會撐不開
+        return Dialog(this, android.R.style.Theme_Translucent_NoTitleBar).apply {
+            setContentView(R.layout.dialog_loading)
             setCancelable(false)
-            window?.apply {
-                setBackgroundDrawableResource(android.R.color.transparent)
-                clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-                setLayout(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.MATCH_PARENT
-                )
-            }
         }.also { loadingDialog = it }
     }
 
