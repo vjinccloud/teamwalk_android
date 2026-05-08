@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -80,22 +81,30 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
     }
 
     /**
-     * 雙保險鎖死 fontScale = 1.0f：
-     *   1. attachBaseContext 用 createConfigurationContext 從 base context 直接修改
-     *      → 等同 App 的 base 一開始就拿到「fontScale = 1.0f」的 context
+     * 雙保險鎖死系統「字型大小」+「顯示大小」設定，避免原生 UI 跑版：
+     *   - fontScale = 1.0f                              → 鎖「字型大小」
+     *   - densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE  → 鎖「顯示大小」
+     *     (DENSITY_DEVICE_STABLE 是裝置出廠原始密度，不被 user 設定影響)
+     *
+     * 雙保險：
+     *   1. attachBaseContext 用 createConfigurationContext 從 base context 直接給乾淨值
      *   2. applyOverrideConfiguration 攔截任何後續系統 / AppCompat 套進來的 override
-     *      （night mode、locale、orientation 等情境會觸發），確保 fontScale 永遠是 1.0f
+     *      （night mode、locale、orientation 等情境會觸發）
      *
      * WebView 內網頁文字由 webSettings.textZoom = 100 處理（#0003003），不受這個影響。
      */
     override fun attachBaseContext(newBase: Context) {
         val config = Configuration(newBase.resources.configuration)
         config.fontScale = 1.0f
+        config.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
     override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
-        overrideConfiguration?.fontScale = 1.0f
+        overrideConfiguration?.let {
+            it.fontScale = 1.0f
+            it.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
+        }
         super.applyOverrideConfiguration(overrideConfiguration)
     }
 
