@@ -1,5 +1,6 @@
 package com.taiwanlife.teamwalk.base
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -72,12 +73,54 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         }
     }
 
+    /**
+     * Loading 用獨立 Window 的 Dialog 顯示。
+     *
+     * 為什麼不用 BaseActivity 內 loading_container：MainActivity 的全螢幕 WebView 是
+     * SurfaceView，走 GPU 直繪 surface 通道，會把同層級的 native View 蓋掉。
+     * Dialog 是另一個 Window，比 Activity 自己的 Window 高一層，SurfaceView 蓋不到。
+     */
+    private var loadingDialog: Dialog? = null
+
+    private fun getOrCreateLoadingDialog(): Dialog {
+        loadingDialog?.let { return it }
+        return Dialog(this).apply {
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null)
+            setContentView(view)
+            setCancelable(false)
+            window?.apply {
+                setBackgroundDrawableResource(android.R.color.transparent)
+                clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT
+                )
+            }
+        }.also { loadingDialog = it }
+    }
+
     open fun onLoading(loading: Boolean) {
-        if (loading) {
-            activityBaseBinding.loadingContainer.visibility = View.VISIBLE
-        } else {
-            activityBaseBinding.loadingContainer.visibility = View.GONE
+        if (isFinishing || isDestroyed) return
+        val dialog = getOrCreateLoadingDialog()
+        try {
+            if (loading) {
+                if (!dialog.isShowing) dialog.show()
+            } else {
+                if (dialog.isShowing) dialog.dismiss()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "loading dialog toggle failed (loading=$loading)")
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            loadingDialog?.takeIf { it.isShowing }?.dismiss()
+        } catch (e: Exception) {
+            Timber.e(e, "onDestroy dismiss loading failed")
+        }
+        loadingDialog = null
     }
 
     /**
