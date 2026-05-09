@@ -423,9 +423,13 @@ object Utils {
         WebStorage.getInstance().deleteAllData()
 
         try {
+            webView.stopLoading()
             webView.clearCache(true)
             webView.clearHistory()
             webView.clearFormData()
+            // 把當前頁面的 DOM / JS heap 也洗掉，避免下次重用 webview 時殘留
+            // 「系統已逾時」/ 登出頁的視覺狀態
+            webView.loadUrl("about:blank")
         } catch (e: Exception) {
             e.printStackTrace()
         }
