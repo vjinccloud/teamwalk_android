@@ -100,7 +100,7 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         // onLoading(false) 觸發後延遲多久才真的關 loading dialog。
         // 期間如果有別的 onLoading(true) 進來會 cancel 掉這次的關閉，loading 持續顯示。
         // 用意是補上 SPA 跳更新對話框 / activity 切換等 gap，避免閃爍。
-        private const val LOADING_DISMISS_DELAY_MS = 2_000L
+        private const val LOADING_DISMISS_DELAY_MS = 250L
     }
 
     private fun getOrCreateLoadingDialog(): Dialog {
