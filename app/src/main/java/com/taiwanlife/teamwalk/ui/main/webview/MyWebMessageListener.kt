@@ -86,14 +86,16 @@ class MyWebMessageListener(
                 sharedEventViewModel.eventFlow.collect { (eventName, result) ->
                     Timber.d("eventName = $eventName, result = $result")
                     if (eventName.equals(EVENT_EXECUTE_JAVASCRIPT_CALLBACK) && currentWaitingCallbackName.isNotEmpty()) {
+                        // 印出要回給 webview 的內容（callback 名稱 + value）
+                        val callbackName = currentWaitingCallbackName
+                        Timber.d("JS-BRIDGE-RETURN → callback=$callbackName, value=$result")
                         webView.post {
-                            var test = ""
-                            webView.evaluateJavascript(
-                                "$currentWaitingCallbackName$test(${result})",
-                                null
-                            )
+                            val js = "$callbackName(${result})"
+                            webView.evaluateJavascript(js) { jsResult ->
+                                Timber.d("JS-BRIDGE-RETURN done callback=$callbackName, jsResult=$jsResult")
+                            }
 
-                            context.debugToast("透過${currentWaitingCallbackName}回傳結果 - $result")
+                            context.debugToast("透過${callbackName}回傳結果 - $result")
                             currentWaitingCallbackName = ""
                         }
                     }
@@ -134,6 +136,9 @@ class MyWebMessageListener(
 
     @SuppressLint("RequiresFeature")
     private fun handleCommand(command: WebCommand, replyProxy: JavaScriptReplyProxy) {
+        // 全部 bridge call 都印出來方便排查 SPA 到底有沒有呼叫到 native
+        Timber.d("JS-BRIDGE-CALL action=${command.action}, status=${command.status}, url=${command.url}")
+
         // 0003016: WebviewFinished 大小寫不敏感比對（Web 規格大寫 W、Android 命名慣例小寫 w）
         if (command.action.equals("webviewFinished", ignoreCase = true)) {
             asyncCallbacks.webviewFinished()
