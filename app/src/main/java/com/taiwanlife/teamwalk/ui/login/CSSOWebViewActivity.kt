@@ -30,6 +30,7 @@ import com.taiwanlife.teamwalk.R
 import com.taiwanlife.teamwalk.base.BaseActivity
 import com.taiwanlife.teamwalk.databinding.ActivityCssoWebviewBinding
 import com.taiwanlife.teamwalk.java_utils.SensitiveDataUtil
+import com.taiwanlife.teamwalk.ui.app_links.AppLinksEntryActivity
 import com.taiwanlife.teamwalk.ui.common.CommonDialog
 import com.taiwanlife.teamwalk.utils.AlertDialogManager
 import com.taiwanlife.teamwalk.utils.AlertDialogManager.getAlertDialog
@@ -333,27 +334,14 @@ class CSSOWebViewActivity :
         private fun urlLoading(view: WebView, uri: Uri): Boolean {
             if (Utils.isAppLink(uri)) {
                 try {
-                    val pm = context.packageManager
-                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    val intent = Intent(context, AppLinksEntryActivity::class.java).apply {
+                        data = uri
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                     }
-
-                    val activities = pm.queryIntentActivities(intent, 0)
-                    if (activities.isEmpty()) {
-                        // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
-                        if (context is Activity) {
-                            context.finish()
-                        }
-                    } else {
-                        val chooser = Intent.createChooser(intent, "選擇開啟方式")
-                        context.startActivity(chooser)
-                        if (context is Activity) {
-                            context.finish()
-                        }
-                    }
-
+                    context.startActivity(intent)
                 } catch (e: Exception) {
-                    // 如果沒有能處理的APP 關閉註冊/忘記密碼回到登入頁
+                    Timber.e(e, "導向 AppLinksEntryActivity 失敗")
+                } finally {
                     if (context is Activity) {
                         context.finish()
                     }
