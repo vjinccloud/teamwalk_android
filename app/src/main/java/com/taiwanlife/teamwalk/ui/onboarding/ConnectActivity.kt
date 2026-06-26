@@ -33,6 +33,8 @@ import com.taiwanlife.teamwalk.utils.enableToString
 import com.taiwanlife.teamwalk.utils.getGson
 import com.taiwanlife.teamwalk.utils.quoteJS
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -44,6 +46,13 @@ class ConnectActivity :
     private val healthConnectHelper = HealthConnectHelper(this, this)
 
     private lateinit var bindingManager: BindingManager
+
+    private var isBinding = false
+    private var bindingUnlockJob: Job? = null
+
+    companion object {
+        private const val BINDING_LOCK_TIMEOUT_MS = 1500L
+    }
 
     override fun onLastCreateBaseActivity(
         view: View,
@@ -78,29 +87,32 @@ class ConnectActivity :
         }
         setDialog()
         viewBinding.garminMask.setOnClickListener {
+            if (isBinding) return@setOnClickListener
             if (viewBinding.onboardingCheckboxGarmin.isChecked) {
                 // 有綁定 解除綁定流程
                 bindingManager.removeDevice(GARMIN)
             } else {
                 // 沒有綁定 開始綁定
-                bindingManager.bindNewDevice(GARMIN)
+                startBinding(GARMIN)
             }
         }
         viewBinding.fitbitMask.setOnClickListener {
+            if (isBinding) return@setOnClickListener
             if (viewBinding.onboardingCheckboxFitbit.isChecked) {
                 // 有綁定 解除綁定流程
                 bindingManager.removeDevice(FITBIT)
             } else {
                 // 沒有綁定 開始綁定
-                bindingManager.bindNewDevice(FITBIT)
+                startBinding(FITBIT)
             }
         }
 
         viewBinding.healthConnectMask.setOnClickListener {
+            if (isBinding) return@setOnClickListener
             if (viewBinding.checkboxHealthConnect.isChecked) {
                 bindingManager.removeDevice(HEALTH_CONNECT)
             } else {
-                bindingManager.bindNewDevice(HEALTH_CONNECT)
+                startBinding(HEALTH_CONNECT)
             }
         }
         setCheckBoxAndNext()
@@ -117,11 +129,51 @@ class ConnectActivity :
     }
 
 
+    override fun onPause() {
+        super.onPause()
+        bindingUnlockJob?.cancel()
+        bindingUnlockJob = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isBinding) {
+            setBindingLock(false)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 
+        bindingUnlockJob?.cancel()
+        bindingUnlockJob = null
+
         SecuredPreferenceStoreManager.editAndApply {
             it.putBoolean(Config.SP_BINDING_FROM_ONBOARD, false)
+        }
+    }
+
+    private fun startBinding(deviceType: DeviceType) {
+        if (bindingManager.getCurrentDeviceType() == NONE) {
+            setBindingLock(true)
+        }
+        bindingManager.bindNewDevice(deviceType)
+    }
+
+    private fun setBindingLock(locked: Boolean) {
+        isBinding = locked
+        viewBinding.garminMask.isEnabled = !locked
+        viewBinding.fitbitMask.isEnabled = !locked
+        viewBinding.healthConnectMask.isEnabled = !locked
+        onLoading(locked)
+
+        bindingUnlockJob?.cancel()
+        bindingUnlockJob = null
+        if (locked) {
+            bindingUnlockJob = lifecycleScope.launch {
+                delay(BINDING_LOCK_TIMEOUT_MS)
+                if (isBinding) setBindingLock(false)
+            }
         }
     }
 
@@ -139,6 +191,8 @@ class ConnectActivity :
     }
 
     private fun bindNewDeviceSuccess(deviceType: DeviceType, data: String?) {
+        // 綁定成功 → 解除防連擊鎖（onResume 通常已先解，這裡再保險一次）
+        setBindingLock(false)
 
         when (deviceType) {
             HEALTH_CONNECT -> {
