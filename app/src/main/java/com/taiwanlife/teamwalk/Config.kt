@@ -26,6 +26,10 @@ object Config {
     const val GOOGLE_HEALTH_CONNECT_PACKAGE_NAME = "com.google.android.apps.healthdata"
 
     const val TAIWAN_LIFE_COM_HOST_SUFFIX = "taiwanlife.com"
+
+    // Garmin OAuth 授權頁網域，只在 Garmin 綁定的 WebView 放行，不併入 ALLOW_WEBVIEW_DOMAIN
+    const val GARMIN_COM_HOST_SUFFIX = "garmin.com"
+
     val ALLOW_WEBVIEW_DOMAIN = setOf(
         MyApplication.context.getString(R.string.web_url).toUri().host,
         MyApplication.context.getString(R.string.api_url).toUri().host,

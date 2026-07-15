@@ -19,6 +19,7 @@ import com.taiwanlife.teamwalk.ui.common.GarminViewModel
 import com.taiwanlife.teamwalk.ui.common.SharedEventViewModel
 import com.taiwanlife.teamwalk.ui.common.model.FitbitData
 import com.taiwanlife.teamwalk.ui.common.model.GarminData
+import com.taiwanlife.teamwalk.ui.login.CSSOWebViewActivity
 import com.taiwanlife.teamwalk.utils.DeviceType.FITBIT
 import com.taiwanlife.teamwalk.utils.DeviceType.GARMIN
 import com.taiwanlife.teamwalk.utils.DeviceType.HEALTH_CONNECT
@@ -217,20 +218,9 @@ class BindingManager(
             challenge
         )
 
-        try {
-            baseActivity.getChromeIntent(url)?.let {
-                baseActivity.startActivity(it)
-            }
-        } catch (e: ActivityNotFoundException) {
-            // 如果連 getChromeIntent 找出來的 Intent 都不行
-            try {
-                val fallbackIntent = Intent(Intent.ACTION_VIEW, url.toUri())
-                baseActivity.startActivity(fallbackIntent)
-            } catch (e: Exception) {
-                // 失敗 手機內可能沒有任何瀏覽器
-                Toast.makeText(baseActivity, baseActivity.getString(R.string.no_browser), Toast.LENGTH_SHORT).show()
-            }
-        }
+        // 改走 App 內 WebView：callback 直接由 shouldOverrideUrlLoading 攔進 AppLinksEntryActivity，
+        // 不再依賴系統 App Link（assetlinks.json）驗證
+        baseActivity.startActivity(CSSOWebViewActivity.garmin(baseActivity, url))
     }
 
     private fun startFitbitProcess() {
