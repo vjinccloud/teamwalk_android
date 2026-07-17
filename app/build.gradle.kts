@@ -246,6 +246,7 @@ dependencies {
     implementation(libs.androidx.webkit)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)

@@ -113,6 +113,13 @@ class ApiRepository(
     }
 
     /**
+     * WAF 停機檢查（0003279）
+     */
+    suspend fun checkWaf(): Response<okhttp3.ResponseBody> {
+        return apiService.checkWaf()
+    }
+
+    /**
      * 取得使用者資訊
      */
     suspend fun getUserInfo(): Response<ResponseWrapper<UserInfoResponse>> {

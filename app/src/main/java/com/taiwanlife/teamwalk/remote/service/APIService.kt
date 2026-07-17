@@ -35,6 +35,7 @@ import com.taiwanlife.teamwalk.remote.response.api.ProductExchangeInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.ResponseWrapper
 import com.taiwanlife.teamwalk.remote.response.api.SysParamInfoResponse
 import com.taiwanlife.teamwalk.remote.response.api.UserInfoResponse
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -63,6 +64,14 @@ interface APIService {
      */
     @GET("sys-param")
     suspend fun getSysParam(): Response<ResponseWrapper<SysParamInfoResponse>>
+
+    /**
+     * WAF 停機檢查（0003279）
+     * 回 JSON = 正常；回非 JSON(HTML) = WAF 停機公告，需渲染於畫面
+     * 用 raw ResponseBody 才拿得到原始 body 與 Content-Type
+     */
+    @GET("checkWaf")
+    suspend fun checkWaf(): Response<ResponseBody>
 
     /**
      * 取得使用者資訊

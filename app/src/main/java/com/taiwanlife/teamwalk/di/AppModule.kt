@@ -106,6 +106,8 @@ val appModule = module {
         get<Retrofit>(named("fitbit")).create(FitBitService::class.java)
     }
 
+    single { com.taiwanlife.teamwalk.utils.WafManager(get()) }
+
     single { ApiRepository(get()) }
     single { CssoRepository(get()) }
     single { GarminRepository(get()) }
