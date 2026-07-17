@@ -46,11 +46,9 @@ class CSSOWebViewActivity :
 
     companion object {
         private const val KEY_PURPOSE: String = "KEY_PURPOSE"
-        private const val KEY_URL: String = "KEY_URL"
         private const val PURPOSE_REGISTER: String = "REGISTER"
         private const val PURPOSE_FORGET_PASSWORD: String = "FORGET_PASSWORD"
         private const val PURPOSE_NOTIFY_CHANGE_PASSWORD: String = "NOTIFY_CHANGE_PASSWORD"
-        private const val PURPOSE_GARMIN: String = "GARMIN"
 
         // #0002992 loading 防呆：8 秒沒結束強制關掉
         private const val LOADING_TIMEOUT_MS = 8_000L
@@ -74,15 +72,6 @@ class CSSOWebViewActivity :
         fun notifyChangePassword(context: Context): Intent {
             val intent = Intent(context, CSSOWebViewActivity::class.java)
             intent.putExtra(KEY_PURPOSE, PURPOSE_NOTIFY_CHANGE_PASSWORD)
-            return intent
-        }
-
-        // 進來是綁定 Garmin：改在 App 內 WebView 完成授權，
-        // callback 由 shouldOverrideUrlLoading 直接攔進 AppLinksEntryActivity，不依賴系統 App Link 驗證
-        fun garmin(context: Context, url: String): Intent {
-            val intent = Intent(context, CSSOWebViewActivity::class.java)
-            intent.putExtra(KEY_PURPOSE, PURPOSE_GARMIN)
-            intent.putExtra(KEY_URL, url)
             return intent
         }
     }
@@ -113,21 +102,11 @@ class CSSOWebViewActivity :
         savedInstanceState: Bundle?
     ) {
 
-        val purpose = intent.getStringExtra(KEY_PURPOSE)
-        if (purpose.isNullOrEmpty()) {
-            finish()
-            return
-        }
-        val isGarmin = purpose == PURPOSE_GARMIN
-
         webView = viewBinding.webview
 
         val webSettings = webView.settings
         // 0003005: CSSO 透過 user-agent 判斷是否為 teamwalk app
-        // Garmin 授權頁不加，避免被判定為非標準瀏覽器
-        if (!isGarmin) {
-            webSettings.userAgentString = webSettings.userAgentString + "/env=taiwanlife_teamwalk_app"
-        }
+        webSettings.userAgentString = webSettings.userAgentString + "/env=taiwanlife_teamwalk_app"
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
 
@@ -147,7 +126,7 @@ class CSSOWebViewActivity :
         webSettings.displayZoomControls = false
 
 
-        webView.webViewClient = CSSOWebViewClient(this, isGarmin, object : WebviewLoadingCallback{
+        webView.webViewClient = CSSOWebViewClient(this, object : WebviewLoadingCallback{
             override fun onWebviewPageStarted() {
                 onLoading(true)
                 // #0002992 timeout 保險：8 秒沒收到結束信號，自動關 loading
@@ -210,14 +189,12 @@ class CSSOWebViewActivity :
         }
 
         var cssoUrl = ""
+        val purpose = intent.getStringExtra(KEY_PURPOSE)
+        if (purpose.isNullOrEmpty()) {
+            finish()
+            return
+        }
         when (purpose) {
-            PURPOSE_GARMIN -> {
-                cssoUrl = intent.getStringExtra(KEY_URL).orEmpty()
-                if (cssoUrl.isEmpty()) {
-                    finish()
-                    return
-                }
-            }
             PURPOSE_REGISTER -> {
                 cssoUrl = getEnvironmentConfig().cssoSignUpUrl
             }
@@ -264,10 +241,7 @@ class CSSOWebViewActivity :
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (!backIfValid()) {
-                    // Garmin 綁定時使用者已登入，取消授權不可清除登入資料與既有綁定
-                    if (!isGarmin) {
-                        Utils.clearLoginData(this@CSSOWebViewActivity, webView)
-                    }
+                    Utils.clearLoginData(this@CSSOWebViewActivity, webView)
 
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
@@ -337,11 +311,7 @@ class CSSOWebViewActivity :
         fun onWebviewPageFinished()
     }
 
-    private class CSSOWebViewClient(
-        private val context: Context,
-        private val isGarmin: Boolean,
-        private val webviewLoadingCallback: WebviewLoadingCallback
-    ) : WebViewClient() {
+    private class CSSOWebViewClient(private val context: Context, private val webviewLoadingCallback: WebviewLoadingCallback) : WebViewClient() {
         override fun shouldOverrideUrlLoading(
             view: WebView,
             url: String
@@ -361,37 +331,22 @@ class CSSOWebViewActivity :
             return urlLoading(view, request.url)
         }
 
-        // shouldOverrideUrlLoading 在部分版本不會對 302 轉導觸發，
-        // onPageStarted 也會再攔一次，用此旗標避免重複開啟
-        private var appLinkHandled = false
-
-        private fun handleAppLink(uri: Uri): Boolean {
-            if (appLinkHandled) return true
-            appLinkHandled = true
-            try {
-                val intent = Intent(context, AppLinksEntryActivity::class.java).apply {
-                    data = uri
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                }
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Timber.e(e, "導向 AppLinksEntryActivity 失敗")
-            } finally {
-                if (context is Activity) {
-                    context.finish()
-                }
-            }
-            return true
-        }
-
         private fun urlLoading(view: WebView, uri: Uri): Boolean {
             if (Utils.isAppLink(uri)) {
-                return handleAppLink(uri)
-            }
-
-            // Garmin 授權流程交給 WebView 自己導頁，不要接手 loadUrl（會把登入的 POST 變成 GET）
-            if (isGarmin && Utils.isGarminHost(uri.host)) {
-                return false
+                try {
+                    val intent = Intent(context, AppLinksEntryActivity::class.java).apply {
+                        data = uri
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    }
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Timber.e(e, "導向 AppLinksEntryActivity 失敗")
+                } finally {
+                    if (context is Activity) {
+                        context.finish()
+                    }
+                }
+                return true
             }
 
             val cssoURL = getEnvironmentConfig().cssoUrl.toUri()
@@ -440,15 +395,7 @@ class CSSOWebViewActivity :
             val uri = url?.toUri() ?: return
             val host = uri.host?.lowercase() ?: return
 
-            // 302 轉導未觸發 shouldOverrideUrlLoading 時的備援：在頁面真正載入前攔下 callback
-            if (Utils.isAppLink(uri)) {
-                view?.stopLoading()
-                handleAppLink(uri)
-                return
-            }
-
-            // Garmin 綁定時額外放行 garmin.com，其他情境維持原本白名單
-            val isAllowed = Utils.isAllowedHost(host) || (isGarmin && Utils.isGarminHost(host))
+            val isAllowed = Utils.isAllowedHost(host)
             if (!isAllowed) {
                 view?.stopLoading()
                 unSafeUrl(url)

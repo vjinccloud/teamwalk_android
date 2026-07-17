@@ -371,17 +371,11 @@ object Utils {
         }
     }
 
-    fun isGarminHost(host: String?): Boolean {
-        val h = host?.lowercase() ?: return false
-        return h == Config.GARMIN_COM_HOST_SUFFIX || h.endsWith(".${Config.GARMIN_COM_HOST_SUFFIX}")
-    }
-
     fun isAppLink(uri: Uri): Boolean {
         if (uri.scheme != "https") return false
         if (uri.host != MyApplication.context.getString(R.string.app_link_host)) return false
 
         return when (uri.path) {
-            "/webconnectgarmin",
             "/home",
             "/login",
             "/loginsuccess",
