@@ -204,17 +204,45 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      */
     override fun attachBaseContext(newBase: Context) {
         val config = Configuration(newBase.resources.configuration)
-        config.fontScale = 1.0f
-        config.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
+        lockDisplayConfig(config)
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
     override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
-        overrideConfiguration?.let {
-            it.fontScale = 1.0f
-            it.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
-        }
+        overrideConfiguration?.let { lockDisplayConfig(it) }
         super.applyOverrideConfiguration(overrideConfiguration)
+    }
+
+    /**
+     * screenWidthDp / screenHeightDp / smallestScreenWidthDp 是系統用「當下的 density」
+     * 從實體 px 除出來的。只改 densityDpi 而不同步換算這三個值，系統就會以為螢幕比實際寬
+     * （使用者把「顯示大小」調小時 density 變小、dp 值變大，我們又把 density 拉回原廠值），
+     * 導致 DisplayMetrics 算出來的可用寬度大於實體螢幕。
+     *
+     * 症狀：AlertDialog 的 DecorView 寬度是用這組被污染的 metrics 算的，會超出螢幕右緣，
+     * 訊息文字被切掉、「確定」鈕整顆跑到畫面外點不到（0003296 客訴）。
+     * 實測 1080x2412 / 480dpi 機器把顯示大小調到 400dpi：dialog 寬 1231px > 螢幕 1080px。
+     */
+    private fun lockDisplayConfig(config: Configuration) {
+        val stableDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
+        // 使用者調整「顯示大小」後的實際 density，dp 欄位就是用這個值除出來的
+        val userDpi = Resources.getSystem().displayMetrics.densityDpi
+
+        config.fontScale = 1.0f
+        config.densityDpi = stableDpi
+
+        if (userDpi <= 0 || userDpi == stableDpi) return
+
+        val ratio = userDpi.toFloat() / stableDpi
+        if (config.screenWidthDp > 0) {
+            config.screenWidthDp = Math.round(config.screenWidthDp * ratio)
+        }
+        if (config.screenHeightDp > 0) {
+            config.screenHeightDp = Math.round(config.screenHeightDp * ratio)
+        }
+        if (config.smallestScreenWidthDp > 0) {
+            config.smallestScreenWidthDp = Math.round(config.smallestScreenWidthDp * ratio)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
