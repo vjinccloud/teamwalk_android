@@ -195,10 +195,11 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      *   - densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE  → 鎖「顯示大小」
      *     (DENSITY_DEVICE_STABLE 是裝置出廠原始密度，不被 user 設定影響)
      *
-     * 雙保險：
-     *   1. attachBaseContext 用 createConfigurationContext 從 base context 直接給乾淨值
-     *   2. applyOverrideConfiguration 攔截任何後續系統 / AppCompat 套進來的 override
-     *      （night mode、locale、orientation 等情境會觸發）
+     * 實際生效的只有 attachBaseContext 這條路：用 createConfigurationContext 從 base context
+     * 直接給乾淨值，AppCompat 的 generateConfigDelta 會原封不動帶走這幾個欄位。
+     *
+     * 注意：下面的 applyOverrideConfiguration 覆寫其實不會被呼叫（見該處說明），
+     * 不要把它當成第二道保險而放寬 attachBaseContext 的處理。
      *
      * WebView 內網頁文字由 webSettings.textZoom = 100 處理（#0003003），不受這個影響。
      */
@@ -208,6 +209,13 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
+    /**
+     * 保留但實際上是死路：Activity 的 base context 是 ContextImpl（不是 ContextThemeWrapper），
+     * AppCompatDelegateImpl 三個呼叫點都被 `instanceof ContextThemeWrapper` 擋掉，framework
+     * 本身也沒有任何呼叫者。而且 ContextThemeWrapper.applyOverrideConfiguration 只能在
+     * getResources() 之前呼叫一次，本來就不可能拿來「攔截後續變更」。
+     * 真正生效的鎖在 attachBaseContext。
+     */
     override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
         overrideConfiguration?.let { lockDisplayConfig(it) }
         super.applyOverrideConfiguration(overrideConfiguration)
@@ -225,8 +233,11 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
      */
     private fun lockDisplayConfig(config: Configuration) {
         val stableDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
-        // 使用者調整「顯示大小」後的實際 density，dp 欄位就是用這個值除出來的
-        val userDpi = Resources.getSystem().displayMetrics.densityDpi
+        // 取這份 config 自己的 density，不要用 Resources.getSystem()（那是「預設顯示器」的
+        // 全域值，外接螢幕 / 桌面模式時會跟這份 config 描述的不是同一個螢幕）。
+        // 用自己的值也順便保證這個函式可重入：跑過一次後 densityDpi 已是 stableDpi，
+        // 再跑一次會在下面直接 return，不會重複套用比例。
+        val userDpi = config.densityDpi
 
         config.fontScale = 1.0f
         config.densityDpi = stableDpi
@@ -243,6 +254,36 @@ abstract class BaseActivity<VB : ViewBinding>(private val inflateVB: (LayoutInfl
         if (config.smallestScreenWidthDp > 0) {
             config.smallestScreenWidthDp = Math.round(config.smallestScreenWidthDp * ratio)
         }
+        reduceScreenLayoutSize(config)
+    }
+
+    /**
+     * screenLayout 的 SIZE 級距（small/normal/large/xlarge）也是系統依「當下的 density」
+     * 算出來的，換算了 dp 欄位就必須跟著重算，否則 config 仍然自相矛盾。
+     *
+     * 例：Pixel 8 Pro（1344x2992）預設 448dp 寬屬 NORMAL，使用者把顯示大小調到最小時
+     * 系統算出 527dp 並把級距標成 LARGE。我們把 dp 換算回 448 卻留著 LARGE，資源系統就會
+     * 挑到 framework 的 values-large（dialog 寬度 55%/80%，而非 values 的 65%/95%），
+     * 對話框寬度與沒調過顯示大小的同型機器不一致。
+     *
+     * 門檻沿用 AOSP Configuration.reduceScreenLayout()，只覆寫 SIZE 那幾個 bit，
+     * LONG / RTL / ROUND 等其他 bit 原樣保留。
+     */
+    private fun reduceScreenLayoutSize(config: Configuration) {
+        val widthDp = config.screenWidthDp
+        val heightDp = config.screenHeightDp
+        if (widthDp <= 0 || heightDp <= 0) return
+
+        val shortDp = minOf(widthDp, heightDp)
+        val longDp = maxOf(widthDp, heightDp)
+        val size = when {
+            longDp < 470 -> Configuration.SCREENLAYOUT_SIZE_SMALL
+            longDp >= 960 && shortDp >= 720 -> Configuration.SCREENLAYOUT_SIZE_XLARGE
+            longDp >= 640 && shortDp >= 480 -> Configuration.SCREENLAYOUT_SIZE_LARGE
+            else -> Configuration.SCREENLAYOUT_SIZE_NORMAL
+        }
+        config.screenLayout =
+            (config.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK.inv()) or size
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
