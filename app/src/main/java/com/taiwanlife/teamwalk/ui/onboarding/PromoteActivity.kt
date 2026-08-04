@@ -82,7 +82,10 @@ class PromoteActivity :
             toAvatarActivity()
         }
 
-        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
+        observeOnLifeCycle(
+            onBoardingViewModel.saveLandingInfoFlow,
+            onError = { releaseSubmitLock() }
+        ) {
             val intent = Intent(this, AvatarActivity::class.java)
             intent.putExtra(KEY_USER_INFO, getGson().toJson(userInfo))
             startActivity(intent)
@@ -90,7 +93,7 @@ class PromoteActivity :
     }
 
     fun toAvatarActivity() {
-        onBoardingViewModel.saveLandingInfo(userInfo)
+        saveLandingInfoOnce(viewBinding.onboardingNextButton)
     }
 
     private fun setDialog() {

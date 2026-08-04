@@ -71,7 +71,10 @@ class AvatarActivity :
             toConnectActivity()
         }
 
-        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
+        observeOnLifeCycle(
+            onBoardingViewModel.saveLandingInfoFlow,
+            onError = { releaseSubmitLock() }
+        ) {
             val intent = Intent(this, ConnectActivity::class.java)
             intent.putExtra(KEY_USER_INFO, getGson().toJson(userInfo))
             startActivity(intent)
@@ -80,7 +83,7 @@ class AvatarActivity :
 
 
     fun toConnectActivity() {
-        onBoardingViewModel.saveLandingInfo(userInfo)
+        saveLandingInfoOnce(viewBinding.onboardingNextButton)
     }
 
     private fun setAvatars() {

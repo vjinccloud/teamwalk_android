@@ -24,6 +24,9 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
 
     override val statusBarColor: Int = android.R.color.transparent
 
+    private var isSubmitting = false
+    private var lockedButton: View? = null
+
     override fun onLastCreateBaseActivity(
         view: View,
         savedInstanceState: Bundle?
@@ -33,6 +36,35 @@ abstract class OnBoardingActivity<VB : ViewBinding>(private val inflateVB: (Layo
         }
 
         OnBoardingActivityManage.add(this)
+    }
+
+    /**
+     * 送出 landing 資料。送出期間把「下一步」鎖起來。
+     *
+     * 這幾頁的跳頁不是點下去就跳，是「打 API → flow 回來 → startActivity」，
+     * 所以連點兩下會送出兩次 API、疊出兩個 Activity（使用者會看到跳兩頁、要返回兩次）。
+     *
+     * 解鎖時機有兩個，缺一不可：
+     *   - onResume()：從下一頁返回時
+     *   - releaseSubmitLock()：API 失敗時，由各頁的 observeOnLifeCycle(onError = ...) 呼叫
+     * 少了後者，API 一失敗按鈕就永久按不動，比連點更嚴重。
+     */
+    protected fun saveLandingInfoOnce(nextButton: View) {
+        if (isSubmitting) return
+        isSubmitting = true
+        lockedButton = nextButton
+        nextButton.isEnabled = false
+        onBoardingViewModel.saveLandingInfo(userInfo)
+    }
+
+    protected fun releaseSubmitLock() {
+        isSubmitting = false
+        lockedButton?.isEnabled = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        releaseSubmitLock()
     }
 
     override fun onDestroy() {

@@ -145,12 +145,14 @@
         <activity
             android:name=".ui.onboarding.AvatarActivity"
             android:configChanges="orientation|keyboardHidden"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".ui.onboarding.ConnectActivity"
             android:configChanges="orientation|keyboardHidden"
             android:exported="false"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
 

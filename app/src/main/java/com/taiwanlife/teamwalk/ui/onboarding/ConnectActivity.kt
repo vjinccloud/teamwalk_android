@@ -117,7 +117,10 @@ class ConnectActivity :
         }
         setCheckBoxAndNext()
 
-        observeOnLifeCycle(onBoardingViewModel.saveLandingInfoFlow) {
+        observeOnLifeCycle(
+            onBoardingViewModel.saveLandingInfoFlow,
+            onError = { releaseSubmitLock() }
+        ) {
             debugToast(R.string.onboarding_connect_done)
 
             // 有綁定完的話需要通知首頁做重新整理才會正確顯示綁定裝置
@@ -178,7 +181,7 @@ class ConnectActivity :
     }
 
     fun saveUserAndFinishAll() {
-        onBoardingViewModel.saveLandingInfo(userInfo)
+        saveLandingInfoOnce(viewBinding.onboardingNextButton)
     }
 
     private fun bindingRemoved(deviceType: DeviceType) {
