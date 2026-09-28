@@ -17,9 +17,16 @@ import timber.log.Timber
  * 等於外洩使用者憑證。API 軌跡改由 [com.taiwanlife.teamwalk.remote.interceptor.CrashlyticsApiInterceptor]
  * 送出，只帶 method 與 path。
  *
+ * 網址的 query 一律拿掉只留路徑：MyWebView / CSSOWebViewActivity 會印出完整載入網址，
+ * Garmin / Fitbit 綁定導回的 ?code=、CSSO 導回的 ?ticket= 都是一次性憑證，不能送出去。
+ *
  * ERROR 等級且帶 Throwable 的會額外以非致命錯誤回報，在 Console 上獨立成一群。
  */
 class CrashlyticsTree : Timber.Tree() {
+
+    companion object {
+        private val URL_QUERY = Regex("""\?\S*""")
+    }
 
     private val crashlytics = FirebaseCrashlytics.getInstance()
 
@@ -37,7 +44,8 @@ class CrashlyticsTree : Timber.Tree() {
             Log.ASSERT -> "A"
             else -> "?"
         }
-        crashlytics.log(if (tag.isNullOrEmpty()) "$level: $message" else "$level/$tag: $message")
+        val safeMessage = message.replace(URL_QUERY, "?…")
+        crashlytics.log(if (tag.isNullOrEmpty()) "$level: $safeMessage" else "$level/$tag: $safeMessage")
 
         if (priority >= Log.ERROR && t != null) {
             crashlytics.recordException(t)
