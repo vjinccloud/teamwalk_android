@@ -8,6 +8,7 @@ import com.taiwanlife.teamwalk.remote.FitbitRepository
 import com.taiwanlife.teamwalk.remote.GarminRepository
 import com.taiwanlife.teamwalk.remote.Repository
 import com.taiwanlife.teamwalk.remote.interceptor.ApiLoggingInterceptor
+import com.taiwanlife.teamwalk.remote.interceptor.CrashlyticsApiInterceptor
 import com.taiwanlife.teamwalk.remote.interceptor.TokenInterceptor
 import com.taiwanlife.teamwalk.remote.service.APIService
 import com.taiwanlife.teamwalk.remote.service.CssoService
@@ -50,6 +51,12 @@ val appModule = module {
 
         if (BuildConfig.ENABLE_API_LOG) {
             clientBuilder.addInterceptor(ApiLoggingInterceptor())
+        }
+
+        // 一律掛載，不跟著 ENABLE_API_LOG 走：那個旗標在 release 是 false，
+        // 跟著走的話正式機收不到任何 API 失敗回報。
+        if (BuildConfig.ENABLE_CRASHLYTICS) {
+            clientBuilder.addInterceptor(CrashlyticsApiInterceptor())
         }
 
         clientBuilder.build()

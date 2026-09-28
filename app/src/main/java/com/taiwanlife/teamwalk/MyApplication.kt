@@ -16,7 +16,10 @@ import com.taiwanlife.teamwalk.Config.CHANNEL_NAME_FOR_BADGE
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.taiwanlife.teamwalk.di.appModule
+import com.taiwanlife.teamwalk.utils.AppUuidManager
+import com.taiwanlife.teamwalk.utils.CrashlyticsTree
 import com.taiwanlife.teamwalk.utils.SecuredPreferenceStoreManager
 import com.taiwanlife.teamwalk.utils.WafManager
 import org.koin.core.context.startKoin
@@ -84,6 +87,13 @@ class MyApplication : Application() {
             Timber.plant(Timber.DebugTree())
         }
 
+        // 刻意不跟 DebugTree 一樣綁 ENABLE_API_LOG：那個旗標在 release 是 false，
+        // 綁上去等於正式機完全沒接 Crashlytics。
+        if (BuildConfig.ENABLE_CRASHLYTICS) {
+            initCrashlytics()
+            Timber.plant(CrashlyticsTree())
+        }
+
         val koinApp = startKoin {
             modules(appModule)
         }
@@ -112,5 +122,27 @@ class MyApplication : Application() {
                 wafManager.check()
             }
         })
+
+        // 接線驗證用，平常 ENABLE_CRASHLYTICS_TEST 是 false 不會走到這裡
+        if (BuildConfig.ENABLE_CRASHLYTICS_TEST) {
+            throw RuntimeException("Crashlytics 接線驗證用的測試 crash")
+        }
+    }
+
+    /**
+     * 用 appUuid 當 Crashlytics 的使用者識別，不用會員帳號。
+     *
+     * appUuid 是既有的 [AppUuidManager] 產的 32 碼 hex，登入時本來就會送給後端，
+     * 所以出事要對照回是哪個使用者由後端查即可，Firebase 上不必留個資。
+     */
+    private fun initCrashlytics() {
+        FirebaseCrashlytics.getInstance().apply {
+            setCrashlyticsCollectionEnabled(true)
+            setUserId(AppUuidManager.getOrCreate())
+            setCustomKey("env", BuildConfig.BUILD_TYPE)
+            setCustomKey("version", "${BuildConfig.VERSION_NAME} (vc${BuildConfig.VERSION_CODE})")
+            setCustomKey("build", BuildConfig.GIT_HASH)
+            setCustomKey("api_url", getString(R.string.api_url))
+        }
     }
 }
