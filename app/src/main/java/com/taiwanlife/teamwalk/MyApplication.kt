@@ -122,11 +122,6 @@ class MyApplication : Application() {
                 wafManager.check()
             }
         })
-
-        // 接線驗證用，平常 ENABLE_CRASHLYTICS_TEST 是 false 不會走到這裡
-        if (BuildConfig.ENABLE_CRASHLYTICS_TEST) {
-            throw RuntimeException("Crashlytics 接線驗證用的測試 crash")
-        }
     }
 
     /**

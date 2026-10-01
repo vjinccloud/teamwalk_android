@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
@@ -51,6 +52,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
     companion object {
         const val QUERY_PARAM_SERVICE_ID = "serviceId"
         const val QUERY_PARAM_TICKET = "ticket"
+
+        // Crashlytics 測試暗門：版本號連點幾下觸發
+        private const val CRASH_TEST_TAPS = 7
     }
 
     override val statusBarColor: Int = R.color.white
@@ -178,6 +182,11 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+
+        // 0003273 只在 debug 版（PM 測 SIT 用的 DebugTeamWalk）開暗門，UAT / 正式版不會有
+        if (BuildConfig.BUILD_TYPE == "debug") {
+            setupCrashTestTrigger()
         }
 
         var showSecurity =
@@ -712,6 +721,31 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             sb.setCharAt(i, '\u0000') // 逐個字元覆寫為 0
         }
         sb.setLength(0)
+    }
+
+    /**
+     * 0003273 Crashlytics 測試暗門：登入頁版本號 1 秒內連點 [CRASH_TEST_TAPS] 下就故意當機，
+     * 給 PM 自己在手機上確認 Crashlytics 有收到 crash 和當機前的操作紀錄。
+     *
+     * 放在登入頁是因為登入後整頁都是 WebView，沒有原生畫面可掛。登出回到登入頁時同一次
+     * 開 App 的紀錄都還在，所以先登入操作、登出、再連點，Console 上就看得到完整軌跡。
+     */
+    private fun setupCrashTestTrigger() {
+        var tapCount = 0
+        var lastTapAt = 0L
+        viewBinding.loginBuildAppv.setOnClickListener {
+            val now = SystemClock.elapsedRealtime()
+            tapCount = if (now - lastTapAt > 1_000L) 1 else tapCount + 1
+            lastTapAt = now
+
+            val remaining = CRASH_TEST_TAPS - tapCount
+            if (remaining <= 0) {
+                Timber.w("手動觸發 Crashlytics 測試當機")
+                throw RuntimeException("Crashlytics 測試：手動觸發的當機（登入頁版本號連點）")
+            } else if (remaining <= 3) {
+                toast("再點 $remaining 下會觸發測試當機")
+            }
+        }
     }
 
     private fun getPatternTicketFromWebview(

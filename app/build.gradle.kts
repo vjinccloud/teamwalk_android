@@ -33,9 +33,6 @@ android {
         // Crashlytics 蒐集開關：四個環境都開。要關掉某個環境，在該 buildType 內
         // 覆寫同名 buildConfigField 即可。
         buildConfigField("boolean", "ENABLE_CRASHLYTICS", "true")
-        // 接線驗證用的測試 crash。平常必須是 false，只有要讓 Console 收第一筆
-        // 資料（脫離「新增 SDK」引導頁）時才臨時打開。
-        buildConfigField("boolean", "ENABLE_CRASHLYTICS_TEST", "false")
         // 打包當下的 git short hash，crash 報告上可對回是哪一版 code
         buildConfigField("String", "GIT_HASH", "\"${gitShortHash()}\"")
 
