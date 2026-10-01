@@ -740,12 +740,18 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
 
             val remaining = CRASH_TEST_TAPS - tapCount
             if (remaining <= 0) {
-                Timber.w("手動觸發 Crashlytics 測試當機")
-                throw RuntimeException("Crashlytics 測試：手動觸發的當機（登入頁版本號連點）")
+                triggerTestCrash()
             } else if (remaining <= 3) {
                 toast("再點 $remaining 下會觸發測試當機")
             }
         }
+    }
+
+    // 獨立成具名函式，Crashlytics 的問題標題才會是 LoginActivity.triggerTestCrash，
+    // 不然會顯示點擊事件被編譯器產生的 $r8$lambda$... 名字
+    private fun triggerTestCrash() {
+        Timber.w("手動觸發 Crashlytics 測試當機")
+        throw RuntimeException("Crashlytics 測試：手動觸發的當機（登入頁版本號連點）")
     }
 
     private fun getPatternTicketFromWebview(
