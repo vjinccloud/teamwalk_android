@@ -27,8 +27,8 @@ android {
         applicationId = "com.taiwanlife.teamwalk"
         minSdk = 29
         targetSdk = 36
-        versionCode = 89
-        versionName = "3.0.49"
+        versionCode = 90
+        versionName = "3.0.50"
 
         // Crashlytics 蒐集開關：四個環境都開。要關掉某個環境，在該 buildType 內
         // 覆寫同名 buildConfigField 即可。
