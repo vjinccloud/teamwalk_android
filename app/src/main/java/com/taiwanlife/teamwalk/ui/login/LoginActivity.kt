@@ -184,8 +184,8 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>({ ActivityLoginBinding.
             e.printStackTrace()
         }
 
-        // 0003273 只在 debug 版（PM 測 SIT 用的 DebugTeamWalk）開暗門，UAT / 正式版不會有
-        if (BuildConfig.BUILD_TYPE == "debug") {
+        // 0003273 測試當機暗門：debug 一律開，UAT 要打包時加 -PcrashTestTrigger=true 才開，正式版一律沒有
+        if (BuildConfig.ENABLE_CRASH_TEST_TRIGGER) {
             setupCrashTestTrigger()
         }
 

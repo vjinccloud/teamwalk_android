@@ -19,6 +19,12 @@ fun gitShortHash(): String {
     }
 }
 
+/**
+ * 0003273 登入頁版本號連點的測試當機暗門。打包時加 -PcrashTestTrigger=true 就會開，
+ * 用來給 PM 一顆「有暗門的 UAT」測 Crashlytics。debug 一律開、release 一律關，不受這個參數影響。
+ */
+val crashTestTrigger = findProperty("crashTestTrigger")?.toString() == "true"
+
 android {
     namespace = "com.taiwanlife.teamwalk"
     compileSdk = 36
@@ -35,6 +41,8 @@ android {
         buildConfigField("boolean", "ENABLE_CRASHLYTICS", "true")
         // 打包當下的 git short hash，crash 報告上可對回是哪一版 code
         buildConfigField("String", "GIT_HASH", "\"${gitShortHash()}\"")
+        // 測試當機暗門，預設看 -PcrashTestTrigger；debug / release 在各自 buildType 內寫死
+        buildConfigField("boolean", "ENABLE_CRASH_TEST_TRIGGER", crashTestTrigger.toString())
 
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,6 +64,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
 
             buildConfigField("boolean", "ENABLE_API_LOG", "true")
+            // PM 測 SIT 用的就是 debug 版，暗門一律開
+            buildConfigField("boolean", "ENABLE_CRASH_TEST_TRIGGER", "true")
 
             // APP 名稱
             resValue("string", "app_name", "DebugTeamWalk")
@@ -163,6 +173,8 @@ android {
             )
 
             buildConfigField("boolean", "ENABLE_API_LOG", "false")
+            // 正式版一律不能有測試當機暗門，就算打包時誤加 -PcrashTestTrigger 也一樣
+            buildConfigField("boolean", "ENABLE_CRASH_TEST_TRIGGER", "false")
 
             // APP 名稱
             resValue("string", "app_name", "TeamWalk")
@@ -215,13 +227,17 @@ android {
     // 範例：TeamWalk-uat-v3.0.46-vc85-fce9e3f.apk
     // 同版號的多次 debug build 可以靠最後 7 碼 hash 區分對應哪個 commit，
     // 修 bug 期間就不用為了區分版本一直升版。
+    // 有加 -PcrashTestTrigger 打包的 sit / uat 檔名結尾多 -crashtest，避免跟正常版搞混
+    // （debug 本來就一律有暗門、release 一律沒有，所以不加）。
     applicationVariants.all {
         val variant = this
         val hash = gitShortHash()
+        val crashTestSuffix =
+            if (crashTestTrigger && variant.buildType.name !in setOf("debug", "release")) "-crashtest" else ""
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
             output.outputFileName =
-                "TeamWalk-${variant.buildType.name}-v${variant.versionName}-vc${variant.versionCode}-$hash.apk"
+                "TeamWalk-${variant.buildType.name}-v${variant.versionName}-vc${variant.versionCode}-$hash$crashTestSuffix.apk"
         }
     }
 }
